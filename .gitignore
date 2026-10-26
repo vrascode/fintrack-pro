@@ -1,0 +1,16 @@
+node_modules/
+.cache/
+.expo/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.log
+*.tsbuildinfo
+apps/mobile/android/
+apps/mobile/ios/
+apps/api/generated/
+.DS_Store

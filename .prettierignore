@@ -1,0 +1,8 @@
+node_modules
+.cache
+.expo
+dist
+coverage
+package-lock.json
+apps/api/generated
+test-results

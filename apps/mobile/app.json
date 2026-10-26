@@ -1,0 +1,14 @@
+{
+  "expo": {
+    "name": "FinTrack Pro",
+    "slug": "fintrack-pro",
+    "scheme": "fintrack-pro",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.fintrackpro.app" },
+    "android": { "package": "com.fintrackpro.app" },
+    "web": { "bundler": "metro", "output": "single", "name": "FinTrack Pro", "lang": "pt-BR" }
+  }
+}
