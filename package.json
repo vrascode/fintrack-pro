@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "npm run build -w @fintrack/shared && npm run build -w @fintrack/api",
-    "typecheck": "npm run build -w @fintrack/shared && tsc --noEmit -p apps/api && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
+    "typecheck": "npm run build && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

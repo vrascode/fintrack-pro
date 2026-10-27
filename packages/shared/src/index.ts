@@ -1,6 +1,7 @@
 import { z } from 'zod';
 export * from './money.ts';
 export * from './calendar.ts';
+export * from './identity.ts';
 
 export const preferencesSchema = z
   .object({
