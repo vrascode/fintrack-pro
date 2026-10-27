@@ -62,6 +62,9 @@ npm run bundle         # Android, iOS and web exports
 npm run test:e2e       # Headless Edge: desktop and mobile browser viewports
 ```
 
+GitHub Actions runs these checks, native web/mobile exports and both browser
+viewports on pushes and pull requests to `main`. See the [CI workflow](.github/workflows/ci.yml).
+
 E2E requires an up-to-date bundle and installed Microsoft Edge, starts its own
 server on port 4173 and closes it after the run. Manual preview:
 `node scripts/serve.mjs`. Native exports and browser viewports do not establish

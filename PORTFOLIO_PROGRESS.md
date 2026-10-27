@@ -2,6 +2,56 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Continuous-development audit and CI — 2026-10-27 / Auditoria e CI
+
+Audited the repository at `89ec17e`. CI was the highest-value missing improvement:
+there was no `.github/workflows` configuration, so pull requests did not run the
+existing quality and browser checks automatically. Added a least-privilege CI
+workflow for pushes and pull requests to `main`. It uses the Node 24 project
+runtime, `npm ci`, `npm run check`, all Android/iOS/web exports, and desktop/mobile
+Microsoft Edge E2E. The Windows 2025 runner supplies the Edge channel already used
+by Playwright. The only two actions are pinned to verified full commit SHAs. The
+workflow requests `contents: read` and uses no secrets or database access.
+
+The ten audit candidates were checked against implemented behavior:
+
+| Candidate                         | Audit result                                                                                                                                                                                                     |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication coverage           | Password hashing, contracts, opaque tokens, expiry, rotation, replay and revocation already have focused tests. Database integration is already authored but awaits Prisma/PostgreSQL. No duplicate tests added. |
+| API error handling                | The only HTTP endpoint is `/v1/health`; it has an HTTP test and Nest’s standard errors. Auth and financial routes are not mounted, so global mutation/error machinery has no real flows to protect yet.          |
+| Transaction search/filtering      | Activity is an explicit empty state. No transactions or transaction API exist, so a filter would invent functionality.                                                                                           |
+| CSV export                        | No stored transactions exist to export. Defer until the transaction ledger is implemented.                                                                                                                       |
+| Financial edge tests              | Existing money and calendar tests cover integer bounds, overflow, rounding, negative values, installment conservation, leap years, date limits and time zones.                                                   |
+| Reusable dashboard UI             | Shared `Screen`, `Card`, `Button`, `Field` and theme components already exist. Financial dashboard data is not yet available.                                                                                    |
+| Loading/empty/error states        | Shared accessible state components and preference recovery/error flows exist. Empty-state E2E covers activity, accounts and cards.                                                                               |
+| GitHub Actions CI                 | Missing. Implemented in `.github/workflows/ci.yml`.                                                                                                                                                              |
+| API documentation                 | The health endpoint and truthful scope are already documented in both READMEs. OpenAPI would describe just one liveness endpoint; add it with the auth API routes.                                               |
+| Transaction rendering performance | No transaction list or large result set exists, so profiling and premature list optimization have no target.                                                                                                     |
+
+Validation: `npm.cmd run check` passed (lint, strict types, build, 27/27 unit
+tests and formatting); `npm.cmd run bundle` passed Android, iOS and web exports;
+`npm.cmd run test:e2e` passed 8/8 in desktop/mobile Edge. `prettier --check
+.github/workflows/ci.yml README.md README.pt-BR.md PORTFOLIO_PROGRESS.md` passed.
+The CI workflow YAML parsed locally. No Prisma migration, real database suite,
+fresh npm audit or GitHub-hosted Actions run is claimed. Next: publish and inspect
+the GitHub-hosted workflow result; turn on a branch protection check after Actions
+has produced its first successful run.
+
+## Auditoria de desenvolvimento contínuo e CI — 2026-10-27
+
+A única lacuna imediata foi CI: o repositório ainda não tinha um workflow do GitHub
+Actions. Adicionei execução de instalação reproduzível, lint, tipos, build, testes,
+formatação, exports Android/iOS/web e os oito cenários E2E em Windows 2025 com Edge.
+As actions usam hashes completos verificados; o token do workflow só lê o conteúdo
+do repositório e nenhum segredo ou banco é acessado.
+
+Os testes extensos de autenticação, cálculos monetários, calendário, componentes,
+estados visuais e documentação existente foram preservados sem duplicação. Busca,
+filtros, CSV e otimização de listas ficam para depois do CRUD transacional. A API
+oferece apenas saúde do processo, então não há fluxos para tratar ou documentar com
+erros de negócio ou OpenAPI por enquanto. Confira o resultado de CI no GitHub antes
+de exigir esse status na proteção da branch.
+
 ## Verified GitHub publication — 2026-10-27 / Publicação confirmada
 
 The existing work was published to

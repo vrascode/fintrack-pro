@@ -63,6 +63,9 @@ npm run bundle         # Exports Android, iOS e web
 npm run test:e2e       # Edge sem janela: tamanhos desktop e mobile
 ```
 
+O GitHub Actions executa essas verificações, exports mobile/web e os dois tamanhos
+de navegador em pushes e pull requests para `main`. Consulte o [workflow de CI](.github/workflows/ci.yml).
+
 E2E exige bundle atualizado e Microsoft Edge instalado, inicia seu próprio servidor
 na porta 4173 e o encerra ao final. Preview manual: `node scripts/serve.mjs`.
 Exports e testes de navegador não validam funcionamento nativo, biometria nem
