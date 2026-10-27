@@ -1,0 +1,70 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuthTokenPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model User {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String      @unique @db.VarChar(254)
+  passwordHash    String      @db.VarChar(255)
+  emailVerifiedAt DateTime?   @db.Timestamptz(3)
+  createdAt       DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
+  sessions        Session[]
+  authTokens      AuthToken[]
+}
+
+model Session {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String         @db.Uuid
+  deviceName        String         @db.VarChar(100)
+  accessTokenHash   String         @unique @db.VarChar(64)
+  accessExpiresAt   DateTime       @db.Timestamptz(3)
+  expiresAt         DateTime       @db.Timestamptz(3)
+  absoluteExpiresAt DateTime       @db.Timestamptz(3)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(3)
+  lastUsedAt        DateTime       @default(now()) @db.Timestamptz(3)
+  revokedAt         DateTime?      @db.Timestamptz(3)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokens     RefreshToken[]
+
+  @@index([userId, revokedAt])
+  @@index([absoluteExpiresAt])
+}
+
+model RefreshToken {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId  String    @db.Uuid
+  tokenHash  String    @unique @db.VarChar(64)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  expiresAt  DateTime  @db.Timestamptz(3)
+  consumedAt DateTime? @db.Timestamptz(3)
+  session    Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model AuthToken {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String           @db.Uuid
+  purpose    AuthTokenPurpose
+  tokenHash  String           @unique @db.VarChar(64)
+  createdAt  DateTime         @default(now()) @db.Timestamptz(3)
+  expiresAt  DateTime         @db.Timestamptz(3)
+  consumedAt DateTime?        @db.Timestamptz(3)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+}

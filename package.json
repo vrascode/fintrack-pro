@@ -16,13 +16,18 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm run build && node --import tsx --test tests/*.test.ts",
+    "test": "npm run build && node --import tsx --test tests/*.test.ts tests/*.test.mjs",
     "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
     "api": "npm run start -w @fintrack/api",
     "mobile": "npm run start -w @fintrack/mobile",
     "web": "npm run web -w @fintrack/mobile",
     "bundle": "npm run bundle -w @fintrack/mobile",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:validate": "node scripts/database.mjs validate",
+    "db:generate": "node scripts/database.mjs generate",
+    "db:migrate": "node scripts/database.mjs migrate",
+    "db:status": "node scripts/database.mjs status",
+    "test:integration": "npm run build && node scripts/database.mjs test"
   },
   "overrides": {
     "multer": "2.5.0"
