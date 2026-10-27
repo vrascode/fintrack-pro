@@ -1,0 +1,112 @@
+﻿# FinTrack Pro
+
+**A personal finance application built with Expo, React Native, TypeScript and NestJS.**
+
+[Português (Brasil)](README.pt-BR.md) · [Roadmap](ROADMAP.md) · [Validation log](PORTFOLIO_PROGRESS.md)
+
+FinTrack Pro is being developed for mobile devices with shared contracts, exact
+money calculations and explicit security boundaries. The current app provides
+working navigation and preferences. Phase 2 has started with an identity model
+and tested security primitives; database-backed login and financial operations
+are not available yet.
+
+## What works today
+
+| Area                 | Implemented behavior                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| App                  | Overview, activity, accounts, cards and preferences tabs; responsive layouts and honest empty states                                        |
+| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                      |
+| Domain               | Exact integer money, validated calendar dates and shared Zod contracts                                                                      |
+| API                  | NestJS `GET /v1/health`, loopback by default, process liveness only                                                                         |
+| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database |
+| Database preparation | PostgreSQL Compose configuration, Prisma 7 schema, initial SQL migration and a real-database suite; execution remains blocked               |
+
+The identity core is not connected to HTTP or persistence. No mock database is
+used to claim integration. See [database setup and remaining work](DATABASE.md).
+
+## Quick start
+
+Requirements: Node.js 24 LTS (`>=24.13.0 <25`), npm and registry access for the first
+install. Local checks used Node 24.20.0 and npm 11.19.0. Use `npm.cmd` / `npx.cmd`
+in Windows PowerShell if script policy blocks `npm.ps1`.
+
+```sh
+npm ci
+npm run build
+npm run api
+# In a second terminal
+npm run web
+# Or start Expo for a compatible device/simulator
+npm run mobile
+```
+
+Open the URL printed by Expo. In **Ajustes**, choose **Escuro**, enable
+**Ocultar valores por padrão**, then reload: both settings persist on that device.
+Storage failures are reported without claiming the change was saved.
+
+`GET http://127.0.0.1:3000/v1/health` returns:
+
+```json
+{ "service": "fintrack-api", "status": "ok", "scope": "process" }
+```
+
+Set `HOST` and `PORT` in the shell; the API does not automatically load `.env`.
+Database scripts load the root `.env` separately. [.env.example](.env.example)
+contains configuration names without credentials.
+
+## Development and validation
+
+```sh
+npm run check          # Lint, build/typecheck, local tests and formatting
+npm run bundle         # Android, iOS and web exports
+npm run test:e2e       # Headless Edge: desktop and mobile browser viewports
+```
+
+E2E requires an up-to-date bundle and installed Microsoft Edge, starts its own
+server on port 4173 and closes it after the run. Manual preview:
+`node scripts/serve.mjs`. Native exports and browser viewports do not establish
+native device, biometric or release-signing compatibility.
+
+Follow [DATABASE.md](DATABASE.md) to install the missing Prisma dependencies,
+configure separate development/test databases and run:
+
+```sh
+npm run db:validate
+npm run db:generate
+npm run db:migrate
+npm run test:integration
+```
+
+Integration is a separate required gate: it fails when prerequisites are missing,
+never falls back to the development database and does not count as a passing unit
+test. Exact results and blockers are in [the progress log](PORTFOLIO_PROGRESS.md).
+
+## Repository
+
+```text
+apps/mobile/       Expo Router UI, design system and local preferences
+apps/api/          NestJS health API, identity core, Prisma schema/migration
+packages/shared/   Runtime contracts, money and calendar primitives
+packages/config/   Strict TypeScript and lint defaults
+infra/             Local PostgreSQL services
+tests/             Domain, security, persistence and HTTP tests
+tests/integration/ PostgreSQL/Prisma integration suite
+e2e/               Browser interaction tests
+```
+
+Read the [architecture](ARCHITECTURE.md), [security review](SECURITY.md),
+[development guide](docs/en-US/DEVELOPMENT.md), [decisions](docs/adr/0001-foundation.md)
+and [research](docs/RESEARCH.md).
+
+## Project status
+
+Phase 2 is **in progress, not accepted**. Remaining work includes Prisma dependency
+installation and migration validation, a transactional identity repository, HTTP
+registration/login, email verification/recovery, account deletion, SecureStore and
+biometrics. Financial CRUD, billing, reports, notifications and AI belong to later
+phases. This is not a production-ready financial service.
+
+The current environment cannot reach npm/GitHub from the shell or write Git
+metadata. The fresh npm audit did not complete; existing transitive Expo advisories
+remain under review. No new dependency remediation, database integration, commit
+or push is claimed. Secrets, local data, caches and generated outputs stay out of Git.

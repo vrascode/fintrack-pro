@@ -1,12 +1,12 @@
 # Architecture / Arquitetura
 
-Phase 1 foundation. Future components below are plans, not delivered services.
-/ Fundação da fase 1; componentes futuros são planos, não serviços entregues.
+Phase 1 foundation and phase 2 identity core. Database-backed services remain pending.
+/ Fundação da fase 1 e núcleo da fase 2; serviços persistentes continuam pendentes.
 
 ```text
 fintrack-pro/
   apps/mobile/       Expo, React Native, Expo Router; UI and local preferences
-  apps/api/          NestJS modular API; process health in phase 1
+  apps/api/          NestJS health, identity core, Prisma schema and migration
   packages/shared/   Validated contracts, exact money and calendar primitives
   packages/config/   Shared TypeScript and lint settings
   docs/en-US/        English operating guide
@@ -32,8 +32,9 @@ flowchart LR
   cards, planning, reports and AI modules have explicit boundaries.
   / Monólito modular preserva atomicidade e limites entre módulos.
 - npm workspaces: one lockfile, strict TypeScript, default Expo Metro support.
-- TanStack Query owns server state; Zustand owns local preferences; React Hook
-  Form + Zod validate forms. AsyncStorage only holds non-sensitive settings.
+- Planned: TanStack Query for server state and React Hook Form for forms.
+  Implemented: Zustand for local preferences and Zod contracts.
+  AsyncStorage only holds non-sensitive settings.
   Tokens use SecureStore in phase 2. / Estados locais, remotos e segredos separados.
 - Shared contracts are platform-independent and validated at runtime. API prefix
   is `/v1`. No server secret can enter the shared/mobile packages.
@@ -48,6 +49,19 @@ flowchart LR
   Internal transfers are not income/expense. / Evitar dupla contagem.
 - Future AI: opt-in, minimized/aggregate payloads, cost limits and explicit
   assumptions; no financial-write credentials or tools.
+
+## Phase 2 implementation / Implementação da fase 2
+
+Identity contracts and server-only password/token/session transitions are implemented
+and unit-tested. `PasswordHasher` uses bounded asynchronous scrypt. Opaque access and
+refresh credentials are separate from the persisted digest-only state. Refresh
+transitions detect replay and require atomic repository integration before use.
+No identity HTTP routes are mounted; there is no in-memory persistence substitute.
+
+Contratos e funções de senha, tokens e transições de sessão estão implementados e
+testados. A integração exige repositório transacional PostgreSQL. Schema Prisma,
+migração e testes reais foram escritos, mas aguardam dependências e banco. Não há
+endpoints de identidade nem armazenamento em memória apresentado como integração.
 
 ## Boundaries / Limites
 

@@ -1,41 +1,342 @@
+﻿# FinTrack Pro progress / Progresso
+
+Updated / Atualizado: 2026-10-27
+
+## Publication retry — 2026-10-27 / Nova tentativa de publicação
+
+The latest request is limited to organizing and publishing existing work. The Git
+root and branch were confirmed; both origin URLs are
+`https://github.com/vrascode/fintrack-pro.git`. Review found 30 pending files:
+9 modified, 21 new, none deleted. The existing staged `.env.example` was preserved.
+The ignore rules exclude local environments, dependencies and generated outputs.
+Pattern review of 70 working files and 49 historical file contents produced 15
+flags, manually reviewed as code, schema, documentation placeholders and test data;
+no actual credentials were identified. `npm.cmd run check` passed lint, types,
+builds, all 27 tests and formatting. Both diff whitespace checks passed.
+
+`git add -- playwright.config.ts scripts/serve.mjs e2e/setup.mjs` failed with
+`.git/index.lock: Permission denied`; the lock file does not exist. The session
+profile makes `.git` read-only and does not permit permission escalation.
+`git fetch origin` failed opening `.git/FETCH_HEAD`. Both
+`git ls-remote origin refs/heads/main` and `git push origin main` failed connecting
+to GitHub port 443. No commit was created or published. HEAD and the cached
+`origin/main` remain `86c055707d614bf6aeb919acdaa83c41f2ce4ba4`; this does not verify
+the live remote. The scoped commit groups below still await a session allowing
+Git metadata writes and GitHub access. No application source was changed in this retry.
+
+A tentativa atual revisou os 30 arquivos pendentes e passou nas verificações locais,
+incluindo 27 testes. As alterações e o staging anterior foram preservados. Não há
+lock abandonado para remover: a gravação Git é bloqueada pelo perfil da sessão.
+Fetch e push falharam; nenhum novo hash ou envio é declarado. É necessário retomar
+com escrita em `.git` e acesso ao GitHub; esta sessão não permite elevar permissões.
+Os registros de desenvolvimento abaixo descrevem as verificações anteriores.
+
+## Current outcome / Resultado atual
+
+Development continued inside `C:\Projetos\fintrack-pro` only. Existing E2E work
+was preserved and validated. Phase 2 now has executable password/token/session
+primitives, 13 additional local tests, a PostgreSQL/Prisma model, initial migration
+and an integration suite that requires a real database. READMEs and operating docs
+were updated in English and Brazilian Portuguese.
+
+O desenvolvimento avançou somente no FinTrack Pro. O trabalho E2E anterior foi
+preservado e validado. A fase 2 ganhou código de senhas/tokens/sessões, 13 testes
+locais adicionais, modelo PostgreSQL/Prisma, migração e suíte para banco real.
+READMEs e guias foram atualizados nos dois idiomas. Nenhum outro projeto foi alterado.
+
+**Phase 2 is in progress, not complete.** The identity repository and HTTP auth
+remain unimplemented; the database migration and integration suite have not run
+against PostgreSQL. No mock persistence, generated lock entries or passing
+integration result was substituted for unavailable infrastructure.
+
+**Fase 2 em andamento, sem aceite.** Repositório transacional e autenticação HTTP
+seguem pendentes. Migração e integração não foram executadas no PostgreSQL.
+Não houve substituição por mocks, lockfile inventado ou aprovação fictícia.
+
+## Delivered code / Código entregue
+
+- Preserved `playwright.config.ts`, `scripts/serve.mjs`, `e2e/setup.mjs` and existing
+  foundation behavior; verified all eight browser scenarios.
+- Added strict registration/login contracts, normalized email, preserved passwords
+  with 15–128 Unicode code points and rejection of malformed surrogate input.
+- Implemented asynchronous scrypt with random salts, fixed work factors, constant-time
+  verification, missing-user derivation and bounded concurrent memory use.
+- Implemented random opaque tokens separated by purpose and persisted as digests.
+  Session transitions cover exact expiration boundaries, idle/absolute limits,
+  rotation, consumed-token replay and idempotent device revocation.
+- Added Prisma 7 configuration/schema and `202610270001_identity/migration.sql`
+  with users, sessions, refresh/action tokens, foreign keys, uniqueness and CHECKs.
+  These are source artifacts awaiting Prisma/PostgreSQL validation and Git staging.
+- Added separate loopback development/test PostgreSQL services and database commands.
+  The integration command rejects unsafe targets, requires installed dependencies,
+  reapplies migrations without reset and has no mock/skip fallback.
+- Wrote real-database tests for persistence across reconnects, constraints, concurrent
+  token consumption, rollback and cascade deletion. These tests remain **unexecuted**.
+- Fixed `typecheck` so API declarations are built before test typechecking.
+- Reworked bilingual READMEs, database/security/development guides, architecture and
+  phase 2 acceptance criteria; retained the previous progress snapshot below.
+
+Implementados contratos, derivação de senhas, tokens e transições de sessão, além
+da preparação do banco e da suíte real. O `typecheck` deixou de depender de um build
+anterior. Persistência/autenticação integradas não são declaradas concluídas.
+
+## Validation — 2026-10-27 / Validação
+
+Environment / Ambiente: Node `v24.20.0`, npm `11.19.0`, Windows PowerShell.
+Used `npm.cmd` and `npx.cmd` without changing execution policy. Existing installed
+dependencies were used; `npm ci` was not run while the registry was inaccessible.
+
+| Command / Comando                                                                                                                                     | Actual result / Resultado real                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run check` — baseline                                                                                                                        | Passed: lint, types/build, 14 tests, formatting / Aprovado                                                                                                                                                             |
+| `npm.cmd run check` — database preparation                                                                                                            | Passed: 15 tests plus lint/types/formatting / Aprovado                                                                                                                                                                 |
+| `npm.cmd run check` — first identity pass                                                                                                             | Failed: new API declaration files did not exist before test typecheck; corrected build order / Falha de ordem de build corrigida                                                                                       |
+| `npm.cmd run check` — after correction and documentation                                                                                              | Passed: zero lint warnings, strict types, builds, **27/27 tests**, formatting; zero skipped / Aprovado                                                                                                                 |
+| `npm.cmd run bundle` — final source                                                                                                                   | Android, iOS and web exports passed / Três exports aprovados                                                                                                                                                           |
+| `npm.cmd run test:e2e` — final bundle                                                                                                                 | **8/8 passed**, headless Edge, desktop/mobile viewports / Aprovado                                                                                                                                                     |
+| `npm.cmd audit --json --fetch-retries=0 --fetch-timeout=15000`                                                                                        | Exit 1: npm advisory connection failed; no fresh audit / Falha de conexão                                                                                                                                              |
+| `npm.cmd view prisma version --fetch-retries=0 --fetch-timeout=10000`                                                                                 | EACCES fetching registry metadata / Metadados indisponíveis                                                                                                                                                            |
+| `npm.cmd install --workspace @fintrack/api @prisma/client@7 @prisma/adapter-pg@7 --fetch-retries=0 --fetch-timeout=10000 --ignore-scripts --no-audit` | Exit 1: EACCES; no manifest/lockfile dependency change / Instalação bloqueada                                                                                                                                          |
+| `npm.cmd run db:validate`                                                                                                                             | Exit 1: missing `DATABASE_URL`; Prisma validation did not run / Validação não executada                                                                                                                                |
+| `npm.cmd run test:integration` — no environment                                                                                                       | Exit 1: explicit test URL required / Sem configuração de teste                                                                                                                                                         |
+| `npm.cmd run test:integration` — credential-free loopback test URL                                                                                    | Build passed, then exit 1: Prisma dependencies absent; **no database test ran** / Nenhum teste de banco executado                                                                                                      |
+| `npm.cmd ls multer node-forge zod --all`                                                                                                              | Existing multer 2.5.0 override, forge 1.4.0, CLI Zod 3.25.76, shared Zod 4.6.7 confirmed                                                                                                                               |
+| `git diff --check`                                                                                                                                    | Passed / Aprovado                                                                                                                                                                                                      |
+| `node .cache/review-sensitive.mjs`                                                                                                                    | 70 working files + 49 historical file contents inspected; 15 heuristic flags manually reviewed as code, schema, placeholder URL and reserved test emails; no actual credential identified / Revisão manual dos alertas |
+| `git ls-remote origin refs/heads/main`                                                                                                                | Failed to connect to GitHub port 443 / Falha de conexão                                                                                                                                                                |
+| `git add -- playwright.config.ts scripts/serve.mjs e2e/setup.mjs`                                                                                     | Failed: `.git/index.lock`: Permission denied / Staging bloqueado                                                                                                                                                       |
+
+For the second integration attempt, `TEST_DATABASE_URL` was temporarily set to
+`postgresql://127.0.0.1:5433/fintrack_test`, without credentials, solely to verify
+that missing dependencies fail explicitly. No connection or integration was claimed.
+
+A URL local sem credenciais foi usada apenas para confirmar a falha explícita de
+pré-requisitos; nenhuma conexão foi estabelecida. A revisão por padrões não equivale
+a scanner de segredos especializado. Bundles/navegador não validam aparelhos nativos.
+
+Bundle environment / Ambiente dos exports:
+
+```powershell
+$env:EXPO_OFFLINE = '1'
+$env:EXPO_NO_TELEMETRY = '1'
+$env:CI = '1'
+$env:TEMP = Join-Path (Get-Location) '.cache'
+$env:TMP = $env:TEMP
+npm.cmd run bundle
+npm.cmd run test:e2e
+```
+
+## Blockers and dependency review / Bloqueios e dependências
+
+1. The permission profile makes `.git` read-only. Staging failed, so no new commit
+   exists. No alternate Git directory, permission bypass or history rewrite was used.
+2. Shell access to GitHub/npm failed. The cached `origin/main` equals HEAD (0 ahead,
+   0 behind), but remote freshness could not be established. No push was attempted
+   after staging and connectivity failed.
+3. Docker, Podman, psql, postgres and initdb are unavailable on PATH. No database
+   environment variables were supplied. Prisma packages are not installed or cached.
+4. Fresh npm audit is unavailable. Advisory pages were separately checked through
+   the web tool: the existing multer version meets its patch; node-forge has no
+   patch listed; the Zod 3 dependency in Expo remains affected. See [SECURITY.md](SECURITY.md).
+   No incompatible override, downgrade or unverified dependency fix was introduced.
+
+O perfil bloqueia escrita em `.git`; conexões npm/GitHub falharam no terminal.
+Sem runtime PostgreSQL nem Prisma, a validação real permanece pendente. A consulta
+aos avisos públicos não substitui auditoria npm. O trabalho independente avançou
+apesar desses bloqueios e o lockfile foi preservado.
+
+## Pending commits / Commits pendentes
+
+Only the original commit `86c0557` (`chore: initialize FinTrack Pro project`) exists.
+No new commit or push occurred. These are **proposed groups**, not executed history:
+
+1. `test(e2e): manage preview server lifecycle in global setup`
+   — existing Playwright config, preview server and E2E setup.
+2. `feat(auth): add password hashing and session security primitives`
+   — identity contracts, password/tokens/sessions, local tests, typecheck build-order fix.
+3. `chore(db): prepare PostgreSQL schema and integration harness`
+   — Compose, Prisma config/schema/migration, database scripts/tests, environment
+   example and generated-code lint ignore. Apply the relevant package script hunks
+   separately from group 2. Validate with real Prisma/PostgreSQL before accepting it.
+4. `docs: describe implemented features and phase two validation gates`
+   — READMEs, architecture, database/security/development guides, roadmap and progress.
+
+Nenhum commit foi fabricado. O agrupamento acima serve à próxima sessão com escrita
+Git disponível; selecione os hunks de `package.json` por finalidade e valide cada
+commit antes do push autorizado para `origin/main`, sem force push.
+
+## Next concrete action / Próxima ação concreta
+
+Restore Git writes and npm/GitHub connectivity; install matching Prisma 7 packages
+and produce the real lockfile. Provision the isolated PostgreSQL services using
+[DATABASE.md](DATABASE.md), validate/generate Prisma and run migration/integration
+checks. Then implement the transactional identity repository and HTTP flows with
+ownership, throttling and concurrency tests, followed by email and native storage.
+Resolve the dependency review, make scoped validated commits and push without force.
+
+Restabelecer escrita Git e conectividade, instalar Prisma e validar migrações com
+PostgreSQL real. Depois implementar repositório transacional, fluxos HTTP, email,
+SecureStore e biometria. Não avançar à fase 3 nem encerrar a fase 2 antes de cumprir
+seus critérios. O aceite completo está em [ROADMAP.md](ROADMAP.md).
+
+<details>
+<summary>Historical snapshot — 2026-10-26 / Registro histórico preservado</summary>
+
+The following is the previous session's record, not the current status.
+/ O conteúdo abaixo registra a sessão anterior, não o estado atual.
+
 # FinTrack Pro progress / Progresso
 
-Updated / Atualizado: 2026-10-25
+Updated / Atualizado: 2026-10-26
 
 ## Scope / Escopo
 
-The current request supplies the FinTrack Pro foundation scope. The earlier
-five-project MASTER PROMPT remains unavailable and is not inferred. Work stays
-inside `C:\Projetos\fintrack-pro`; unrelated changes in the parent repository are
-preserved. The parent progress record describes an earlier bootstrap and is not
-overwritten by this project.
+Work is restricted to `C:\Projetos\fintrack-pro`. This is now an independent Git
+repository on `main`, with `origin` pointing to
+`https://github.com/vrascode/fintrack-pro.git`. The current user instruction
+explicitly authorizes real commits grouped by functionality and validated pushes
+to `origin/main`. It prohibits history rewriting, force push and modifications to
+Nubank or other directories. The earlier five-project prompt is not inferred.
 
-A solicitação atual define a fundação do FinTrack Pro. O MASTER PROMPT anterior de
-cinco projetos segue indisponível; seus requisitos não foram presumidos. Alterações
-de outros projetos e o progresso do workspace pai serão preservados.
+O trabalho está restrito ao FinTrack Pro, repositório independente na branch
+`main`. A instrução atual autoriza commits e push após validação. Nenhum arquivo
+de outro projeto foi alterado; não houve reescrita de histórico ou force push.
 
 ## Milestones / Marcos
 
-| Milestone / Marco                                                                             | Status / Estado            |
-| --------------------------------------------------------------------------------------------- | -------------------------- |
-| F00: inspection, configuration, research, roadmap / inspeção, configuração, pesquisa, roteiro | In progress / Em andamento |
-| F01: shared domain and NestJS foundation / domínio e API                                      | Pending / Pendente         |
-| F02: mobile navigation and design system / navegação e design system                          | Pending / Pendente         |
-| F03: validation and bilingual handoff / validação e documentação bilíngue                     | Pending / Pendente         |
+| Milestone / Marco                                                           | Status / Estado                                                                                                       |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| F00: inspection, configuration, research, roadmap / inspeção e planejamento | Existing research preserved; repository state and roadmap updated / Pesquisa preservada; estado e roteiro atualizados |
+| F01: shared domain and NestJS foundation / domínio e API                    | Local validation passed / Validação local aprovada                                                                    |
+| F02: mobile navigation and design system / navegação e design system        | Bundles and browser checks passed; native device checks pending / Bundles e navegador aprovados; aparelho pendente    |
+| F03: validation and bilingual handoff / validação e documentação bilíngue   | Documentation updated; commit/publication blocked / Documentação atualizada; commit/publicação bloqueados             |
+| Phase 2: PostgreSQL and identity / PostgreSQL e identidade                  | Pending infrastructure, dependencies and integration tests / Infraestrutura, dependências e integração pendentes      |
 
-## Initial evidence / Evidências iniciais
+Phase 1 has passed its local functional checks; publication and dependency
+security review remain open. Phase 2 has not been declared implemented, and later
+phases have not been started out of order.
 
-- Current directory was empty; `git rev-parse --show-toplevel` returned `C:/Projetos`.
-- Parent repository contains unrelated modified/untracked files; staging is scoped.
-- `git remote -v`: no remote configured. No push planned.
-- Node: `v24.20.0`; npm via `npm.cmd`: `11.19.0`.
-- PowerShell blocks `npm.ps1`; commands use `npm.cmd`, without policy changes.
-- `Get-Command docker`: Docker unavailable. Database execution requires another
-  available PostgreSQL runtime or later Docker setup; unrun checks will be explicit.
+A fase 1 passou nas verificações funcionais locais. A publicação e a revisão de
+segurança das dependências seguem abertas. A fase 2 não foi declarada entregue,
+e as fases posteriores não foram antecipadas.
+
+## Reviewed changes / Alterações revisadas
+
+All nine initially changed/untracked files belonged to FinTrack Pro: Playwright
+configuration, preview server lifecycle, global E2E setup, root READMEs, database
+and security notes, and English/Portuguese development guides.
+
+- Validated the existing preview-server refactor: Playwright starts a loopback
+  server in global setup, waits for listening and closes it after the run. Direct
+  `node scripts/serve.mjs` execution remains supported.
+- Fixed Prettier failures in `e2e/setup.mjs` and `scripts/serve.mjs`.
+- Corrected obsolete parent-repository and push-authorization statements in the
+  documentation; documented actual validation, security and infrastructure limits.
+- Preserved existing navigation, themes, local privacy preferences, storage-error
+  recovery, exact money/calendar primitives and HTTP process-health functionality.
+  No new authentication or financial operations are claimed.
+
+As nove alterações iniciais pertencem ao projeto. O ciclo de vida do servidor E2E
+foi validado, duas falhas de formatação foram corrigidas e a documentação bilíngue
+foi atualizada. As funcionalidades existentes foram verificadas; autenticação e
+operações financeiras continuam pendentes.
+
+## Validation — 2026-10-26 / Validação
+
+Environment: Node `v24.20.0`, npm `11.19.0`, Windows PowerShell. `npm.cmd` and
+`npx.cmd` were used without changing the execution policy. Existing installed
+dependencies were used; `npm ci` was not run under the network restriction.
+
+| Command / Comando                                                                                                                                      | Result / Resultado                                                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm.cmd run check` (initial / inicial)                                                                                                                | Lint, typecheck, build and 14 tests passed; Prettier failed in two files / Lint, tipos, build e 14 testes aprovados; duas falhas de formatação |
+| `npx.cmd --no-install prettier --write e2e/setup.mjs scripts/serve.mjs`                                                                                | Both formatting failures corrected / Duas falhas corrigidas                                                                                    |
+| `npm.cmd run check` (after correction / após correção)                                                                                                 | Passed: ESLint with zero warnings, strict TypeScript, shared/API builds, 14/14 tests and Prettier / Aprovado                                   |
+| `npm.cmd run bundle`                                                                                                                                   | Android, iOS and web exports passed / Três exports aprovados                                                                                   |
+| `npm.cmd run test:e2e`                                                                                                                                 | 8/8 passed in headless Edge, desktop and mobile viewports / Oito aprovados                                                                     |
+| `npm.cmd ls multer node-forge zod --all`                                                                                                               | Installed multer 2.5.0, node-forge 1.4.0, CLI Zod 3.25.76, application Zod 4.6.7 / Versões instaladas conferidas                               |
+| `npm.cmd audit --json`                                                                                                                                 | Failed to reach npm advisory endpoint; no current audit result / Falha de conexão; auditoria não aprovada                                      |
+| `node .cache/review-sensitive.mjs`                                                                                                                     | Pattern scan passed: 56 current files and 49 file contents in the existing commit; no findings / Sem ocorrências                               |
+| `git diff --check`                                                                                                                                     | Passed / Aprovado                                                                                                                              |
+| `git check-ignore .env .env.production .cache/review-sensitive.mjs node_modules/ apps/api/dist/ apps/mobile/dist/ packages/shared/dist/ test-results/` | All listed private/generated paths ignored; `.env.example` separately verified as not ignored / Exclusões conferidas                           |
+| `git ls-remote --heads origin main`                                                                                                                    | Failed to connect to github.com:443 / Falha de conexão                                                                                         |
+| `git add -- playwright.config.ts scripts/serve.mjs e2e/setup.mjs`                                                                                      | Failed: `.git/index.lock`: Permission denied / Gravação no Git negada                                                                          |
+
+Bundle environment (PowerShell, project root) / Ambiente do bundle:
+
+```powershell
+$env:EXPO_OFFLINE = '1'
+$env:EXPO_NO_TELEMETRY = '1'
+$env:CI = '1'
+$env:TEMP = Join-Path (Get-Location) '.cache'
+$env:TMP = $env:TEMP
+npm.cmd run bundle
+```
+
+Tests cover money precision and limits, calendar boundaries and timezones, HTTP
+health responses, real disk preference persistence, concurrent updates, corruption
+and read/write failures. Browser checks cover navigation/empty states, theme and
+privacy persistence, corruption recovery, and quota failure. Browser viewports and
+exports do not verify native runtime behavior, biometrics or release signing.
+
+Os testes cobrem precisão monetária, limites de datas/fusos, HTTP, persistência
+real em disco, concorrência nas preferências e falhas de armazenamento. No
+navegador: navegação, estados vazios, persistência, corrupção e falta de espaço.
+Não houve validação nativa em aparelho, de biometria ou assinatura de release.
+
+## Security and publication blockers / Bloqueios de segurança e publicação
+
+1. Git metadata is read-only under the current permission profile. The first
+   scoped staging attempt failed before a commit could be created. No permission
+   bypass, alternate Git directory or fabricated commit was used.
+2. GitHub and npm registry connections failed. The local `origin/main` reference
+   equals `HEAD`, but remote freshness could not be verified. No push was attempted
+   after the security/connectivity blockers were established.
+3. A prior local dependency report contains eight high findings before the multer
+   override. Existing notes report five remaining findings after that change;
+   a fresh audit could not confirm remediation. Publication remains suspended.
+4. Docker, Podman, psql, postgres and initdb are unavailable on PATH. Prisma,
+   SecureStore and biometric packages are not installed. Phase 2 requires real
+   database integration, email flows and device validation; mocks do not complete it.
+
+O perfil atual impede gravar em `.git`; a tentativa de staging falhou. GitHub e
+registro npm estão inacessíveis, e a auditoria de dependências permanece aberta.
+Não foram identificados segredos ou dados pessoais nos arquivos revisados; essa
+inspeção por padrões e revisão manual não garante ausência absoluta de segredos
+nem substitui scanner especializado. Consulte [SECURITY.md](SECURITY.md).
+A fase 2 exige infraestrutura e dependências ainda indisponíveis.
+
+## Commits / Commits
+
+No new commits were created or pushed. The sole existing commit is `86c0557`
+(`chore: initialize FinTrack Pro project`). The working changes remain intact.
+
+Nenhum commit novo foi criado ou enviado. O único commit existente é `86c0557`.
+As alterações permanecem preservadas no diretório de trabalho, sem staging.
+
+Prepared grouping for a future writable Git session; these are proposed messages,
+not real commit identifiers / Agrupamento preparado, ainda não executado:
+
+1. `test(e2e): manage preview server lifecycle in global setup`
+   — `playwright.config.ts`, `scripts/serve.mjs`, `e2e/setup.mjs`.
+2. `docs: document foundation setup and security boundaries`
+   — `README.md`, `README.pt-BR.md`, `DATABASE.md`, `SECURITY.md`,
+   `docs/en-US/DEVELOPMENT.md`, `docs/pt-BR/DEVELOPMENT.md`.
+3. `docs: record foundation validation and publication blockers`
+   — `ROADMAP.md`, `PORTFOLIO_PROGRESS.md`.
 
 ## Next action / Próxima ação
 
-Install a compatible pinned dependency set, then implement and verify shared demo
-behavior and API before completing the mobile foundation. Record actual commands
-and outcomes here. / Instalar versões compatíveis e fixadas, implementar e testar
-domínio e API, concluir o app e registrar comandos e resultados reais.
+Resume in a session with Git metadata writes and GitHub/npm connectivity allowed.
+Review a fresh dependency audit and resolve the publication gate. Recheck the diff
+and remote state, make the scoped real commits with the configured identity and
+actual timestamps, then push without force. Continue phase 2 in roadmap order with
+a real PostgreSQL runtime, Prisma migrations, identity/email/session flows and
+native secure-storage/biometric validation before declaring that phase complete.
+
+Retomar com gravação de metadados Git e conexão GitHub/npm disponíveis. Refazer a
+auditoria, resolver o bloqueio de publicação, revisar o remoto e criar/enviar os
+commits reais separados. Depois, seguir a fase 2 com PostgreSQL e testes reais,
+sem antecipar fases nem declarar funcionalidades não implementadas.
+
+</details>
