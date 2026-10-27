@@ -34,9 +34,12 @@ tests and formatting); `npm.cmd run bundle` passed Android, iOS and web exports;
 locally and its format check passed. The initial hosted run also passed installation,
 lint, types, build and all 27 unit tests, but Prettier rejected CRLF-normalized files
 in the fresh Windows checkout. Added `.gitattributes` to match the repository's LF
-editor setting and keep GitHub checkouts consistent. The follow-up hosted run will
-verify this correction. No Prisma migration, real database suite or fresh npm audit
-is claimed. Branch protection remains a recommendation until hosted CI passes.
+editor setting and keep GitHub checkouts consistent. The follow-up hosted run for
+`8557caa` passed every step: `npm ci`, lint/types/build/tests/format, all three app
+exports, screenshot directory setup and desktop/mobile browser tests. See the
+[successful hosted run](https://github.com/vrascode/fintrack-pro/actions/runs/40529548463).
+No Prisma migration, real database suite or fresh npm audit is claimed. Branch
+protection remains a recommendation after the successful run.
 
 ## Auditoria de desenvolvimento contínuo e CI — 2026-10-27
 
@@ -46,8 +49,9 @@ formatação, exports Android/iOS/web e os oito cenários E2E em Windows 2025 co
 As actions usam hashes completos verificados; o token do workflow só lê o conteúdo
 do repositório e nenhum segredo ou banco é acessado. A primeira execução do CI
 confirmou lint, tipos, build e 27 testes, mas identificou diferenças CRLF no checkout
-Windows. Adicionei `.gitattributes` para fixar LF como define o `.editorconfig`; o
-CI remoto ainda precisa confirmar a correção.
+Windows. Adicionei `.gitattributes` para fixar LF como define o `.editorconfig`; a
+execução seguinte passou em todas as etapas. Consulte o
+[workflow hospedado](https://github.com/vrascode/fintrack-pro/actions/runs/40529548463).
 
 Os testes extensos de autenticação, cálculos monetários, calendário, componentes,
 estados visuais e documentação existente foram preservados sem duplicação. Busca,
