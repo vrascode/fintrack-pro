@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const root = resolve('apps/mobile/dist');
 const types = {
@@ -14,34 +15,38 @@ const types = {
   '.ttf': 'font/ttf',
   '.ico': 'image/x-icon',
 };
-const server = createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url ?? '/', 'http://localhost');
-    let file = resolve(root, `.${decodeURIComponent(url.pathname)}`);
-    if (file !== root && !file.startsWith(root + sep)) {
-      res.writeHead(403);
-      res.end();
-      return;
-    }
+export function createPreviewServer() {
+  return createServer(async (req, res) => {
     try {
-      if (!(await stat(file)).isFile()) file = resolve(root, 'index.html');
-    } catch {
-      if (extname(file)) {
-        res.writeHead(404);
+      const url = new URL(req.url ?? '/', 'http://localhost');
+      let file = resolve(root, `.${decodeURIComponent(url.pathname)}`);
+      if (file !== root && !file.startsWith(root + sep)) {
+        res.writeHead(403);
         res.end();
         return;
       }
-      file = resolve(root, 'index.html');
+      try {
+        if (!(await stat(file)).isFile()) file = resolve(root, 'index.html');
+      } catch {
+        if (extname(file)) {
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        file = resolve(root, 'index.html');
+      }
+      const content = await readFile(file);
+      res.writeHead(200, {
+        'Content-Type': types[extname(file)] ?? 'application/octet-stream',
+        'Cache-Control': 'no-store',
+      });
+      res.end(content);
+    } catch {
+      res.writeHead(500);
+      res.end('Preview unavailable');
     }
-    const content = await readFile(file);
-    res.writeHead(200, {
-      'Content-Type': types[extname(file)] ?? 'application/octet-stream',
-      'Cache-Control': 'no-store',
-    });
-    res.end(content);
-  } catch {
-    res.writeHead(500);
-    res.end('Preview unavailable');
-  }
-});
-server.listen(4173, '127.0.0.1');
+  });
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  createPreviewServer().listen(4173, '127.0.0.1');
+}

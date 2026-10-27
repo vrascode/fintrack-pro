@@ -4,6 +4,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: true,
   retries: 0,
+  globalTimeout: 120000,
+  globalSetup: './e2e/setup.mjs',
   use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure', channel: 'msedge' },
   projects: [
     {
@@ -12,9 +14,4 @@ export default defineConfig({
     },
     { name: 'mobile', use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' } },
   ],
-  webServer: {
-    command: 'node scripts/serve.mjs',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: false,
-  },
 });
