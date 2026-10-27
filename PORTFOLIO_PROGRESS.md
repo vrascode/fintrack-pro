@@ -30,12 +30,13 @@ The ten audit candidates were checked against implemented behavior:
 
 Validation: `npm.cmd run check` passed (lint, strict types, build, 27/27 unit
 tests and formatting); `npm.cmd run bundle` passed Android, iOS and web exports;
-`npm.cmd run test:e2e` passed 8/8 in desktop/mobile Edge. `prettier --check
-.github/workflows/ci.yml README.md README.pt-BR.md PORTFOLIO_PROGRESS.md` passed.
-The CI workflow YAML parsed locally. No Prisma migration, real database suite,
-fresh npm audit or GitHub-hosted Actions run is claimed. Next: publish and inspect
-the GitHub-hosted workflow result; turn on a branch protection check after Actions
-has produced its first successful run.
+`npm.cmd run test:e2e` passed 8/8 in desktop/mobile Edge. The workflow YAML parsed
+locally and its format check passed. The initial hosted run also passed installation,
+lint, types, build and all 27 unit tests, but Prettier rejected CRLF-normalized files
+in the fresh Windows checkout. Added `.gitattributes` to match the repository's LF
+editor setting and keep GitHub checkouts consistent. The follow-up hosted run will
+verify this correction. No Prisma migration, real database suite or fresh npm audit
+is claimed. Branch protection remains a recommendation until hosted CI passes.
 
 ## Auditoria de desenvolvimento contínuo e CI — 2026-10-27
 
@@ -43,7 +44,10 @@ A única lacuna imediata foi CI: o repositório ainda não tinha um workflow do 
 Actions. Adicionei execução de instalação reproduzível, lint, tipos, build, testes,
 formatação, exports Android/iOS/web e os oito cenários E2E em Windows 2025 com Edge.
 As actions usam hashes completos verificados; o token do workflow só lê o conteúdo
-do repositório e nenhum segredo ou banco é acessado.
+do repositório e nenhum segredo ou banco é acessado. A primeira execução do CI
+confirmou lint, tipos, build e 27 testes, mas identificou diferenças CRLF no checkout
+Windows. Adicionei `.gitattributes` para fixar LF como define o `.editorconfig`; o
+CI remoto ainda precisa confirmar a correção.
 
 Os testes extensos de autenticação, cálculos monetários, calendário, componentes,
 estados visuais e documentação existente foram preservados sem duplicação. Busca,
