@@ -12,7 +12,8 @@ A preparação da fase 2 está no código: serviços PostgreSQL 17, schema Prism
 migração SQL inicial e suíte de integração. Prisma e PostgreSQL/Docker estão
 indisponíveis. A migração foi escrita manualmente e **não foi aplicada nem validada
 pelo Prisma**. Endpoints de autenticação e repositório transacional permanecem
-pendentes. Arquivos novos também aguardam commit.
+pendentes. Os arquivos de preparação foram commitados e publicados em 27/10/2026;
+isso não representa validação ou execução da migração.
 
 `/v1/health` checks process liveness only. AsyncStorage holds only non-sensitive
 preferences under `fintrack.preferences.v1`; never passwords, tokens or financial records.

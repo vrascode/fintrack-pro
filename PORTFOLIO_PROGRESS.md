@@ -2,6 +2,54 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Verified GitHub publication — 2026-10-27 / Publicação confirmada
+
+The existing work was published to
+`https://github.com/vrascode/fintrack-pro.git`, branch `main`, using the configured
+Git identity and actual commit timestamps. Approved Git operations resolved the
+earlier sandbox restrictions without changing filesystem permissions or deleting
+a lock file. `git fetch origin` confirmed the original remote history; no merge,
+history rewrite or force push was needed.
+
+| Commit                                     | Message                                                              |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| `baf942f9ae6b8541332c26f3e120e412c5575dcc` | `test(e2e): manage preview server lifecycle in global setup`         |
+| `8299b9a9233d3300989846e5d3c2288daa79fe26` | `feat(auth): add password hashing and session security primitives`   |
+| `30ac8c74a0ad3e1ca0f3bec44a301b1b365b61b7` | `chore(db): prepare PostgreSQL schema and integration harness`       |
+| `ffeeaf0b283d5b5b67fe19f23a545d06e1e4ee1d` | `docs: describe implemented features and phase two validation gates` |
+
+`git push origin main` succeeded (`86c0557..ffeeaf0`). A subsequent
+`git ls-remote origin refs/heads/main` returned
+`ffeeaf0b283d5b5b67fe19f23a545d06e1e4ee1d`, matching both HEAD and `origin/main`.
+`git rev-list --left-right --count HEAD...origin/main` returned `0 0`, and
+`git status --porcelain=v1` was empty before this publication-record update.
+All 30 pending files were included: 21 additions and 9 modifications, no deletions.
+
+Validation in this publication task: `npm.cmd run check` passed lint, strict types,
+builds, all 27 local tests and formatting. Every staged diff passed
+`git diff --cached --check`. Source/history pattern review covered 70 working files
+and the 49 file contents of the original commit; all 15 flags were reviewed as
+code, schema, documentation placeholders or test data. No real credential was
+identified. Only the blank configuration template `.env.example` was included;
+local environments, dependencies, caches and generated outputs remained ignored.
+
+This task organized and published existing work. It did not add application
+features, install dependencies, run database migrations or claim new database,
+browser or native-device validation. The database and dependency-review limitations
+remain open. This documentation update records the successful publication above.
+
+O GitHub recebeu os quatro commits acima, cobrindo os 30 arquivos pendentes.
+O hash remoto foi conferido diretamente e coincidiu com HEAD e `origin/main`, sem
+divergência e com a árvore limpa antes desta atualização documental. Os 27 testes
+locais passaram; nenhum segredo real foi identificado na revisão. A publicação
+preservou o histórico e todas as alterações, sem mudar permissões globais ou
+desenvolver funcionalidades. Banco, dependências e validação nativa seguem pendentes.
+
+The records below describe earlier attempts and development checks; their Git
+publication blockers and proposed commits are superseded by the verified result
+above. / Os registros abaixo são históricos; seus bloqueios Git e commits propostos
+foram superados pela publicação confirmada acima.
+
 ## Publication retry — 2026-10-27 / Nova tentativa de publicação
 
 The latest request is limited to organizing and publishing existing work. The Git

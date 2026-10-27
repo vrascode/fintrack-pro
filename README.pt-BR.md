@@ -107,7 +107,10 @@ e recuperação por email, exclusão de conta, SecureStore e biometria. Operaç�
 financeiras, faturas, relatórios, notificações e IA pertencem às fases seguintes.
 O projeto ainda não é um serviço financeiro pronto para produção.
 
-O ambiente atual não acessa npm/GitHub pelo terminal nem permite gravar metadados
-Git. A nova auditoria npm não foi concluída; alertas transitivos do Expo continuam
-em revisão. Não se afirma nova correção de dependências, integração com banco,
-commit ou push. Segredos, dados locais, caches e arquivos gerados ficam fora do Git.
+As alterações existentes foram commitadas por funcionalidade e publicadas em
+`origin/main` em 27/10/2026, após resolver os bloqueios Git e de conexão por operações
+autorizadas. Consulte o [registro da publicação](PORTFOLIO_PROGRESS.md).
+A auditoria npm anterior não foi concluída; revisão de dependências e validação
+real do banco seguem pendentes. Esta publicação não acrescenta correções de
+dependências ou integração com banco. Segredos, dados locais, caches e arquivos
+gerados ficam fora do Git.

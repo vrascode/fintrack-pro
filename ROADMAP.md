@@ -6,7 +6,7 @@ do FinTrack Pro recebido; não presume o prompt anterior de cinco projetos.
 
 | Phase / Fase | Delivery / Entrega                                                                                                                                                          | Status / Estado                                                                                   |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 1            | Monorepo, design system, navigation, local preferences, shared contracts, minimal health API / Fundação                                                                     | Local checks passed; publication blocked / Validação local aprovada; publicação bloqueada         |
+| 1            | Monorepo, design system, navigation, local preferences, shared contracts, minimal health API / Fundação                                                                     | Local checks passed; source published / Validação local aprovada; código publicado                |
 | 2            | PostgreSQL, Prisma, registration, login, email verification, recovery, rotating/revocable refresh tokens, device logout, deletion, SecureStore, biometrics / Identidade     | In progress: schema and tested security core; real integration pending / Em andamento, sem aceite |
 | 3            | Accounts, balances, categories/subcategories, tags, transactions, transfers, reconciliation, attachments; ownership, atomicity, idempotency, audit, concurrency / Operações | Pending / Pendente                                                                                |
 | 4            | Consolidated balance, income/expenses, wealth evolution, category charts, period comparison, filters, upcoming dues / Dashboard                                             | Pending / Pendente                                                                                |
@@ -72,20 +72,22 @@ integrada. Migração manual ainda não validada; todos os critérios são obrig
 
 Phase 1 functional checks passed locally: lint, strict types, 14 foundation tests,
 Android/iOS/web exports and 8 browser tests. Native device behavior is not verified.
-Publication remains blocked by unavailable GitHub/npm audit connectivity and an
-open dependency security review. See [progress](PORTFOLIO_PROGRESS.md).
+Source publication to GitHub was verified on 2026-10-27. The earlier npm audit did
+not complete; dependency review and release acceptance remain open.
+See [progress](PORTFOLIO_PROGRESS.md).
 
-A fase 1 passou nas verificações funcionais locais. A publicação permanece
-bloqueada pela conexão indisponível com GitHub/auditoria npm e pela revisão de
-segurança de dependências em aberto. Não há validação em aparelho nativo.
+A fase 1 passou nas verificações funcionais locais, e a publicação do código no
+GitHub foi confirmada em 27/10/2026. Auditoria, revisão de dependências e aceite de
+release seguem pendentes. Não há validação em aparelho nativo.
 
 Phase 2 has started with 13 additional local tests, identity primitives, schema,
 migration and an integration suite. PostgreSQL/container tooling is unavailable on
 PATH; Prisma installation failed with EACCES. The database suite fails its prerequisite
-gate, not a passing integration. Git staging is also denied by the permission profile.
+gate, not a passing integration. Git staging and publication succeeded through
+approved operations after the earlier sandbox restrictions.
 Do not skip to phase 3 or substitute mock persistence to declare phase 2 complete.
 
 A fase 2 começou com 13 testes locais adicionais e código de identidade/banco.
 PostgreSQL, Prisma, entrega de email, SecureStore e testes nativos seguem pendentes.
-A suíte real não passou: encerra por pré-requisitos ausentes. Commits também estão
-bloqueados por permissão de escrita em `.git`. O aceite permanece aberto.
+A suíte real não passou: encerra por pré-requisitos ausentes. Commits e push foram
+concluídos por operações autorizadas. O aceite da fase 2 permanece aberto.

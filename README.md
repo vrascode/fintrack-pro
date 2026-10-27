@@ -106,7 +106,9 @@ registration/login, email verification/recovery, account deletion, SecureStore a
 biometrics. Financial CRUD, billing, reports, notifications and AI belong to later
 phases. This is not a production-ready financial service.
 
-The current environment cannot reach npm/GitHub from the shell or write Git
-metadata. The fresh npm audit did not complete; existing transitive Expo advisories
-remain under review. No new dependency remediation, database integration, commit
-or push is claimed. Secrets, local data, caches and generated outputs stay out of Git.
+Existing source changes were committed by feature and published to `origin/main`
+on 2026-10-27 after the Git permission and connectivity blockers were resolved
+through approved operations. See the [publication record](PORTFOLIO_PROGRESS.md).
+The earlier npm audit did not complete; dependency review and real database
+validation remain pending. This publication adds no dependency remediation or
+database integration. Secrets, local data, caches and generated outputs stay out of Git.
