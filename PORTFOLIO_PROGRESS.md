@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Account opening state — 2026-10-30
+
+Added a non-destructive Prisma migration for exact-cent opening balances, their
+reference date, and whether an account participates in planning. Existing account
+rows receive conservative defaults; the migration does not recalculate or remove
+ledger entries. Prisma validation and client generation passed, as did the full
+repository check (lint, TypeScript, 51 tests, and formatting). The migration itself
+has not been applied because PostgreSQL remains unavailable (P1001); database
+integration is still pending.
+
 ## Prisma runtime foundation — 2026-10-30
 
 Moved Prisma Client generation into the API TypeScript source boundary and made

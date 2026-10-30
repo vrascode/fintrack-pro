@@ -5,9 +5,14 @@
 Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Prisma 7
 dependencies, schema/client generation, versioned identity and ledger migrations,
 and real-database integration suites. Prisma validates the schema and generates the
-client locally. PostgreSQL/Docker are unavailable here, so neither migration has been
-applied and the integration suites have not passed. Authentication HTTP endpoints,
+client locally. PostgreSQL/Docker are unavailable here, so no migration has been
+applied and the integration suites have not passed. The API has process and database
+readiness endpoints plus a lazy Prisma service, but authentication HTTP endpoints,
 financial repositories and application services remain unimplemented.
+
+Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
+reference date and planning inclusion to accounts without deleting or rewriting
+ledger data. Existing rows default to zero cents, migration date and planning enabled.
 
 A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
 dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas
@@ -16,9 +21,10 @@ cliente localmente. PostgreSQL/Docker estão indisponíveis neste ambiente, port
 migrações não foram aplicadas e as suítes reais não passaram. Rotas HTTP de identidade,
 repositórios financeiros e serviços de aplicação continuam pendentes.
 
-`/v1/health` checks process liveness only. AsyncStorage holds only non-sensitive
-preferences under `fintrack.preferences.v1`; never passwords, tokens or financial records.
-/ Saúde do processo não verifica o banco; AsyncStorage guarda apenas preferências.
+`/v1/health` checks process liveness; `/v1/health/ready` checks database readiness.
+AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1`;
+never passwords, tokens or financial records. / A saúde do processo e a prontidão do
+banco têm endpoints distintos; AsyncStorage guarda apenas preferências.
 
 ## Local setup / Configuração local
 
@@ -68,7 +74,10 @@ o volume de desenvolvimento. Isso não substitui deploy, papéis com privilégio
 mínimos ou backup de produção.
 
 Database scripts load root `.env` without overriding process variables. Configuration:
-`apps/api/prisma.config.mjs`; generated TypeScript: ignored `apps/api/generated/prisma`.
+`apps/api/prisma.config.mjs`; generated TypeScript is ignored at
+`apps/api/src/generated/prisma` so the API build compiles the client within its
+source boundary. `npm run build -w @fintrack/api` generates the client first. The
+generation-only fallback URL does not open a database connection.
 `db:migrate` uses `migrate deploy`, never `db push` or `migrate reset`.
 
 Os scripts carregam `.env` sem sobrescrever variáveis já definidas. O cliente gerado

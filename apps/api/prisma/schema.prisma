@@ -96,6 +96,9 @@ model Account {
   name         String        @db.VarChar(80)
   type         AccountType
   currency     String        @default("BRL") @db.Char(3)
+  openingBalanceCents BigInt   @default(0)
+  openingBalanceOn     DateTime @default(now()) @db.Date
+  includeInPlanning    Boolean  @default(true)
   archivedAt   DateTime?     @db.Timestamptz(3)
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt    DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
