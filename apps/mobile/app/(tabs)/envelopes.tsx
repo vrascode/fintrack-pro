@@ -84,7 +84,7 @@ export default function Envelopes() {
             </Label>
           </Card>
           {message ? (
-            <Text accessibilityRole="alert" style={{ color: colors.positive }}>
+            <Text accessibilityRole="alert" style={{ color: colors.positiveText }}>
               {message}
             </Text>
           ) : null}

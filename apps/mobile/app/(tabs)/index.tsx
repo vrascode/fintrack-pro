@@ -173,7 +173,7 @@ export default function Overview() {
       label: text('Receita recebida', 'Income received'),
       amount: summary.incomeReceivedCents,
       note: text('Neste mês até 20/out', 'This month through Oct 20'),
-      color: colors.positive,
+      color: colors.positiveText,
     },
     {
       label: text('Despesas pagas', 'Expenses paid'),
@@ -318,7 +318,7 @@ export default function Overview() {
               {
                 label: text('Receita planejada', 'Planned income'),
                 value: BigInt(data.monthlyIncomePlanCents),
-                color: colors.positive,
+                color: colors.positiveText,
               },
               {
                 label: text('Orçamento de despesas', 'Expense budget'),
@@ -462,7 +462,7 @@ export default function Overview() {
                   gap: 8,
                 }}
               >
-                <Text style={{ color: colors.positive, fontSize: 11, fontWeight: '700' }}>
+                <Text style={{ color: colors.positiveText, fontSize: 11, fontWeight: '700' }}>
                   {formatCurrency(item.income, 'BRL', hidden)}
                 </Text>
                 <Text style={{ color: colors.negative, fontSize: 11, fontWeight: '700' }}>
@@ -558,7 +558,7 @@ export default function Overview() {
               </View>
               <Text
                 style={{
-                  color: transaction.kind === 'income' ? colors.positive : colors.ink,
+                  color: transaction.kind === 'income' ? colors.positiveText : colors.ink,
                   fontWeight: '800',
                 }}
               >

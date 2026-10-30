@@ -583,3 +583,16 @@ Validation: `npm run check` passed with 50 unit tests; `npm run bundle` exported
 web, Android and iOS; `npm run test:e2e` passed 6/6 desktop and mobile tests;
 `npm run brand:assets` regenerated icons successfully. The desktop dashboard and
 generated app icon were visually reviewed. Next: update the positive green palette.
+
+## Positive green palette — 2026-10-30
+
+Changed the principal positive token to `#22C55E` in both themes and applied it
+to income bars, planned surplus, and positive indicators. Added a darker light
+theme text variant for income values, transaction totals, success messages, and
+other small text; dark mode retains the requested main green. Financial rules
+and calculations are unchanged.
+
+Validation: `npm run check` passed (lint, builds, type checks, 50 unit tests and
+formatting); `npm run bundle` exported web, Android and iOS; `npm run test:e2e`
+passed 6/6 desktop and mobile tests. The generated desktop dashboard screenshot
+was reviewed.

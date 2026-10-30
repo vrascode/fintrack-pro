@@ -258,7 +258,7 @@ export default function TransactionForm() {
                     message.includes(text('Não foi possível', 'Could not')) ||
                     message.includes(text('Confira', 'Check'))
                       ? colors.danger
-                      : colors.positive,
+                      : colors.positiveText,
                 }}
               >
                 {message}

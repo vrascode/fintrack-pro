@@ -158,7 +158,7 @@ export default function Activity() {
                   transaction.kind === 'income' ? '+' : transaction.kind === 'expense' ? '−' : '↔';
                 const color =
                   transaction.kind === 'income'
-                    ? colors.positive
+                    ? colors.positiveText
                     : transaction.kind === 'expense'
                       ? colors.negative
                       : colors.accentText;
