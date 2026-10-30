@@ -28,11 +28,15 @@ cookie e endpoints financeiros. Testes unitários não comprovam PostgreSQL. Vej
 
 ### Uso local com dados próprios
 
-Com os serviços PostgreSQL ativos em 5432 (desenvolvimento) e 5433 (teste), execute
-`node scripts/setup-local-postgres.mjs` em seu terminal. Informe as senhas
-administrativas apenas ali; elas ficam ocultas e não são salvas. O comando cria
-somente usuários/bancos ausentes. Se um usuário existente tiver outra senha, ajuste
-apenas o `.env` local ignorado pelo Git, preservando os dados.
+Execute `node scripts/setup-local-postgres.mjs --development` em seu terminal.
+O alvo vem do `DATABASE_URL` local (5432 nesta instalação). A senha administrativa
+fica oculta e não é salva. O comando cria somente usuários/bancos ausentes.
+Para reconciliar explicitamente a senha do usuário dedicado `fintrack` com o `.env`,
+acrescente `--reconcile-password`; usuários privilegiados ou compartilhados são
+recusados. O teste é separado: `node scripts/setup-local-postgres.mjs --test` usa
+somente `TEST_DATABASE_URL` (5433 nesta instalação). `--inspect` mostra o alvo sem
+senha e sem conectar. Se a senha administrativa foi perdida, siga a
+[recuperação local](DATABASE.md#recover-local-postgresql-17--recuperar-postgresql-17-local).
 
 Execute `npm.cmd run db:migrate`; depois `npm.cmd run api` e `npm.cmd run web` em
 terminais separados. Abra `http://localhost:8081/login`. O cadastro leva à primeira

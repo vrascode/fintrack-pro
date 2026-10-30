@@ -27,6 +27,20 @@ isolados; redefinição real aguarda entrada oculta no terminal local. Nenhuma
 alteração realizada na instância 5433. Próximo passo: confirmar o acesso com psql,
 configurar apenas o banco de desenvolvimento e aplicar migrações não destrutivas.
 
+## Separate provisioning / Provisionamento separado — 2026-10-30
+
+The setup now requires `--development` or `--test`, provides safe `--inspect`
+metadata, preserves existing credentials by default and supports explicit
+`--reconcile-password` only for a dedicated unprivileged FinTrack role. It rejects
+mismatched owners and shared roles, sends SCRAM verifiers instead of plaintext
+passwords in DDL, and distinguishes temporary SQL write/read from full persistence
+acceptance. Four targeted tests, syntax, lint and formatting passed. Read-only
+inspection confirmed development `fintrack` on 5432 and `fintrack_test` on 5433
+without printing secrets or attempting authentication.
+
+Setup separado por ambiente, com reconciliação explícita e restrita. Quatro testes
+aprovados; URLs locais inspecionadas sem segredos nem tentativas de conexão.
+
 ## Local PostgreSQL verification — 2026-10-30
 
 Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS

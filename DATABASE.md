@@ -53,17 +53,28 @@ production API is not deployed by this repository yet.
 The local Windows services currently use PostgreSQL 17 on port 5432 and PostgreSQL
 18 on port 5433. The application uses the separate `fintrack` and `fintrack_test`
 databases configured in the ignored root `.env`. Never repurpose an existing database.
-To provision missing roles/databases, run `node scripts/setup-local-postgres.mjs`
-from an interactive terminal at the repository root. It asks for the `postgres`
-administrator password on each configured port without echoing or saving it. Existing
-role passwords and records are preserved. If application authentication fails, update
-the ignored `.env` locally to match the intended role; do not send credentials in chat.
-Then run `npm.cmd run db:migrate` and `npm.cmd run test:integration`.
+To provision missing roles/databases, explicitly select **one** environment:
+`node scripts/setup-local-postgres.mjs --development` or
+`node scripts/setup-local-postgres.mjs --test`. The command prompts for that
+instance's `postgres` password without echoing/saving it. `--inspect` prints safe
+metadata without connecting. Existing role passwords and records are preserved by
+default. `--reconcile-password` explicitly updates only the selected project role
+to the password already in its ignored `.env` URL. It refuses elevated roles,
+roles shared with other databases/memberships and databases with a different owner.
+New/reconciled application passwords must be at least 16 printable ASCII characters
+without spaces; Node derives a salted SCRAM verifier so DDL never contains the
+plaintext secret. This bootstrap restriction does not change the app user password
+policy or the administrator password policy. Setup verifies temporary SQL write/read;
+migrations and persistent acceptance are separate. Next run `npm.cmd run db:migrate`;
+run `npm.cmd run test:integration` only after provisioning the separate test target.
 
 Os serviços Windows usam 5432 para desenvolvimento e 5433 para a instância separada
-de testes. Execute `node scripts/setup-local-postgres.mjs` no terminal da raiz para
-informar as senhas administrativas localmente, sem exibi-las. O comando cria apenas
-os usuários e bancos ausentes e nunca redefine senhas existentes. Dados locais em
+de testes. Escolha `--development` ou `--test` no comando de setup; nunca há acesso
+automático às duas instâncias. Informe a senha administrativa localmente, sem eco.
+Por padrão, senhas existentes são preservadas. `--reconcile-password` autoriza
+explicitamente alinhar apenas o usuário dedicado do projeto com o `.env`, após
+verificar privilégios, vínculos e propriedade. O setup usa verificador SCRAM e
+testa escrita/leitura temporária; isso não substitui aceitação persistida. Dados em
 `.local/` e o arquivo `.env` ficam fora do Git. Não inicie outro cluster sobre as
 portas ocupadas nem apague os diretórios dos serviços instalados.
 

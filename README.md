@@ -28,10 +28,14 @@ PostgreSQL persistence. See [database setup and remaining work](DATABASE.md).
 
 ### Local personal-data workflow
 
-With the Windows PostgreSQL services running on 5432 (development) and 5433 (test),
-run `node scripts/setup-local-postgres.mjs` in your terminal to provision missing
-project roles/databases. Admin passwords are hidden and never saved. Preserve and
-adjust only the ignored `.env` credentials if an existing role uses another password.
+Run `node scripts/setup-local-postgres.mjs --development` in your terminal to
+provision missing project roles/databases using `DATABASE_URL` (5432 locally).
+Admin passwords are hidden and never saved. Explicit `--reconcile-password` can
+align the dedicated `fintrack` role with its ignored `.env` password; privileged
+or shared roles are refused. Test provisioning is separate:
+`node scripts/setup-local-postgres.mjs --test` uses only `TEST_DATABASE_URL` (5433).
+Add `--inspect` to see safe target metadata without connecting. For a lost admin
+password, use the [local recovery procedure](DATABASE.md#recover-local-postgresql-17--recuperar-postgresql-17-local).
 Run `npm.cmd run db:migrate`, then `npm.cmd run api` and `npm.cmd run web` in separate
 terminals. Open `http://localhost:8081/login`; registration leads to the first account
 form. Enter its opening balance/reference date, then use **New income or expense**
