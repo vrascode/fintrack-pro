@@ -4,6 +4,20 @@ Updated / Atualizado: 2026-10-27
 
 ## Local PostgreSQL verification — 2026-10-30
 
+Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS
+exports passed; `npm.cmd run test:e2e` passed all 12 demo/onboarding/error cases.
+`playwright test --config playwright.financial.config.ts --list` collected two real
+browser cases (desktop/mobile). `npm.cmd run db:migrate` failed P1000 on 5432;
+`npm.cmd run test:e2e:real` failed P1000 on 5433 during migrations, so its browser
+cases and SQL suites did not execute. No existing databases, roles or passwords
+were changed. The API listens on 3000, but readiness is 503. User action required:
+run `node scripts/setup-local-postgres.mjs` in the local terminal and enter the
+administrator passwords there (never in chat), then rerun migrations and real tests.
+
+Validação final: checks e 12 E2E existentes aprovados; teste real coletado, mas
+bloqueado antes da execução por autenticação. API iniciada não significa integração
+aprovada. A branch deve permanecer em desenvolvimento até passar a aceitação real.
+
 Personal finance integration in source: registration leaves demo mode and opens
 account setup; account name/type/opening cents/date are sent to the owner-scoped
 API. Posted income/expense/transfer forms use per-request idempotency and retain

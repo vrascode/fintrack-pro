@@ -24,6 +24,7 @@
     "bundle": "npm run bundle -w @fintrack/mobile",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:real": "npm run test:integration && playwright test --config playwright.financial.config.ts",
     "db:validate": "node scripts/database.mjs validate",
     "db:generate": "node scripts/database.mjs generate",
     "db:migrate": "node scripts/database.mjs migrate",

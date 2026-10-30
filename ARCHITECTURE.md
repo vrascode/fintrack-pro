@@ -65,8 +65,8 @@ operate on the filtered demo transactions; CSV text is quoted and prefixed when
 it could be interpreted as a spreadsheet formula. Virtual envelope movements
 do not affect bank-account balances or net worth. The savings simulator is
 transient and does not create records. A persistent “fictional data” label marks
-these screens. Without demo mode, the app continues to explain that real finance
-services are not connected.
+these screens. Authenticated account/entry/dashboard routes instead render personal
+API records and surface query errors; they do not fall back to the fixture.
 
 Currency rendering groups bigint whole units and formats the fractional cents
 without converting the financial amount to floating-point. Demo input accepts

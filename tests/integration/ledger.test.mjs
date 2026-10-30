@@ -8,7 +8,7 @@ import { validateTestDatabaseUrl } from '../../scripts/database.mjs';
 const connectionString = validateTestDatabaseUrl(process.env.TEST_DATABASE_URL);
 const requireApi = createRequire(new URL('../../apps/api/package.json', import.meta.url));
 const { PrismaPg } = requireApi('@prisma/adapter-pg');
-const { PrismaClient } = await import('../../apps/api/generated/prisma/client.ts');
+const { PrismaClient } = await import('../../apps/api/src/generated/prisma/client.ts');
 const client = () =>
   new PrismaClient({
     adapter: new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 }),

@@ -5,8 +5,9 @@
 Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Prisma 7
 dependencies, schema/client generation, versioned identity and ledger migrations,
 and real-database integration suites. Prisma validates the schema and generates the
-client locally. PostgreSQL/Docker are unavailable here, so no migration has been
-applied and the integration suites have not passed. The API has process and database
+client locally. Native Windows PostgreSQL services are now running on 5432 and 5433,
+but project-role authentication fails with P1000; migrations and real integration
+remain unverified. The API has process and database
 readiness endpoints, a lazy Prisma service, registration/login, and bearer-session
 authorization for logout. Credentials are hashed; login stores session and refresh
 token digests transactionally. Authenticated `GET /v1/accounts` and `POST
@@ -15,7 +16,8 @@ owner-scoped records; `/v1/transactions` lists and creates posted entries with
 per-user idempotency keys and account/category ownership checks. Future-dated entries
 are rejected until a scheduled-entry model exists. Other financial workflows remain
 unimplemented. Current service tests use a Prisma-shaped fake and do not prove
-PostgreSQL persistence. Rate limiting and refresh rotation are still pending.
+PostgreSQL persistence. Persisted refresh rotation is implemented under a row lock
+but still awaits real-database acceptance. Rate limiting remains pending.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
@@ -26,17 +28,18 @@ classification, defaulting existing categories to nonessential.
 A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
 dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas
 de identidade e ledger e suítes para banco real. O Prisma valida o schema e gera o
-cliente localmente. PostgreSQL/Docker estão indisponíveis neste ambiente, portanto as
-migrações não foram aplicadas e as suítes reais não passaram. Rotas HTTP de identidade,
-rotas de cadastro e login existem, mas repositórios financeiros vinculados ao usuário
-e serviços de aplicação continuam pendentes. Os testes locais de auth usam um repositório
-simulado e não comprovam persistência PostgreSQL.
+cliente localmente. PostgreSQL está instalado em duas instâncias locais, mas as
+credenciais de aplicação são recusadas. As migrações e suítes reais ainda não passaram.
+Existem serviços Prisma para identidade, contas, categorias e lançamentos com
+autorização por usuário. Testes locais com repositórios simulados não comprovam
+persistência PostgreSQL.
 
 `/v1/health` checks process liveness; `/v1/health/ready` checks database readiness.
 AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1`;
 never passwords, tokens or financial records. Native authentication credentials use
-Expo SecureStore. Web keeps credentials in memory only and requires a fresh login after
-reload until an HTTPS-only, HttpOnly-cookie session flow exists.
+Expo SecureStore. Web keeps access credentials in memory and restores sessions from
+an HttpOnly SameSite refresh cookie; production cookies require HTTPS. No refresh
+credential is returned in browser JSON. Real-database acceptance remains pending.
 
 Configure `EXPO_PUBLIC_API_URL` for the API reachable by the target device. Android
 emulator development defaults to `10.0.2.2`; physical devices require a reachable
@@ -117,8 +120,9 @@ generation-only fallback URL does not open a database connection.
 `db:migrate` uses `migrate deploy`, never `db push` or `migrate reset`.
 
 Os scripts carregam `.env` sem sobrescrever variáveis já definidas. O cliente gerado
-é ignorado pelo Git. Migrações usam `migrate deploy`, sem reset destrutivo. A API
-atual continua independente da configuração de banco.
+é ignorado pelo Git. Migrações usam `migrate deploy`, sem reset destrutivo. Apenas
+a saúde do processo independe de banco; autenticação e operações financeiras exigem
+PostgreSQL acessível, credenciais válidas e migrações aplicadas.
 
 ## Identity model / Modelo de identidade
 
@@ -182,11 +186,11 @@ shapes. Account balances are intended to be derived from entries: income adds,
 expense subtracts, and transfers subtract from source/add to destination. No balance
 column is stored.
 
-These are persistence constraints, not a completed financial feature. No account or
-transaction HTTP route, authenticated owner context, repository, balance query,
-editing/deletion policy or mobile workflow exists yet. The hand-authored ledger
-migration has not been applied to PostgreSQL. `tests/integration/ledger.test.mjs`
-requires real PostgreSQL and must pass before this schema is accepted as integrated.
+Authenticated account/category/transaction routes and personal mobile/web forms are
+implemented. Balances are derived through exact-cent domain rules, with complete
+paged transaction reads. Editing/deletion policies and the larger financial lifecycle
+remain pending. `tests/integration/ledger.test.mjs` and `npm.cmd run test:e2e:real`
+require real PostgreSQL and must pass before persistence is accepted as integrated.
 
 References consulted on 2026-10-27 / Referências consultadas em 27/10/2026:
 [Prisma PostgreSQL](https://www.prisma.io/docs/orm/overview/databases/postgresql),

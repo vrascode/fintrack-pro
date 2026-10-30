@@ -6,7 +6,7 @@ test('fictional dashboard and financial pages stay responsive', async ({ page },
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Comece com seus dados' })).toBeVisible();
   await page.getByRole('button', { name: /Explorar demonstração/ }).click();
-  await expect(page.getByText('Seu dinheiro, com mais clareza.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible();
   await expect(page.getByText('DEMONSTRAÇÃO · DADOS FICTÍCIOS', { exact: true })).toBeVisible();
   await expect(page.getByText(/7\.340,00/)).toBeVisible();
   await expect(page.getByText(/84% da renda em despesas planejadas/)).toBeVisible();
@@ -96,7 +96,6 @@ test('income and expense chart series remain distinct in both themes', async ({ 
   await page.goto('/preferences');
   await page.getByRole('radio', { name: /Escuro/ }).click();
   await page.goto('/');
-  await page.getByRole('button', { name: 'Explorar demonstração' }).click();
   expect(await seriesColors()).toEqual({
     income: 'rgb(200, 74, 1)',
     expense: 'rgb(245, 245, 245)',

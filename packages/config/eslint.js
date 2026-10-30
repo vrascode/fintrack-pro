@@ -9,6 +9,7 @@ export default tseslint.config(
       '**/dist/**',
       'apps/api/generated/**',
       '**/.cache/**',
+      '**/.local/**',
       '**/.expo/**',
       '**/coverage/**',
       '**/test-results/**',
