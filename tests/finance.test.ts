@@ -9,6 +9,7 @@ import {
   calculateObligationRemaining,
   calculateReserveTargets,
   createDemoDataset,
+  exportTransactionsCsv,
   financialDatasetSchema,
 } from '@fintrack/shared';
 
@@ -59,7 +60,7 @@ test('account balances respect opening dates, status and transfer conservation',
     /unknown/i,
   );
 
-  const second = { ...original, id: 'savings', name: 'Savings' };
+  const second = { ...original, id: 'savings-transfer', name: 'Savings transfer test' };
   const transfer = {
     id: 'demo-transfer',
     kind: 'transfer' as const,
@@ -154,4 +155,31 @@ test('demo reference month is reproducible, supports rollover, and rejects inval
   );
   assert.throws(() => createDemoDataset('2026-13'), /month/i);
   assert.throws(() => financialDatasetSchema.parse({ ...october, demoLabel: 'real' }));
+});
+
+test('filtered transaction CSV escapes fields and neutralizes spreadsheet formulas', () => {
+  const demo = createDemoDataset();
+  const csv = exportTransactionsCsv(
+    [
+      {
+        id: 'unsafe',
+        kind: 'expense',
+        amountCents: '1234',
+        date: '2026-10-20',
+        status: 'posted',
+        accountId: 'checking',
+        description: '=HYPERLINK("https://example.invalid")',
+        categoryId: 'other',
+      },
+    ],
+    {
+      category: new Map(demo.categories.map(({ id, name }) => [id, name])),
+      account: new Map(demo.accounts.map(({ id, name }) => [id, name])),
+    },
+    'pt-BR',
+  );
+  assert.ok(csv.startsWith('\uFEFF'));
+  assert.ok(csv.includes("'=HYPERLINK"));
+  assert.ok(csv.includes('"Other"'));
+  assert.ok(csv.includes('"Everyday account"'));
 });

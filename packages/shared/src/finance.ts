@@ -173,11 +173,31 @@ export const financialDatasetSchema = z
   })
   .strict()
   .superRefine((dataset, context) => {
+    const checkUniqueIds = (items: { id: string }[], section: string) => {
+      const seen = new Set<string>();
+      items.forEach(({ id }, index) => {
+        if (seen.has(id)) {
+          context.addIssue({
+            code: 'custom',
+            path: [section, index, 'id'],
+            message: `${section} IDs must be unique.`,
+          });
+        }
+        seen.add(id);
+      });
+    };
+    checkUniqueIds(dataset.accounts, 'accounts');
+    checkUniqueIds(dataset.categories, 'categories');
+    checkUniqueIds(dataset.obligations, 'obligations');
+    checkUniqueIds(dataset.envelopes, 'envelopes');
+    checkUniqueIds(dataset.envelopeEvents, 'envelopeEvents');
     const accountIds = new Set(dataset.accounts.map(({ id }) => id));
     const categoryIds = new Set(dataset.categories.map(({ id }) => id));
     const obligationIds = new Set(dataset.obligations.map(({ id }) => id));
+    const obligationById = new Map(dataset.obligations.map((item) => [item.id, item]));
     const envelopeIds = new Set(dataset.envelopes.map(({ id }) => id));
     const seenTransactions = new Set<string>();
+    const seenBudgetCategories = new Set<string>();
     for (const [index, account] of dataset.accounts.entries()) {
       if (account.openingDate > dataset.asOfDate) {
         context.addIssue({
@@ -231,6 +251,32 @@ export const financialDatasetSchema = z
           message: 'A future transaction cannot already be posted.',
         });
       }
+      const sourceAccount = dataset.accounts.find(({ id }) => id === transaction.accountId);
+      const targetAccount = dataset.accounts.find(({ id }) => id === transaction.transferAccountId);
+      if (sourceAccount && transaction.date < sourceAccount.openingDate) {
+        context.addIssue({
+          code: 'custom',
+          path: ['transactions', index, 'date'],
+          message: 'Transaction predates its source account.',
+        });
+      }
+      if (targetAccount && transaction.date < targetAccount.openingDate) {
+        context.addIssue({
+          code: 'custom',
+          path: ['transactions', index, 'date'],
+          message: 'Transfer predates its destination account.',
+        });
+      }
+      const linkedObligation = transaction.obligationId
+        ? obligationById.get(transaction.obligationId)
+        : undefined;
+      if (linkedObligation && transaction.categoryId !== linkedObligation.categoryId) {
+        context.addIssue({
+          code: 'custom',
+          path: ['transactions', index, 'categoryId'],
+          message: 'Payment category must match its obligation.',
+        });
+      }
     }
     for (const [index, item] of dataset.monthlyBudget.entries()) {
       if (!categoryIds.has(item.categoryId)) {
@@ -247,6 +293,14 @@ export const financialDatasetSchema = z
           message: 'Budget cannot be negative.',
         });
       }
+      if (seenBudgetCategories.has(item.categoryId)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['monthlyBudget', index, 'categoryId'],
+          message: 'A category can appear only once in the monthly budget.',
+        });
+      }
+      seenBudgetCategories.add(item.categoryId);
     }
     for (const [index, obligation] of dataset.obligations.entries()) {
       if (!categoryIds.has(obligation.categoryId)) {
@@ -275,6 +329,44 @@ export const financialDatasetSchema = z
           code: 'custom',
           path: ['envelopeEvents', index, 'envelopeId'],
           message: 'Envelope does not exist.',
+        });
+      }
+      if (event.date > dataset.asOfDate) {
+        context.addIssue({
+          code: 'custom',
+          path: ['envelopeEvents', index, 'date'],
+          message: 'A future envelope event cannot already be recorded.',
+        });
+      }
+    }
+    for (const envelope of dataset.envelopes) {
+      const balance = dataset.envelopeEvents
+        .filter(({ envelopeId }) => envelopeId === envelope.id)
+        .reduce(
+          (sum, event) =>
+            sum + BigInt(event.kind === 'contribute' ? event.amountCents : `-${event.amountCents}`),
+          0n,
+        );
+      if (balance < 0n) {
+        context.addIssue({
+          code: 'custom',
+          path: ['envelopes'],
+          message: `Envelope ${envelope.id} cannot be overdrawn.`,
+        });
+      }
+    }
+    for (const obligation of dataset.obligations) {
+      const paid = dataset.transactions
+        .filter(
+          (transaction) =>
+            transaction.obligationId === obligation.id && transaction.status === 'posted',
+        )
+        .reduce((sum, transaction) => sum + BigInt(transaction.amountCents), 0n);
+      if (paid > BigInt(obligation.amountCents)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['obligations'],
+          message: `Payments exceed obligation ${obligation.id}.`,
         });
       }
     }
@@ -768,4 +860,37 @@ export function parseFinancialDataset(value: string): FinancialDataset {
 
 export function serializeCents(value: bigint): string {
   return serializeMoney(value);
+}
+
+function csvCell(value: string): string {
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
+/** Export an already-filtered transaction list without allowing spreadsheet formulas. */
+export function exportTransactionsCsv(
+  transactions: FinancialTransaction[],
+  labels: { category: Map<string, string>; account: Map<string, string> },
+  language: 'pt-BR' | 'en',
+): string {
+  const headers =
+    language === 'pt-BR'
+      ? ['Data', 'Tipo', 'Descrição', 'Categoria', 'Conta', 'Valor (centavos)', 'Status']
+      : ['Date', 'Type', 'Description', 'Category', 'Account', 'Amount (cents)', 'Status'];
+  const kind = (value: FinancialTransaction['kind']) =>
+    language === 'pt-BR'
+      ? { income: 'Receita', expense: 'Despesa', transfer: 'Transferência' }[value]
+      : value;
+  const status = (value: FinancialTransaction['status']) =>
+    language === 'pt-BR' ? { posted: 'Realizada', planned: 'Prevista' }[value] : value;
+  const rows = transactions.map((transaction) => [
+    transaction.date,
+    kind(transaction.kind),
+    transaction.description,
+    labels.category.get(transaction.categoryId ?? '') ?? '',
+    labels.account.get(transaction.accountId) ?? transaction.accountId,
+    transaction.amountCents,
+    status(transaction.status),
+  ]);
+  return `\uFEFF${[headers, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')}`;
 }
