@@ -2,6 +2,8 @@ import { z } from 'zod';
 export * from './money.ts';
 export * from './calendar.ts';
 export * from './identity.ts';
+export * from './finance.ts';
+export * from './demo.ts';
 
 export const preferencesSchema = z
   .object({
