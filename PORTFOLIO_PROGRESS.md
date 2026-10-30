@@ -550,5 +550,9 @@ Next priorities: provision PostgreSQL and apply the migrations safely; implement
 authenticated owner-scoped repositories and financial API routes; then connect
 the app to real accounts and transactions. Cards, recurring billing, notifications,
 budget editing, full reports, native-device verification and release signing remain
-open. Files for this task are committed individually and will be published after
-remote branch/authorship and synchronization checks.
+open. The 11 commits available at the first publication checkpoint were pushed
+individually to `https://github.com/vrascode/fintrack-pro.git` on its default
+branch `main`, authored as `matheussulino12@gmail.com`. GitHub reported
+`195b1d218455014cee2a6aa89cdf03e4fbfb5229`; the local branch and `origin/main`
+matched with a clean worktree. A follow-up documentation commit records this
+publication check and is published separately.
