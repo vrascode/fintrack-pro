@@ -20,7 +20,6 @@ import {
 } from '@fintrack/shared';
 import { resolveApiBaseUrl } from './url';
 
-const baseUrl = resolveApiBaseUrl(process.env.EXPO_PUBLIC_API_URL, Platform.OS, __DEV__);
 
 async function list<T>(
   path: string,
@@ -48,6 +47,7 @@ async function request<T>(
 ) {
   let response: Response;
   try {
+    const baseUrl = resolveApiBaseUrl(process.env.EXPO_PUBLIC_API_URL, Platform.OS, __DEV__);
     response = await fetch(`${baseUrl}${path}`, {
       method: options.method ?? 'GET',
       headers: {
