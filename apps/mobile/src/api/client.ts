@@ -81,6 +81,9 @@ export const apiClient = {
     const body = loginSchema.parse(input);
     return authSessionSchema.parse(await request('/auth/login', { method: 'POST', body }));
   },
+  logout(token: string): Promise<{ success: true }> {
+    return request('/auth/logout', { token, method: 'POST' });
+  },
   async accounts(token: string): Promise<FinancialAccount[]> {
     return list('/accounts', token, financialAccountSchema);
   },

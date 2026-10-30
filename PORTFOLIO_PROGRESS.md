@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Mobile authentication state — 2026-10-30
+
+Added an authentication store that hydrates validated session credentials, registers
+then signs in, stores only tokens (never passwords), and clears local credentials on
+logout. Native storage resolves to Expo SecureStore; web remains memory-only. Unit
+tests cover restoration, first-time registration/login, corrupt storage and logout.
+Full `npm run check` passed (lint, typecheck/build, 66 tests, formatting). The UI is
+not yet switched to require this store, and server session restore/refresh remains
+incomplete.
+
 ## Mobile API and secure session foundation — 2026-10-30
 
 Added the SDK 58 `expo-secure-store` native module, platform-specific token storage,
