@@ -124,6 +124,52 @@ Os scripts carregam `.env` sem sobrescrever variáveis já definidas. O cliente 
 a saúde do processo independe de banco; autenticação e operações financeiras exigem
 PostgreSQL acessível, credenciais válidas e migrações aplicadas.
 
+## Recover local PostgreSQL 17 / Recuperar PostgreSQL 17 local
+
+The Windows recovery procedure is restricted to `postgresql-x64-17`, port 5432,
+and the verified data/HBA directory `C:\Program Files\PostgreSQL\17\data`.
+It refuses a different instance. Port 5433 is not modified. Run in your own
+PowerShell terminal (as administrator if file/service access requires it):
+
+```powershell
+Set-Location C:\Projetos\fintrack-pro
+node scripts/recover-postgres-admin.mjs --inspect
+node scripts/recover-postgres-admin.mjs
+```
+
+The script backs up the exact HBA bytes under ignored `.local/postgres17-recovery-*`.
+It temporarily permits **only** `postgres` connecting to database `postgres` over
+`127.0.0.1/32`. The first command in the authenticated psql session restores the
+original configuration **before** `\password postgres` prompts for a new password.
+The password is typed twice without echo, then once more to verify a fresh password
+connection. It never enters Node, process arguments, script files or SQL history.
+The script also restores in `finally`; an independent 30-second watchdog restores
+the backup if the parent exits or hangs before restoration. No service restart,
+reinstall, database deletion or global Windows policy change is used.
+
+O procedimento verifica serviço, PID, versão, porta, diretório e HBA antes de agir.
+O backup preserva os bytes originais; a restauração grava no mesmo arquivo para
+preservar suas permissões. A exceção temporária permite somente `postgres` no banco
+`postgres` via `127.0.0.1`. A configuração original volta **antes** dos prompts de
+senha. A senha fica exclusivamente no terminal do psql, sem eco, argumentos ou
+histórico. Uma restauração adicional em `finally` e um processo independente com
+prazo de 30 segundos protegem falhas/interrupções. A porta 5433 fica intacta.
+
+Do not run simultaneous HBA edits during recovery. Keep the printed backup path.
+After a whole-machine power failure, inspect authentication before starting use;
+if necessary restore with `node scripts/recover-postgres-admin.mjs --restore
+<printed-directory>\state.json`. No software watchdog runs while Windows is off.
+Never send passwords in chat or commit `.env`/recovery backups.
+
+Não edite o HBA simultaneamente. Guarde o caminho do backup. Após queda de energia
+do computador inteiro, confira a configuração antes de usar o serviço e restaure
+com o comando acima se necessário. Nenhum watchdog funciona com o Windows desligado.
+Validação dos testes do procedimento não comprova que a senha real foi redefinida:
+essa confirmação exige executar o comando local e concluir a conexão final do psql.
+
+Sources / Fontes: [PostgreSQL 17 HBA on Windows](https://www.postgresql.org/docs/17/auth-pg-hba-conf.html)
+and [psql password handling](https://www.postgresql.org/docs/17/app-psql.html).
+
 ## Identity model / Modelo de identidade
 
 | Model / Modelo | Purpose and invariants / Finalidade e invariantes                                                                                       |

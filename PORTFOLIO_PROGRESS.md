@@ -2,6 +2,31 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Main synchronization and administrative recovery / Integração e recuperação — 2026-10-30
+
+Remote PR #2 had already merged `d7a7376`, `71b945f` and `e9cfc8a` into
+`a7c1b70`; local main was fast-forwarded without rewriting any commit. Preserved
+the pre-existing untracked root `tsconfig.json`. `npm.cmd run check` passed:
+74 tests, lint, typecheck, build and formatting. This does not validate PostgreSQL.
+
+Confirmed PostgreSQL 17.11, service `postgresql-x64-17`, port 5432 and effective
+HBA under `C:\Program Files\PostgreSQL\17\data`. No established 5432 connection or
+pgAdmin/psql process was found. PostgreSQL 18 on 5433 remains untouched. Did not
+repeat previously rejected credentials. Added an interactive psql recovery helper
+with exact-byte backup, a narrow loopback exception, restoration before password
+entry, final password authentication check and a separate restoration watchdog.
+Three recovery tests passed, including the Windows shell restoration command;
+syntax, targeted lint and formatting passed. The real reset still requires the
+owner's hidden input in a local terminal; no migration or real acceptance success
+is claimed. Backups remain ignored under `.local/`.
+
+PR #2 já integrado e histórico preservado; main local sincronizada. Os 74 testes
+passaram, mas não comprovam persistência. A instância 5432 foi identificada sem
+novas tentativas de senha. Procedimento seguro preparado e testado em arquivos
+isolados; redefinição real aguarda entrada oculta no terminal local. Nenhuma
+alteração realizada na instância 5433. Próximo passo: confirmar o acesso com psql,
+configurar apenas o banco de desenvolvimento e aplicar migrações não destrutivas.
+
 ## Local PostgreSQL verification — 2026-10-30
 
 Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS
