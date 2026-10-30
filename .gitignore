@@ -15,3 +15,5 @@ apps/mobile/ios/
 apps/api/generated/
 apps/api/src/generated/prisma/
 .DS_Store
+
+.local/
