@@ -120,7 +120,17 @@ export const apiClient = {
     );
   },
   async transactions(token: string): Promise<FinancialTransaction[]> {
-    return list('/transactions', token, financialTransactionSchema);
+    const rows: FinancialTransaction[] = [];
+    for (let offset = 0; offset <= 1000000; offset += 100) {
+      const page = await list(
+        `/transactions?limit=100&offset=${offset}`,
+        token,
+        financialTransactionSchema,
+      );
+      rows.push(...page);
+      if (page.length < 100) return rows;
+    }
+    throw new ApiClientError(502, 'Transaction history is too large to load completely.');
   },
   async createTransaction(
     token: string,

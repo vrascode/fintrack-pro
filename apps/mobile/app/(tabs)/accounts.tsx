@@ -6,8 +6,15 @@ import { demoLabel } from '../../src/demo/labels';
 import { useI18n } from '../../src/i18n';
 import { usePreferences } from '../../src/preferences';
 import { designTokens, useTheme } from '../../src/theme';
+import { useAuth } from '../../src/auth';
+import { PersonalAccounts } from '../../src/personal/screens';
 
 export default function Accounts() {
+  const session = useAuth((state) => state.session);
+  return session ? <PersonalAccounts /> : <DemoAccounts />;
+}
+
+function DemoAccounts() {
   const { language, formatCurrency, formatDate } = useI18n();
   const { value: preferences } = usePreferences();
   const { mode, dataset } = useDemo();

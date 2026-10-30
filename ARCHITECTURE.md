@@ -1,7 +1,19 @@
 # Architecture / Arquitetura
 
-Phase 1 foundation and phase 2 identity core. Database-backed services remain pending.
-/ Fundação da fase 1 e núcleo da fase 2; serviços persistentes continuam pendentes.
+The source connects Prisma-backed identity/accounts/categories/transactions with
+personal Expo screens. PostgreSQL acceptance remains pending local credentials.
+/ Integração no código entre API Prisma e telas pessoais; aceitação real pendente.
+
+`apps/mobile/src/personal/` loads only the authenticated user's API records, clears
+screen data on session/focus changes and distinguishes query failures from empty
+results. Account balances reuse the exact-cent domain function; transaction history
+is paged until complete before computing dashboard values. Account creation records
+the opening date; entry retries reuse the same idempotency key. Demo routes remain
+separate and retain their fictional-data labels. Browser access grants stay in memory;
+refresh is recovered through an HttpOnly SameSite cookie and atomically rotated in
+the existing PostgreSQL session model. Native grants continue to use SecureStore.
+Production cookies require HTTPS and configured `CORS_ORIGINS`. Local development
+keeps localhost/127.0.0.1 frontend and API hostnames aligned for SameSite cookies.
 
 ```text
 fintrack-pro/

@@ -4,6 +4,21 @@ Updated / Atualizado: 2026-10-27
 
 ## Local PostgreSQL verification — 2026-10-30
 
+Personal finance integration in source: registration leaves demo mode and opens
+account setup; account name/type/opening cents/date are sent to the owner-scoped
+API. Posted income/expense/transfer forms use per-request idempotency and retain
+fields after failure; categories can be created. The personal dashboard reloads
+server records on focus, derives balances using the existing exact-cent domain,
+shows posted monthly series/history and offers logout. No fixture or local financial
+array substitutes for persistence. Full `npm.cmd run check` passed (69 tests before
+four additional cookie tests); all three platform exports and all 12 regular E2E
+cases passed. These E2E cover demo/onboarding/errors, not successful real registration.
+`npm.cmd run test:e2e:real` stopped at P1000 during test migrations, before browser
+acceptance could run. No real account write/reload/API-restart success is claimed.
+
+Integração pessoal implementada no código; a validação com PostgreSQL continua
+pendente das credenciais. Não promover esta branch à main como aplicação pronta.
+
 Cookie/session checks: four dedicated HTTP/cookie security tests and eight focused
 auth-store/API-URL tests passed. Typecheck passed after separating native refresh
 grants from browser payloads. Browser JSON never contains the refresh credential;
