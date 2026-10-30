@@ -88,6 +88,22 @@ gate, not a passing integration. Git staging and publication succeeded through
 approved operations after the earlier sandbox restrictions.
 Do not skip to phase 3 or substitute mock persistence to declare phase 2 complete.
 
+## PostgreSQL setup check — 2026-10-29
+
+Prisma 7 dependencies, the owner-scoped ledger schema and migration were published
+in `5872d9f`. Local schema validation and client generation passed, but the prior
+real integration attempt returned PostgreSQL `P1001`. This environment has no
+Docker Desktop, PostgreSQL installation, WSL, or listener on ports 5432/5433.
+The local `.env` was safely created with separate random development/test
+credentials and is ignored by Git. `infra/compose.yaml` binds both databases to
+loopback, persists development storage in a named volume, and uses ephemeral test
+storage. No migration has run against either database.
+
+Starting PostgreSQL now requires installing WSL/Docker Desktop or native PostgreSQL,
+which changes software outside the project and may require administrator approval.
+The installation step is pending explicit user authorization; see
+[portfolio progress](PORTFOLIO_PROGRESS.md).
+
 A fase 2 começou com 13 testes locais adicionais e código de identidade/banco.
 PostgreSQL, Prisma, entrega de email, SecureStore e testes nativos seguem pendentes.
 A suíte real não passou: encerra por pré-requisitos ausentes. Commits e push foram

@@ -477,7 +477,25 @@ Files changed: `apps/api/package.json`, `apps/api/prisma/schema.prisma`,
 `apps/api/prisma/migrations/202610290001_ledger/migration.sql`,
 `scripts/database.mjs`, `tests/integration/ledger.test.mjs`, `package.json`,
 `package-lock.json`, `DATABASE.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `README.md`,
-`README.pt-BR.md` and `SECURITY.md`. No commit or push has been made for this update;
-the PostgreSQL integration gate remains open. Next priority: run both migrations and
-the integration suites against real PostgreSQL, then implement the authenticated
-repository/API flow without introducing mock persistence.
+`README.pt-BR.md` and `SECURITY.md`. Published in commit
+`5872d9fa9cee9c28be83f1bebe351de3c8b7e576`; `main` and `origin/main` were verified
+synchronized. The PostgreSQL integration gate remains open. Next priority: run both
+migrations and the integration suites against real PostgreSQL, then implement the
+authenticated repository/API flow without introducing mock persistence.
+
+## Local PostgreSQL availability check — 2026-10-29
+
+At the start of the next integration task, `main` was clean at
+`5872d9fa9cee9c28be83f1bebe351de3c8b7e576`. `docker`, `podman`, `psql`, `postgres`,
+`pg_ctl` and `initdb` are unavailable; Docker Desktop and PostgreSQL install paths
+were not found; WSL reports that it is not installed; both expected TCP ports are
+closed. The Windows `winget.exe` app execution alias could not be run in this
+environment. No existing database was altered.
+
+Created a local `.env` with cryptographically random, distinct development and test
+passwords, loopback URLs, and the expected database names. Verified the file is
+ignored by Git without printing its values. Compose already keeps both services on
+loopback, uses a persistent named development volume and ephemeral test storage.
+No service was started and no migration was applied because a PostgreSQL runtime is
+not installed. The remaining blocker is authorization to install WSL/Docker Desktop
+(which can require administrator privileges and a restart) or native PostgreSQL.
