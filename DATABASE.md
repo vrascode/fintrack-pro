@@ -7,8 +7,11 @@ dependencies, schema/client generation, versioned identity and ledger migrations
 and real-database integration suites. Prisma validates the schema and generates the
 client locally. PostgreSQL/Docker are unavailable here, so no migration has been
 applied and the integration suites have not passed. The API has process and database
-readiness endpoints plus a lazy Prisma service, but authentication HTTP endpoints,
-financial repositories and application services remain unimplemented.
+readiness endpoints, a lazy Prisma service and `POST /v1/auth/register` and
+`POST /v1/auth/login`, but user-scoped financial repositories and application
+services remain unimplemented. Credentials are hashed; login stores session and
+refresh-token digests transactionally. The current tests use a Prisma-shaped fake
+and do not prove PostgreSQL persistence.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
@@ -19,7 +22,9 @@ dependências Prisma 7, validação do schema/geração do cliente, migrações 
 de identidade e ledger e suítes para banco real. O Prisma valida o schema e gera o
 cliente localmente. PostgreSQL/Docker estão indisponíveis neste ambiente, portanto as
 migrações não foram aplicadas e as suítes reais não passaram. Rotas HTTP de identidade,
-repositórios financeiros e serviços de aplicação continuam pendentes.
+rotas de cadastro e login existem, mas repositórios financeiros vinculados ao usuário
+e serviços de aplicação continuam pendentes. Os testes locais de auth usam um repositório
+simulado e não comprovam persistência PostgreSQL.
 
 `/v1/health` checks process liveness; `/v1/health/ready` checks database readiness.
 AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1`;

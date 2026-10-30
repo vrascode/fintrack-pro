@@ -27,6 +27,12 @@ test('NestJS health works through HTTP and declares only process liveness', asyn
   const readinessBody = await readiness.text();
   assert.match(readinessBody, /"scope":"database"/);
   assert.doesNotMatch(readinessBody, /postgresql:|password|127\.0\.0\.1/);
+  const invalidRegistration = await fetch(`${base}/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'invalid' }),
+  });
+  assert.equal(invalidRegistration.status, 400);
   assert.equal((await fetch(`${base}/health`)).status, 404);
   assert.equal((await fetch(`${base}/v1/accounts`)).status, 404);
   assert.equal((await fetch(`${base}/v1/health`, { method: 'POST' })).status, 404);

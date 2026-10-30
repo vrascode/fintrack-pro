@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { healthSchema, type Health } from '@fintrack/shared';
 import { PrismaModule } from './database/prisma.module.js';
 import { PrismaService } from './database/prisma.service.js';
+import { AuthModule } from './identity/auth.module.js';
 
 @Controller('health')
 class HealthController {
@@ -29,7 +30,7 @@ class HealthController {
   }
 }
 
-@Module({ imports: [PrismaModule], controllers: [HealthController] })
+@Module({ imports: [PrismaModule, AuthModule], controllers: [HealthController] })
 class AppModule {}
 
 export async function createApp(logger: false | undefined = undefined) {

@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Registration and login API — 2026-10-30
+
+Added validated registration and login endpoints. Passwords use the existing scrypt
+hasher; login creates a session and refresh-token digest in one Prisma transaction
+and returns opaque credentials only in the response. Added service tests using a
+Prisma-shaped fake and an HTTP test for request validation. Full `npm run check`
+passed (lint, types/build, 52 tests, formatting). The fake-backed test does not prove
+database persistence; PostgreSQL integration remains blocked by P1001. Rate limiting,
+access-token authorization middleware, and financial APIs are still pending.
+
 ## Account opening state — 2026-10-30
 
 Added a non-destructive Prisma migration for exact-cent opening balances, their
