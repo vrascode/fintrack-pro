@@ -2,6 +2,18 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Prisma runtime foundation — 2026-10-30
+
+Moved Prisma Client generation into the API TypeScript source boundary and made
+API builds generate the client reproducibly without requiring a live database.
+Added a lazy Prisma PostgreSQL adapter service and `/v1/health/ready`, which
+checks database connectivity separately from process liveness and returns a
+generic unavailable response without exposing connection details. The API build,
+full repository check, and HTTP health/readiness test passed (51 tests). Database
+integration remains unvalidated: PostgreSQL is unavailable at `127.0.0.1:5433`
+and the prior integration run failed with Prisma P1001. No migration or financial
+write/read has been confirmed against PostgreSQL.
+
 ## Responsive UI and localization — 2026-10-29
 
 Implemented a tokenized light/dark palette with system-following behavior, a

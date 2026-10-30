@@ -4,7 +4,10 @@ import { healthSchema } from '@fintrack/shared';
 import { createApp } from '../apps/api/dist/app.js';
 
 test('NestJS health works through HTTP and declares only process liveness', async (t) => {
+  const configuredDatabaseUrl = process.env.DATABASE_URL;
+  delete process.env.DATABASE_URL;
   const app = await createApp(false);
+  if (configuredDatabaseUrl !== undefined) process.env.DATABASE_URL = configuredDatabaseUrl;
   t.after(async () => {
     await app.close();
   });
@@ -18,6 +21,12 @@ test('NestJS health works through HTTP and declares only process liveness', asyn
     status: 'ok',
     scope: 'process',
   });
+  const readiness = await fetch(`${base}/v1/health/ready`);
+  assert.equal(readiness.status, 503);
+  assert.equal(readiness.headers.get('cache-control'), 'no-store');
+  const readinessBody = await readiness.text();
+  assert.match(readinessBody, /"scope":"database"/);
+  assert.doesNotMatch(readinessBody, /postgresql:|password|127\.0\.0\.1/);
   assert.equal((await fetch(`${base}/health`)).status, 404);
   assert.equal((await fetch(`${base}/v1/accounts`)).status, 404);
   assert.equal((await fetch(`${base}/v1/health`, { method: 'POST' })).status, 404);

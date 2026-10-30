@@ -50,6 +50,10 @@ export function main(command) {
   }
   const env = { ...process.env };
   if (command === 'test') env.DATABASE_URL = validateTestDatabaseUrl(env.TEST_DATABASE_URL);
+  if (command === 'generate' && !env.DATABASE_URL) {
+    // Prisma config requires a URL for generation but this command never connects.
+    env.DATABASE_URL = 'postgresql://generate:generate@127.0.0.1:5432/fintrack';
+  }
   if (!env.DATABASE_URL) throw new Error('DATABASE_URL is required; see DATABASE.md.');
   let cli;
   try {
