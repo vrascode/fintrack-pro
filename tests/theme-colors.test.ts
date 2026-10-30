@@ -1,0 +1,45 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { palettes } from '../apps/mobile/src/theme-colors.ts';
+
+function luminance(hex: string) {
+  const channels = [1, 3, 5].map(
+    (offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255,
+  );
+  const linear = channels.map((channel) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
+  );
+  const [red = 0, green = 0, blue = 0] = linear;
+  return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+}
+
+function contrast(foreground: string, background: string) {
+  const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+  const [lighter = 0, darker = 0] = values;
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+test('expense palette uses the vivid red scale in both themes', () => {
+  for (const palette of [palettes.light, palettes.dark]) {
+    assert.equal(palette.negativeBright, '#FF0000');
+    assert.equal(palette.negativeStrong, '#E60000');
+    assert.equal(palette.negativeDeep, '#990000');
+    assert.equal(palette.negativeDeepest, '#800000');
+  }
+});
+
+test('solid negative text keeps readable contrast on its theme surfaces', () => {
+  for (const surface of ['#F2EFE9', '#FAF8F4']) {
+    assert.ok(contrast(palettes.light.negative, surface) >= 4.5);
+  }
+  for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
+    assert.ok(contrast(palettes.dark.negative, surface) >= 4.5);
+  }
+});
+
+test('expense palette change preserves income green and orange identity', () => {
+  assert.equal(palettes.light.positive, '#207A4B');
+  assert.equal(palettes.dark.positive, '#52D98A');
+  assert.equal(palettes.light.accentStrong, '#FF5A00');
+  assert.equal(palettes.dark.accentStrong, '#FF741F');
+});

@@ -6,7 +6,14 @@ import {
   calculateMonthlySummary,
   calculateObligationRemaining,
 } from '@fintrack/shared';
-import { Button, Card, Label, Screen, SectionHeading } from '../../src/components/ui';
+import {
+  Button,
+  Card,
+  Label,
+  NegativeGradientBar,
+  Screen,
+  SectionHeading,
+} from '../../src/components/ui';
 import { useDemo } from '../../src/demo';
 import { demoLabel } from '../../src/demo/labels';
 import { useI18n } from '../../src/i18n';
@@ -352,10 +359,9 @@ export default function Overview() {
               backgroundColor: colors.elevated,
             }}
           >
-            <View
-              accessibilityLabel="84% expenses"
-              style={{ width: '84%', backgroundColor: colors.negative }}
-            />
+            <View accessibilityLabel="84% expenses" style={{ width: '84%' }}>
+              <NegativeGradientBar height={12} radius={0} />
+            </View>
             <View
               accessibilityLabel="16% surplus"
               style={{ width: '16%', backgroundColor: colors.positive }}
@@ -438,15 +444,9 @@ export default function Overview() {
                     backgroundColor: colors.positive,
                   }}
                 />
-                <View
+                <NegativeGradientBar
                   accessibilityLabel={`${text('Despesas', 'Expenses')} ${formatCurrency(item.expenses, 'BRL', hidden)}`}
-                  style={{
-                    height: 8,
-                    width: `${Math.max(1, expenseWidth)}%`,
-                    maxWidth: '100%',
-                    borderRadius: 5,
-                    backgroundColor: colors.negative,
-                  }}
+                  width={`${Math.max(1, expenseWidth)}%`}
                 />
               </View>
               <View
@@ -502,13 +502,7 @@ export default function Overview() {
                     overflow: 'hidden',
                   }}
                 >
-                  <View
-                    style={{
-                      height: 8,
-                      width: `${Math.min(100, ratio)}%`,
-                      backgroundColor: ratio > 100 ? colors.negative : colors.accent,
-                    }}
-                  />
+                  <NegativeGradientBar height={8} width={`${Math.min(100, ratio)}%`} />
                 </View>
               </View>
             );

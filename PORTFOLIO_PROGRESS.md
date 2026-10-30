@@ -556,3 +556,15 @@ branch `main`, authored as `matheussulino12@gmail.com`. GitHub reported
 `195b1d218455014cee2a6aa89cdf03e4fbfb5229`; the local branch and `origin/main`
 matched with a clean worktree. A follow-up documentation commit records this
 publication check and is published separately.
+
+## Expense color contrast — 2026-10-30
+
+Replaced salmon expense and negative-state colors with a vivid red scale in both
+themes. Financial text uses solid colors with WCAG AA contrast on relevant
+surfaces; expense bars use a platform-neutral red gradient. Income green and the
+orange brand remain unchanged. This presentation-only change does not alter
+financial calculations.
+
+Validation: `npm run check` passed (lint, builds, type checks, 49 unit tests and
+formatting); `npm run bundle` exported web, Android and iOS; `npm run test:e2e`
+passed 6/6 desktop and mobile tests. The generated desktop screenshot was reviewed.

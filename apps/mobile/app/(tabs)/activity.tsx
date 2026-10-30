@@ -160,7 +160,7 @@ export default function Activity() {
                   transaction.kind === 'income'
                     ? colors.positive
                     : transaction.kind === 'expense'
-                      ? colors.ink
+                      ? colors.negative
                       : colors.accent;
                 return (
                   <View

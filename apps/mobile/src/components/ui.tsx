@@ -281,6 +281,60 @@ export function SectionHeading({ title, detail }: { title: string; detail?: stri
   );
 }
 
+export function NegativeGradientBar({
+  width = '100%',
+  height = 8,
+  radius = 5,
+  accessibilityLabel,
+}: {
+  width?: ViewStyle['width'];
+  height?: number;
+  radius?: number;
+  accessibilityLabel?: string;
+}) {
+  const colors = useTheme();
+  const stops = [
+    colors.negativeBright,
+    colors.negativeStrong,
+    colors.negativeDeep,
+    colors.negativeDeepest,
+  ];
+  const segments = Array.from({ length: 12 }, (_, index) => {
+    const position = (index / 11) * (stops.length - 1);
+    const start = Math.floor(position);
+    const end = Math.min(start + 1, stops.length - 1);
+    const fraction = position - start;
+    const startColor = stops[start] ?? colors.negativeBright;
+    const endColor = stops[end] ?? colors.negativeDeepest;
+    const channel = (hex: string, offset: number) =>
+      Number.parseInt(hex.slice(offset, offset + 2), 16);
+    const blend = (offset: number) =>
+      Math.round(
+        channel(startColor, offset) * (1 - fraction) + channel(endColor, offset) * fraction,
+      )
+        .toString(16)
+        .padStart(2, '0');
+    return `#${blend(1)}${blend(3)}${blend(5)}`;
+  });
+
+  return (
+    <View
+      accessibilityLabel={accessibilityLabel}
+      style={{
+        width,
+        height,
+        borderRadius: radius,
+        overflow: 'hidden',
+        flexDirection: 'row',
+      }}
+    >
+      {segments.map((color, index) => (
+        <View key={index} style={{ flex: 1, backgroundColor: color }} />
+      ))}
+    </View>
+  );
+}
+
 export function Screen({
   title,
   subtitle,
