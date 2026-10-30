@@ -53,7 +53,9 @@ export function main(command) {
   if (!env.DATABASE_URL) throw new Error('DATABASE_URL is required; see DATABASE.md.');
   let cli;
   try {
-    cli = requireApi.resolve('prisma');
+    // Prisma 7 exposes its executable through this explicit package subpath.
+    // Resolving the package root can select its TypeScript declaration shim.
+    cli = requireApi.resolve('prisma/build/index.js');
     requireApi.resolve('@prisma/client');
     requireApi.resolve('@prisma/adapter-pg');
   } catch {
@@ -68,7 +70,17 @@ export function main(command) {
     // Reapplying must be a no-op. No reset, db push, or destructive schema operations.
     run([cli, 'migrate', 'deploy'], api, env);
     run([cli, 'migrate', 'status'], api, env);
-    run(['--import', 'tsx', '--test', 'tests/integration/identity.test.mjs'], root, env);
+    run(
+      [
+        '--import',
+        'tsx',
+        '--test',
+        'tests/integration/identity.test.mjs',
+        'tests/integration/ledger.test.mjs',
+      ],
+      root,
+      env,
+    );
     return;
   }
   run([cli, ...commands[command]], api, env);

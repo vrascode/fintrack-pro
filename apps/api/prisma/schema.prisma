@@ -14,15 +14,36 @@ enum AuthTokenPurpose {
   RESET_PASSWORD
 }
 
+enum AccountType {
+  CHECKING
+  SAVINGS
+  WALLET
+  CASH
+}
+
+enum CategoryKind {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionKind {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
 model User {
-  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email           String      @unique @db.VarChar(254)
-  passwordHash    String      @db.VarChar(255)
-  emailVerifiedAt DateTime?   @db.Timestamptz(3)
-  createdAt       DateTime    @default(now()) @db.Timestamptz(3)
-  updatedAt       DateTime    @default(now()) @updatedAt @db.Timestamptz(3)
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String        @unique @db.VarChar(254)
+  passwordHash    String        @db.VarChar(255)
+  emailVerifiedAt DateTime?     @db.Timestamptz(3)
+  createdAt       DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
   sessions        Session[]
   authTokens      AuthToken[]
+  accounts        Account[]
+  categories      Category[]
+  transactions    Transaction[]
 }
 
 model Session {
@@ -67,4 +88,61 @@ model AuthToken {
 
   @@index([userId, purpose])
   @@index([expiresAt])
+}
+
+model Account {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String        @db.Uuid
+  name         String        @db.VarChar(80)
+  type         AccountType
+  currency     String        @default("BRL") @db.Char(3)
+  archivedAt   DateTime?     @db.Timestamptz(3)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] @relation("TransactionAccount")
+  transfers    Transaction[] @relation("TransactionTransferAccount")
+
+  @@unique([userId, id])
+  @@index([userId, archivedAt, createdAt])
+}
+
+model Category {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String        @db.Uuid
+  name         String        @db.VarChar(60)
+  kind         CategoryKind
+  archivedAt   DateTime?     @db.Timestamptz(3)
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, id])
+  @@unique([userId, kind, name])
+  @@index([userId, archivedAt])
+}
+
+model Transaction {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String          @db.Uuid
+  accountId         String          @db.Uuid
+  transferAccountId String?         @db.Uuid
+  categoryId        String?         @db.Uuid
+  kind              TransactionKind
+  amountCents       BigInt
+  description       String          @db.VarChar(160)
+  notes             String?         @db.VarChar(1000)
+  occurredOn        DateTime        @db.Date
+  idempotencyKey    String          @db.VarChar(128)
+  createdAt         DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account           Account         @relation("TransactionAccount", fields: [userId, accountId], references: [userId, id], onDelete: NoAction)
+  transferAccount   Account?        @relation("TransactionTransferAccount", fields: [userId, transferAccountId], references: [userId, id], onDelete: NoAction)
+  category          Category?       @relation(fields: [userId, categoryId], references: [userId, id], onDelete: NoAction)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, occurredOn, createdAt])
+  @@index([userId, accountId, occurredOn])
+  @@index([userId, categoryId, occurredOn])
 }

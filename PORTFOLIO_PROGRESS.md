@@ -446,3 +446,38 @@ commits reais separados. Depois, seguir a fase 2 com PostgreSQL e testes reais,
 sem antecipar fases nem declarar funcionalidades não implementadas.
 
 </details>
+
+## Ledger foundation update — 2026-10-29
+
+Installed and locked Prisma CLI, client and PostgreSQL adapter at 7.10.1. The
+database command now resolves Prisma 7 through its explicit CLI package subpath.
+Extended the Prisma schema and added a versioned migration for owner-scoped
+accounts, categories and ledger transactions. Amounts use `BIGINT` cents,
+account balances are intended to be derived from entries, composite foreign keys
+bind financial records to their owner, and transaction idempotency is unique per
+user. Added a real-PostgreSQL integration suite for amount persistence, ownership,
+idempotency and invalid transfers. This is schema groundwork; there are no financial
+routes, repositories, balance services or mobile flows yet.
+
+Validation: Prisma schema validation and client generation passed. After compatible
+dependency updates, `npm run check` passed lint, types, build, 27/27 local tests and
+formatting; Android/iOS/web export and 8/8 browser E2E tests also passed. The earlier
+`npm run test:integration` built and generated the client, then failed with PostgreSQL
+`P1001` because no server is available at `127.0.0.1:5433`; migration application and
+integration assertions did not run. Docker/PostgreSQL tooling and the development
+database are unavailable.
+
+Dependency review: `npm audit fix` updated compatible packages and removed the
+`node-forge` advisory. Its resulting report still lists eight Expo tooling findings
+(three high, five low); resolving them automatically would downgrade Expo to 54.0.38,
+so that breaking change was not applied. A later direct audit request could not reach
+the registry. See [SECURITY.md](SECURITY.md).
+
+Files changed: `apps/api/package.json`, `apps/api/prisma/schema.prisma`,
+`apps/api/prisma/migrations/202610290001_ledger/migration.sql`,
+`scripts/database.mjs`, `tests/integration/ledger.test.mjs`, `package.json`,
+`package-lock.json`, `DATABASE.md`, `ARCHITECTURE.md`, `ROADMAP.md`, `README.md`,
+`README.pt-BR.md` and `SECURITY.md`. No commit or push has been made for this update;
+the PostgreSQL integration gate remains open. Next priority: run both migrations and
+the integration suites against real PostgreSQL, then implement the authenticated
+repository/API flow without introducing mock persistence.

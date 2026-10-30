@@ -12,14 +12,14 @@ are not available yet.
 
 ## What works today
 
-| Area                 | Implemented behavior                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| App                  | Overview, activity, accounts, cards and preferences tabs; responsive layouts and honest empty states                                        |
-| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                      |
-| Domain               | Exact integer money, validated calendar dates and shared Zod contracts                                                                      |
-| API                  | NestJS `GET /v1/health`, loopback by default, process liveness only                                                                         |
-| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database |
-| Database preparation | PostgreSQL Compose configuration, Prisma 7 schema, initial SQL migration and a real-database suite; execution remains blocked               |
+| Area                 | Implemented behavior                                                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| App                  | Overview, activity, accounts, cards and preferences tabs; responsive layouts and honest empty states                                           |
+| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                         |
+| Domain               | Exact integer money, validated calendar dates and shared Zod contracts                                                                         |
+| API                  | NestJS `GET /v1/health`, loopback by default, process liveness only                                                                            |
+| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database    |
+| Database preparation | Prisma 7 dependencies, identity/ledger schemas and migrations, generated client and real-database suites; PostgreSQL execution remains blocked |
 
 The identity core is not connected to HTTP or persistence. No mock database is
 used to claim integration. See [database setup and remaining work](DATABASE.md).
@@ -70,8 +70,7 @@ server on port 4173 and closes it after the run. Manual preview:
 `node scripts/serve.mjs`. Native exports and browser viewports do not establish
 native device, biometric or release-signing compatibility.
 
-Follow [DATABASE.md](DATABASE.md) to install the missing Prisma dependencies,
-configure separate development/test databases and run:
+Follow [DATABASE.md](DATABASE.md) to configure separate development/test databases and run:
 
 ```sh
 npm run db:validate
@@ -103,15 +102,18 @@ and [research](docs/RESEARCH.md).
 
 ## Project status
 
-Phase 2 is **in progress, not accepted**. Remaining work includes Prisma dependency
-installation and migration validation, a transactional identity repository, HTTP
-registration/login, email verification/recovery, account deletion, SecureStore and
-biometrics. Financial CRUD, billing, reports, notifications and AI belong to later
-phases. This is not a production-ready financial service.
+Phase 2 is **in progress, not accepted**. Prisma schema validation and client
+generation pass locally. Identity and ledger migrations still need a real PostgreSQL
+run; transactional repositories, authenticated HTTP flows, financial CRUD, account
+balance queries and mobile workflows are not implemented. Email lifecycle, SecureStore,
+biometrics and later billing/reporting features also remain. This is not a
+production-ready financial service.
 
 Existing source changes were committed by feature and published to `origin/main`
 on 2026-10-27 after the Git permission and connectivity blockers were resolved
 through approved operations. See the [publication record](PORTFOLIO_PROGRESS.md).
-The earlier npm audit did not complete; dependency review and real database
-validation remain pending. This publication adds no dependency remediation or
-database integration. Secrets, local data, caches and generated outputs stay out of Git.
+The latest `npm audit fix` removed the `node-forge` advisory but reported eight
+remaining Expo-tooling findings (three high, five low); the remaining automatic
+fix requires a breaking Expo downgrade and was not applied. Real database
+validation also remains pending. Secrets, local data, caches and generated
+outputs stay out of Git.

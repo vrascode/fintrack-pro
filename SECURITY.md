@@ -101,6 +101,29 @@ em node-forge e Zod 3; o aplicativo usa Zod 4.6.7. Não há assinatura de atuali
 nem servidor público de desenvolvimento configurados. Essa limitação de exposição
 não elimina as vulnerabilidades. Reavaliar antes de preparar assinatura/publicação.
 
+## Dependency audit — 2026-10-29
+
+`npm audit fix` updated compatible dependencies and removed the `node-forge`
+advisory. Its final audit report still lists eight Expo-tooling findings: three
+high and five low. The remaining issues trace to Expo's transitive `deepmerge`
+and Zod 3 dependencies; the application itself uses Zod 4.6.7. npm only offers
+an automatic fix that downgrades Expo to 54.0.38, a breaking major change, so it
+was not applied. Do not treat the dependency audit as clean; assess a compatible
+Expo upgrade path before release. A subsequent direct audit request could not
+reach the registry, so this count is the report emitted by `npm audit fix`.
+
+## Auditoria de dependências — 29/10/2026
+
+`npm audit fix` atualizou dependências compatíveis e removeu o alerta de
+`node-forge`. O relatório final ainda lista oito achados no ferramental Expo:
+três altos e cinco baixos. As ocorrências restantes vêm das dependências
+transitivas `deepmerge` e Zod 3 do Expo; o aplicativo usa Zod 4.6.7. O npm só
+oferece uma correção automática que reduz o Expo para a versão incompatível
+54.0.38, uma mudança major, então ela não foi aplicada. A auditoria não está
+limpa; avaliar uma atualização compatível do Expo antes do release. Uma tentativa
+posterior de consulta direta não alcançou o registro; a contagem acima é do
+relatório emitido por `npm audit fix`.
+
 ## Next boundaries / Próximos limites
 
 Identity requires expiring single-use verification/recovery tokens, password

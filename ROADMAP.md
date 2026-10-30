@@ -54,7 +54,7 @@ do usuário em 2026-10-26. Não reescrever histórico nem usar force push.
 - [x] Strict identity input contracts; real password hashing and verification tests.
 - [x] Opaque token generation and session expiry/rotation/replay/revocation transitions tested locally.
 - [x] Initial Prisma schema, SQL migration and isolated PostgreSQL Compose configuration written.
-- [ ] Install and lock compatible Prisma dependencies; validate schema/client generation.
+- [x] Install and lock compatible Prisma dependencies; validate schema/client generation.
 - [ ] Apply versioned migrations to real PostgreSQL and pass integration suite without mocks.
 - [ ] Transactional repository, ownership checks, concurrent rotation/logout and replay revocation.
 - [ ] HTTP registration/login, rate limits, generic authentication failures and lifecycle tests.
@@ -64,7 +64,8 @@ do usuário em 2026-10-26. Não reescrever histórico nem usar force push.
 - [ ] Dependency audit and complete validation; scoped commits and authorized push.
 
 The first three checks describe code and local unit behavior, not production identity.
-The migration is hand-authored and unvalidated. Phase 2 remains open until all its
+The identity and ledger migrations are hand-authored and have not been applied.
+Phase 2 remains open until all its
 criteria pass. / Os primeiros itens representam código e testes locais, não identidade
 integrada. Migração manual ainda não validada; todos os critérios são obrigatórios.
 

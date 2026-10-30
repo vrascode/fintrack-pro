@@ -19,7 +19,7 @@ e operações financeiras ainda não estão disponíveis.
 | Domínio              | Dinheiro em inteiros exatos, datas civis validadas e contratos Zod compartilhados                                                                             |
 | API                  | NestJS `GET /v1/health`, loopback por padrão, somente saúde do processo                                                                                       |
 | Núcleo de identidade | Derivação/verificação de senha, tokens opacos, expiração, rotação/reutilização e transições de revogação por dispositivo, testadas independentemente do banco |
-| Preparação do banco  | Configuração PostgreSQL no Compose, schema Prisma 7, migração SQL inicial e suíte para banco real; execução ainda bloqueada                                   |
+| Preparação do banco  | Dependências Prisma 7, schemas/migrações de identidade e ledger, cliente gerado e suítes para banco real; execução PostgreSQL ainda bloqueada                 |
 
 O núcleo de identidade ainda não está conectado ao HTTP nem à persistência.
 Nenhum banco simulado é usado para declarar integração. Veja a
@@ -71,8 +71,7 @@ na porta 4173 e o encerra ao final. Preview manual: `node scripts/serve.mjs`.
 Exports e testes de navegador não validam funcionamento nativo, biometria nem
 assinatura de releases.
 
-Siga [DATABASE.md](DATABASE.md): instale as dependências Prisma ainda ausentes,
-configure bancos distintos de desenvolvimento/teste e execute:
+Siga [DATABASE.md](DATABASE.md), configure bancos distintos de desenvolvimento/teste e execute:
 
 ```sh
 npm run db:validate
@@ -104,16 +103,18 @@ e [pesquisa](docs/RESEARCH.md).
 
 ## Estado do projeto
 
-A fase 2 está **em andamento, sem aceite**. Faltam instalar Prisma e validar as
-migrações, implementar o repositório transacional, cadastro/login HTTP, verificação
-e recuperação por email, exclusão de conta, SecureStore e biometria. Operações
-financeiras, faturas, relatórios, notificações e IA pertencem às fases seguintes.
-O projeto ainda não é um serviço financeiro pronto para produção.
+A fase 2 está **em andamento, sem aceite**. A validação local do schema Prisma e a
+geração do cliente passaram. As migrações de identidade e ledger ainda precisam ser
+executadas em PostgreSQL real; repositórios transacionais, fluxos HTTP autenticados,
+CRUD financeiro, consultas de saldo e fluxos mobile não foram implementados. Também
+faltam ciclo de email, SecureStore, biometria e recursos posteriores de faturas e
+relatórios. O projeto ainda não é um serviço financeiro pronto para produção.
 
 As alterações existentes foram commitadas por funcionalidade e publicadas em
 `origin/main` em 27/10/2026, após resolver os bloqueios Git e de conexão por operações
 autorizadas. Consulte o [registro da publicação](PORTFOLIO_PROGRESS.md).
-A auditoria npm anterior não foi concluída; revisão de dependências e validação
-real do banco seguem pendentes. Esta publicação não acrescenta correções de
-dependências ou integração com banco. Segredos, dados locais, caches e arquivos
-gerados ficam fora do Git.
+A execução mais recente de `npm audit fix` removeu o alerta de `node-forge`, mas
+reportou oito achados restantes no ferramental Expo (três altos e cinco baixos).
+A correção automática restante exige downgrade incompatível do Expo e não foi
+aplicada. A validação em banco real também segue pendente. Segredos, dados locais,
+caches e arquivos gerados ficam fora do Git.

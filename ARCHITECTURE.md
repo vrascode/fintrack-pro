@@ -58,9 +58,17 @@ refresh credentials are separate from the persisted digest-only state. Refresh
 transitions detect replay and require atomic repository integration before use.
 No identity HTTP routes are mounted; there is no in-memory persistence substitute.
 
+The Prisma schema now also defines owner-scoped accounts, categories and ledger
+transactions. Amounts are `BIGINT` minor units, transfers use source/destination
+account references, and an owner-scoped idempotency key prevents duplicate entries.
+Composite foreign keys enforce that referenced accounts/categories belong to the
+same user. Prisma schema validation and client generation pass locally; both SQL
+migrations still need execution against PostgreSQL. There are no financial routes,
+repositories, authenticated owner context or mobile ledger flows yet.
+
 Contratos e funções de senha, tokens e transições de sessão estão implementados e
 testados. A integração exige repositório transacional PostgreSQL. Schema Prisma,
-migração e testes reais foram escritos, mas aguardam dependências e banco. Não há
+migração e testes reais foram escritos, mas aguardam execução e validação em PostgreSQL. Não há
 endpoints de identidade nem armazenamento em memória apresentado como integração.
 
 ## Boundaries / Limites

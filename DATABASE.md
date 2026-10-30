@@ -2,18 +2,19 @@
 
 ## Current boundary / Limite atual
 
-Phase 2 preparation is in source: PostgreSQL 17 Compose services, Prisma 7 schema,
-an initial SQL migration and an integration suite. Prisma is not installed and
-PostgreSQL/Docker are unavailable in the current environment. The migration was
-hand-authored and has **not been applied or validated by Prisma**. Authentication
-HTTP endpoints and the transactional repository remain unimplemented.
+Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Prisma 7
+dependencies, schema/client generation, versioned identity and ledger migrations,
+and real-database integration suites. Prisma validates the schema and generates the
+client locally. PostgreSQL/Docker are unavailable here, so neither migration has been
+applied and the integration suites have not passed. Authentication HTTP endpoints,
+financial repositories and application services remain unimplemented.
 
-A preparação da fase 2 está no código: serviços PostgreSQL 17, schema Prisma 7,
-migração SQL inicial e suíte de integração. Prisma e PostgreSQL/Docker estão
-indisponíveis. A migração foi escrita manualmente e **não foi aplicada nem validada
-pelo Prisma**. Endpoints de autenticação e repositório transacional permanecem
-pendentes. Os arquivos de preparação foram commitados e publicados em 27/10/2026;
-isso não representa validação ou execução da migração.
+A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
+dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas
+de identidade e ledger e suítes para banco real. O Prisma valida o schema e gera o
+cliente localmente. PostgreSQL/Docker estão indisponíveis neste ambiente, portanto as
+migrações não foram aplicadas e as suítes reais não passaram. Rotas HTTP de identidade,
+repositórios financeiros e serviços de aplicação continuam pendentes.
 
 `/v1/health` checks process liveness only. AsyncStorage holds only non-sensitive
 preferences under `fintrack.preferences.v1`; never passwords, tokens or financial records.
@@ -25,13 +26,9 @@ Run from the repository root with registry access and Docker Compose available.
 Installations must produce real manifests and lock entries; none were fabricated.
 / Execute na raiz com npm e Docker disponíveis. Não se inventam entradas no lockfile.
 
-```sh
-npm install --workspace @fintrack/api @prisma/client@7 @prisma/adapter-pg@7
-npm install --save-dev --workspace @fintrack/api prisma@7
-```
-
-Keep all three Prisma packages on the same resolved release. `.npmrc` requests exact
-saved versions. Review the audit and commit the actual lockfile after validation.
+`npm ci` installs the pinned Prisma CLI, client and PostgreSQL adapter from the
+committed lockfile. Keep all three on the same resolved release and rerun the
+dependency audit when registry connectivity is available.
 / Mantenha os três pacotes na mesma versão resolvida, revise a auditoria e versione
 o lockfile após validar.
 
@@ -128,9 +125,23 @@ seus próprios registros. Ela **não** valida login completo, entrega de email o
 rotação transacional completa. Pré-requisitos ausentes encerram com erro, sem
 mock ou aprovação fictícia.
 
-No financial schema is delivered yet. Future ledger work retains BIGINT minor
-units, owner-scoped relationships, atomicity and idempotency. / O modelo financeiro
-segue pendente, com centavos BIGINT, isolamento por proprietário e atomicidade.
+## Ledger schema / Modelo do ledger
+
+The current Prisma schema models accounts (checking, savings, wallet and cash),
+income/expense categories and dated transactions. Amounts use PostgreSQL `BIGINT`
+minor units. Composite foreign keys bind each account and category reference to
+the transaction owner; a database unique key scopes idempotency to the owner.
+Transfers are represented as one entry with source and destination accounts, and
+SQL checks reject non-positive amounts, same-account transfers and invalid transfer
+shapes. Account balances are intended to be derived from entries: income adds,
+expense subtracts, and transfers subtract from source/add to destination. No balance
+column is stored.
+
+These are persistence constraints, not a completed financial feature. No account or
+transaction HTTP route, authenticated owner context, repository, balance query,
+editing/deletion policy or mobile workflow exists yet. The hand-authored ledger
+migration has not been applied to PostgreSQL. `tests/integration/ledger.test.mjs`
+requires real PostgreSQL and must pass before this schema is accepted as integrated.
 
 References consulted on 2026-10-27 / Referências consultadas em 27/10/2026:
 [Prisma PostgreSQL](https://www.prisma.io/docs/orm/overview/databases/postgresql),
