@@ -8,8 +8,10 @@ O FinTrack Pro está sendo desenvolvido para dispositivos móveis, com contratos
 compartilhados, cálculos monetários exatos e limites explícitos de segurança. Há
 uma demonstração fictícia e isolada com fluxos de planejamento para web e mobile.
 O código agora conecta contas autenticadas, receitas/despesas realizadas, categorias
-e dashboard pessoal à API Prisma. A aceitação real com PostgreSQL ainda está bloqueada
-pelas credenciais locais (P1000); esta versão não está validada como pronta para uso.
+e dashboard pessoal à API Prisma. A aceitação com PostgreSQL 17 real passou em
+ambiente isolado: cadastro, login, contas, receitas/despesas e persistência.
+A instância pessoal em 5432 ainda exige recuperação administrativa e configuração;
+isso continua impedindo declarar a instalação local pronta para uso.
 
 ## O que funciona hoje
 
@@ -18,9 +20,9 @@ pelas credenciais locais (P1000); esta versão não está validada como pronta p
 | App                  | Shell responsivo desktop/mobile; dashboard, contas/movimentações/contas a pagar/caixinhas/simulador de demonstração e ajustes                                 |
 | Preferências         | Tema claro/escuro/automático, privacidade, persistência, recuperação de corrupção e tratamento de falhas                                                      |
 | Domínio              | Dinheiro em inteiros exatos, cálculos financeiros, datas civis validadas, CSV seguro contra fórmulas e contratos Zod compartilhados                           |
-| API                  | NestJS `GET /v1/health`, loopback por padrão, somente saúde do processo                                                                                       |
+| API                  | NestJS com cadastro/login, prontidão e contas/categorias/lançamentos por usuário; loopback por padrão                                                         |
 | Núcleo de identidade | Derivação/verificação de senha, tokens opacos, expiração, rotação/reutilização e transições de revogação por dispositivo, testadas independentemente do banco |
-| Preparação do banco  | Dependências Prisma 7, schemas/migrações de identidade e ledger, cliente gerado e suítes para banco real; execução PostgreSQL ainda bloqueada                 |
+| Preparação do banco  | Quatro migrações Prisma, nove testes SQL e dois cenários financeiros de navegador aprovados em PostgreSQL 17 isolado                                          |
 
 A API inclui cadastro/login, autorização por usuário, recuperação de sessão por
 cookie e endpoints financeiros. Testes unitários não comprovam PostgreSQL. Veja a
@@ -28,11 +30,15 @@ cookie e endpoints financeiros. Testes unitários não comprovam PostgreSQL. Vej
 
 ### Uso local com dados próprios
 
-Com os serviços PostgreSQL ativos em 5432 (desenvolvimento) e 5433 (teste), execute
-`node scripts/setup-local-postgres.mjs` em seu terminal. Informe as senhas
-administrativas apenas ali; elas ficam ocultas e não são salvas. O comando cria
-somente usuários/bancos ausentes. Se um usuário existente tiver outra senha, ajuste
-apenas o `.env` local ignorado pelo Git, preservando os dados.
+Execute `node scripts/setup-local-postgres.mjs --development` em seu terminal.
+O alvo vem do `DATABASE_URL` local (5432 nesta instalação). A senha administrativa
+fica oculta e não é salva. O comando cria somente usuários/bancos ausentes.
+Para reconciliar explicitamente a senha do usuário dedicado `fintrack` com o `.env`,
+acrescente `--reconcile-password`; usuários privilegiados ou compartilhados são
+recusados. O teste é separado: `node scripts/setup-local-postgres.mjs --test` usa
+somente `TEST_DATABASE_URL` (5433 nesta instalação). `--inspect` mostra o alvo sem
+senha e sem conectar. Se a senha administrativa foi perdida, siga a
+[recuperação local](DATABASE.md#recover-local-postgresql-17--recuperar-postgresql-17-local).
 
 Execute `npm.cmd run db:migrate`; depois `npm.cmd run api` e `npm.cmd run web` em
 terminais separados. Abra `http://localhost:8081/login`. O cadastro leva à primeira
@@ -43,8 +49,10 @@ conta pessoal. O endpoint `http://127.0.0.1:3000/v1/health/ready` precisa retorn
 `npm.cmd run test:e2e:real` exige o banco separado `_test`, aplica migrações e cobre
 cadastro pela interface, saldo inicial de R$ 1.000, receita de R$ 500, despesa de
 R$ 200 e saldo de R$ 1.300; também inclui reload, reinício da API, logout/login,
-isolamento e repetição de lançamento. A tentativa atual parou na autenticação do
-banco; esses resultados de aceitação ainda não foram aprovados.
+isolamento e repetição de lançamento. `npm.cmd run test:e2e:isolated` executou essa
+suíte com sucesso em um cluster PostgreSQL 17 novo na porta 55432: nove testes SQL
+e dois cenários de navegador desktop/mobile passaram. `.env` e serviços 5432/5433
+foram preservados; essas instâncias ainda precisam da configuração própria.
 O uso local exige banco e API em execução. Celular físico precisa de uma API
 acessível por ele; não há implantação independente no aparelho validada.
 

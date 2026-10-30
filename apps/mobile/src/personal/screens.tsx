@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Text, View } from 'react-native';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import {
   calculateAccountBalance,
   financialAccountInputSchema,
@@ -16,7 +16,6 @@ import { parseLocalizedCents } from '../demo/input';
 import {
   Button,
   Card,
-  EmptyState,
   ErrorState,
   Field,
   Label,
@@ -477,20 +476,7 @@ export function PersonalOverview() {
       ) : data ? (
         <>
           {!data.accounts.length ? (
-            <Card accent>
-              <EmptyState
-                symbol="+"
-                title={text('Comece pela sua primeira conta', 'Start with your first account')}
-                description={text(
-                  'Cadastre um nome, o saldo inicial e a data de referência para começar.',
-                  'Enter a name, opening balance and reference date to get started.',
-                )}
-              />
-              <Button
-                label={text('Cadastrar primeira conta', 'Create first account')}
-                onPress={() => router.push('/accounts')}
-              />
-            </Card>
+            <Redirect href="/accounts" />
           ) : (
             <>
               <Card accent>

@@ -2,6 +2,97 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Main synchronization and administrative recovery / Integração e recuperação — 2026-10-30
+
+Current delivery summary: five logical units cover controlled admin recovery,
+environment-scoped provisioning, isolated real-PostgreSQL acceptance, first-account
+navigation and bilingual readiness documentation. Recovery/provisioning of personal
+5432 still awaits terminal password entry. No credential retry or service/data change
+was performed on 5432/5433. The pre-existing root `tsconfig.json` remains untracked.
+Documentation now distinguishes the accepted isolated financial flow from local
+installation and broader product/release gaps; formatting and diff checks passed.
+
+Resumo atual: fluxo básico aceito em banco real isolado; instalação pessoal ainda
+depende da senha digitada localmente. Documentação bilíngue atualizada sem declarar
+produto completo, APK instalado ou recuperação administrativa já executada.
+
+Remote PR #2 had already merged `d7a7376`, `71b945f` and `e9cfc8a` into
+`a7c1b70`; local main was fast-forwarded without rewriting any commit. Preserved
+the pre-existing untracked root `tsconfig.json`. `npm.cmd run check` passed:
+74 tests, lint, typecheck, build and formatting. This does not validate PostgreSQL.
+
+Confirmed PostgreSQL 17.11, service `postgresql-x64-17`, port 5432 and effective
+HBA under `C:\Program Files\PostgreSQL\17\data`. No established 5432 connection or
+pgAdmin/psql process was found. PostgreSQL 18 on 5433 remains untouched. Did not
+repeat previously rejected credentials. Added an interactive psql recovery helper
+with exact-byte backup, a narrow loopback exception, restoration before password
+entry, final password authentication check and a separate restoration watchdog.
+Three recovery tests passed, including the Windows shell restoration command;
+syntax, targeted lint and formatting passed. The real reset still requires the
+owner's hidden input in a local terminal; no migration or real acceptance success
+is claimed. Backups remain ignored under `.local/`.
+
+PR #2 já integrado e histórico preservado; main local sincronizada. Os 74 testes
+passaram, mas não comprovam persistência. A instância 5432 foi identificada sem
+novas tentativas de senha. Procedimento seguro preparado e testado em arquivos
+isolados; redefinição real aguarda entrada oculta no terminal local. Nenhuma
+alteração realizada na instância 5433. Próximo passo: confirmar o acesso com psql,
+configurar apenas o banco de desenvolvimento e aplicar migrações não destrutivas.
+
+## Separate provisioning / Provisionamento separado — 2026-10-30
+
+The setup now requires `--development` or `--test`, provides safe `--inspect`
+metadata, preserves existing credentials by default and supports explicit
+`--reconcile-password` only for a dedicated unprivileged FinTrack role. It rejects
+mismatched owners and shared roles, sends SCRAM verifiers instead of plaintext
+passwords in DDL, and distinguishes temporary SQL write/read from full persistence
+acceptance. Four targeted tests, syntax, lint and formatting passed. Read-only
+inspection confirmed development `fintrack` on 5432 and `fintrack_test` on 5433
+without printing secrets or attempting authentication.
+
+Setup separado por ambiente, com reconciliação explícita e restrita. Quatro testes
+aprovados; URLs locais inspecionadas sem segredos nem tentativas de conexão.
+
+## Isolated real PostgreSQL acceptance / Aceitação isolada — 2026-10-30
+
+Added `npm.cmd run test:e2e:isolated` using installed PostgreSQL 17.11 on 55432,
+with a new ignored cluster, random in-memory credentials and an unprivileged test
+role. No changes to `.env` or services 5432/5433. Real role provisioning and SCRAM
+reconciliation passed. Four migrations applied successfully; reapplication was a
+no-op. All 9 SQL integration tests passed. Both browser cases failed after real
+registration: the authentication guard opened the empty dashboard instead of the
+first-account form. The runner stopped only its own cluster and preserved diagnostics.
+This is a reproduced onboarding defect, not successful browser acceptance.
+
+Quatro migrações e nove testes SQL aprovados com PostgreSQL real isolado. Os dois
+cenários web falharam: cadastro autentica, mas abre dashboard vazio em vez da
+primeira conta. Correção da navegação é a próxima unidade. A recuperação de 5432
+continua dependendo da entrada local da senha pelo usuário.
+
+## First-account navigation accepted / Primeiro acesso validado — 2026-10-30
+
+Fixed the reproduced protected-route race: after authentication, the personal
+dashboard redirects to account creation only when an authenticated API query
+successfully confirms no accounts. Query failures remain errors. Onboarding resumes
+after reload; users with stored accounts keep their dashboard. The real browser
+test now also checks zero initial account records and reload before account setup,
+and selects transaction kinds using their actual accessible `radio` role.
+
+Executed `npm.cmd run test:e2e:isolated`: PostgreSQL 17.11 on 55432, four migrations
+applied, second deployment a no-op, all 9 SQL tests and both desktop/mobile E2E
+passed. Each browser case proved registration, 1,000 + 500 - 200 = 1,300 BRL,
+real stored password hash, refresh, API restart, logout/login, duplicate email,
+invalid input/password, user isolation and idempotent transaction replay. The
+test cluster was stopped afterward. `npm.cmd run check` passed all 81 tests plus
+lint, typecheck, build and formatting; `npm.cmd run bundle` exported web/Android/iOS;
+`npm.cmd run test:e2e -- --output=.local/regular-e2e` passed all 12 existing cases.
+
+Primeiro acesso corrigido e fluxo financeiro real aprovado no PostgreSQL isolado:
+saldo final R$ 1.300, persistência após reload/reinício/login, isolamento e ausência
+de duplicação. Não houve alterações nos serviços 5432/5433. A instância pessoal
+em 5432 ainda aguarda a senha administrativa no terminal; não está liberada para
+uso local apenas pelo resultado do ambiente de aceitação.
+
 ## Local PostgreSQL verification — 2026-10-30
 
 Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS

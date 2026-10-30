@@ -8,19 +8,21 @@ FinTrack Pro is being developed for mobile devices with shared contracts, exact
 money calculations and explicit security boundaries. A clearly labelled,
 isolated fictional demo exercises planning flows on web and mobile. The source now
 connects authenticated accounts, posted income/expenses, categories and a personal
-dashboard to the Prisma API. Real PostgreSQL acceptance is still blocked by local
-application credentials (P1000); this is not a verified ready-to-use release.
+dashboard to the Prisma API. Real PostgreSQL 17 acceptance passed in an isolated
+test cluster: registration, login, accounts, income/expenses and persistence.
+The personal development instance on 5432 still requires local admin-password
+recovery and provisioning; this is not yet a ready-to-use deployment.
 
 ## What works today
 
-| Area                 | Implemented behavior                                                                                                                           |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| App                  | Responsive desktop/mobile shell; overview, demo accounts/activity/bills/envelopes/planning and preferences                                     |
-| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                         |
-| Domain               | Exact integer money, financial planning calculations, validated calendar dates, CSV formula protection and shared Zod contracts                |
-| API                  | NestJS `GET /v1/health`, loopback by default, process liveness only                                                                            |
-| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database    |
-| Database preparation | Prisma 7 dependencies, identity/ledger schemas and migrations, generated client and real-database suites; PostgreSQL execution remains blocked |
+| Area                 | Implemented behavior                                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| App                  | Responsive desktop/mobile shell; overview, demo accounts/activity/bills/envelopes/planning and preferences                                  |
+| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                      |
+| Domain               | Exact integer money, financial planning calculations, validated calendar dates, CSV formula protection and shared Zod contracts             |
+| API                  | NestJS registration/login, readiness and owner-scoped accounts/categories/transactions; loopback by default                                 |
+| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database |
+| Database preparation | Four Prisma migrations, nine real SQL tests and two financial browser cases passed on isolated PostgreSQL 17                                |
 
 The API includes registration/login, owner authorization, refresh-cookie session
 recovery and account/category/transaction endpoints. Unit tests do not establish
@@ -28,10 +30,14 @@ PostgreSQL persistence. See [database setup and remaining work](DATABASE.md).
 
 ### Local personal-data workflow
 
-With the Windows PostgreSQL services running on 5432 (development) and 5433 (test),
-run `node scripts/setup-local-postgres.mjs` in your terminal to provision missing
-project roles/databases. Admin passwords are hidden and never saved. Preserve and
-adjust only the ignored `.env` credentials if an existing role uses another password.
+Run `node scripts/setup-local-postgres.mjs --development` in your terminal to
+provision missing project roles/databases using `DATABASE_URL` (5432 locally).
+Admin passwords are hidden and never saved. Explicit `--reconcile-password` can
+align the dedicated `fintrack` role with its ignored `.env` password; privileged
+or shared roles are refused. Test provisioning is separate:
+`node scripts/setup-local-postgres.mjs --test` uses only `TEST_DATABASE_URL` (5433).
+Add `--inspect` to see safe target metadata without connecting. For a lost admin
+password, use the [local recovery procedure](DATABASE.md#recover-local-postgresql-17--recuperar-postgresql-17-local).
 Run `npm.cmd run db:migrate`, then `npm.cmd run api` and `npm.cmd run web` in separate
 terminals. Open `http://localhost:8081/login`; registration leads to the first account
 form. Enter its opening balance/reference date, then use **New income or expense**
@@ -41,8 +47,10 @@ API readiness is `http://127.0.0.1:3000/v1/health/ready` and must return 200.
 `npm.cmd run test:e2e:real` requires the isolated `_test` database. It applies
 versioned migrations and runs browser registration → 1,000 BRL opening balance →
 500 BRL income → 200 BRL expense → 1,300 BRL balance, including reload, API restart,
-logout/login, ownership and transaction replay checks. This command currently stops
-at database authentication; these acceptance results have not passed.
+logout/login, ownership and transaction replay checks. `npm.cmd run test:e2e:isolated`
+ran that suite successfully using a fresh PostgreSQL 17 cluster on 55432: nine SQL
+tests and both desktop/mobile browser cases passed. It leaves `.env` and services
+5432/5433 unchanged; those configured instances still need their own provisioning.
 Local use requires the database and API processes to stay running. A physical phone
 also needs a reachable API; no independent phone deployment is claimed.
 

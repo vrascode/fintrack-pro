@@ -9,8 +9,10 @@ por usuário. Preferências são não sensíveis; tokens não entram no AsyncSto
 
 ## Identity core — 2026-10-27 / Núcleo de identidade
 
-Identity primitives are connected to HTTP and Prisma in source. Unit tests have
-passed; real-database acceptance remains blocked by local application credentials.
+Identity primitives are connected to HTTP and Prisma. Unit tests and real PostgreSQL
+17 browser acceptance passed in an isolated cluster, including invalid credentials,
+duplicate email, persisted password hashes, session restoration, user isolation and
+idempotency. This does not replace a complete security review or native-device tests.
 
 - Passwords: asynchronous scrypt (`N=131072`, `r=8`, `p=1`), random 16-byte salts,
   32-byte derived keys and constant-time comparison. The default hasher allows two
@@ -26,21 +28,21 @@ passed; real-database acceptance remains blocked by local application credential
   The pure transitions now also support a Prisma restore endpoint using a session
   row lock, atomic token consumption and committed replay revocation. Browser refresh
   credentials use HttpOnly/SameSite cookies and are omitted from browser JSON;
-  production uses Secure cookies, with explicit origin/CORS checks. Real PostgreSQL
-  acceptance is still pending local application credentials.
+  production uses Secure cookies, with explicit origin/CORS checks. Browser recovery
+  passed against real PostgreSQL across page reload, API restart and logout/login.
 
 The scrypt configuration follows the fallback described in the
 [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),
-consulted 2026-10-27. Before mounting auth routes, add transactional PostgreSQL
-storage, per-account/IP throttling, bounded request bodies, generic errors, TLS,
-secret-redacted logging, email flows and native secure storage. Use one shared
+consulted 2026-10-27. Before production release, complete per-account/IP throttling,
+request/logging review, TLS deployment, email flows and native device validation.
+Transactional PostgreSQL storage and native SecureStore integration exist. Use one shared
 hasher per process: its concurrency cap is not a distributed rate limiter.
 
-O núcleo foi implementado e testado localmente, sem endpoints de autenticação.
+O núcleo possui endpoints de autenticação e repositórios transacionais PostgreSQL.
 Senhas usam scrypt com salt aleatório e comparação em tempo constante; tokens
 aleatórios guardam apenas hashes. Expiração, rotação, reutilização e revogação
-foram testadas como transições. Banco, transações, limites por conta/IP, HTTP,
-email e armazenamento nativo ainda são necessários. O limite do hasher vale por
+foram testadas como transições; o fluxo HTTP com banco real também passou no ambiente
+isolado. Limites por conta/IP, email e validação nativa ainda são necessários. O limite do hasher vale por
 instância e não substitui rate limiting distribuído.
 
 ## Current dependency review — 2026-10-27 / Revisão atual

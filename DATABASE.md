@@ -6,8 +6,9 @@ Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Pr
 dependencies, schema/client generation, versioned identity and ledger migrations,
 and real-database integration suites. Prisma validates the schema and generates the
 client locally. Native Windows PostgreSQL services are now running on 5432 and 5433,
-but project-role authentication fails with P1000; migrations and real integration
-remain unverified. The API has process and database
+but their project-role credentials still need local recovery/provisioning. A separate
+PostgreSQL 17.11 cluster on 55432 passed all four migrations, nine SQL tests and both
+desktop/mobile real browser scenarios. The API has process and database
 readiness endpoints, a lazy Prisma service, registration/login, and bearer-session
 authorization for logout. Credentials are hashed; login stores session and refresh
 token digests transactionally. Authenticated `GET /v1/accounts` and `POST
@@ -15,9 +16,10 @@ token digests transactionally. Authenticated `GET /v1/accounts` and `POST
 owner-scoped records; `/v1/transactions` lists and creates posted entries with
 per-user idempotency keys and account/category ownership checks. Future-dated entries
 are rejected until a scheduled-entry model exists. Other financial workflows remain
-unimplemented. Current service tests use a Prisma-shaped fake and do not prove
-PostgreSQL persistence. Persisted refresh rotation is implemented under a row lock
-but still awaits real-database acceptance. Rate limiting remains pending.
+unimplemented. Service unit tests use Prisma-shaped fakes; the separate SQL and
+browser suites now also prove persistence against real PostgreSQL. Persisted refresh
+rotation under a row lock was exercised by reload/API-restart/login acceptance.
+Rate limiting and a complete concurrency/security audit remain pending.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
@@ -29,7 +31,8 @@ A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
 dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas
 de identidade e ledger e suítes para banco real. O Prisma valida o schema e gera o
 cliente localmente. PostgreSQL está instalado em duas instâncias locais, mas as
-credenciais de aplicação são recusadas. As migrações e suítes reais ainda não passaram.
+credenciais de aplicação ainda exigem recuperação. Quatro migrações, nove testes SQL
+e dois cenários de navegador passaram em um cluster PostgreSQL 17 isolado na 55432.
 Existem serviços Prisma para identidade, contas, categorias e lançamentos com
 autorização por usuário. Testes locais com repositórios simulados não comprovam
 persistência PostgreSQL.
@@ -39,7 +42,8 @@ AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1
 never passwords, tokens or financial records. Native authentication credentials use
 Expo SecureStore. Web keeps access credentials in memory and restores sessions from
 an HttpOnly SameSite refresh cookie; production cookies require HTTPS. No refresh
-credential is returned in browser JSON. Real-database acceptance remains pending.
+credential is returned in browser JSON. Real-database browser acceptance passed in
+the isolated cluster; native-device and production deployment checks remain pending.
 
 Configure `EXPO_PUBLIC_API_URL` for the API reachable by the target device. Android
 emulator development defaults to `10.0.2.2`; physical devices require a reachable
@@ -53,17 +57,28 @@ production API is not deployed by this repository yet.
 The local Windows services currently use PostgreSQL 17 on port 5432 and PostgreSQL
 18 on port 5433. The application uses the separate `fintrack` and `fintrack_test`
 databases configured in the ignored root `.env`. Never repurpose an existing database.
-To provision missing roles/databases, run `node scripts/setup-local-postgres.mjs`
-from an interactive terminal at the repository root. It asks for the `postgres`
-administrator password on each configured port without echoing or saving it. Existing
-role passwords and records are preserved. If application authentication fails, update
-the ignored `.env` locally to match the intended role; do not send credentials in chat.
-Then run `npm.cmd run db:migrate` and `npm.cmd run test:integration`.
+To provision missing roles/databases, explicitly select **one** environment:
+`node scripts/setup-local-postgres.mjs --development` or
+`node scripts/setup-local-postgres.mjs --test`. The command prompts for that
+instance's `postgres` password without echoing/saving it. `--inspect` prints safe
+metadata without connecting. Existing role passwords and records are preserved by
+default. `--reconcile-password` explicitly updates only the selected project role
+to the password already in its ignored `.env` URL. It refuses elevated roles,
+roles shared with other databases/memberships and databases with a different owner.
+New/reconciled application passwords must be at least 16 printable ASCII characters
+without spaces; Node derives a salted SCRAM verifier so DDL never contains the
+plaintext secret. This bootstrap restriction does not change the app user password
+policy or the administrator password policy. Setup verifies temporary SQL write/read;
+migrations and persistent acceptance are separate. Next run `npm.cmd run db:migrate`;
+run `npm.cmd run test:integration` only after provisioning the separate test target.
 
 Os serviços Windows usam 5432 para desenvolvimento e 5433 para a instância separada
-de testes. Execute `node scripts/setup-local-postgres.mjs` no terminal da raiz para
-informar as senhas administrativas localmente, sem exibi-las. O comando cria apenas
-os usuários e bancos ausentes e nunca redefine senhas existentes. Dados locais em
+de testes. Escolha `--development` ou `--test` no comando de setup; nunca há acesso
+automático às duas instâncias. Informe a senha administrativa localmente, sem eco.
+Por padrão, senhas existentes são preservadas. `--reconcile-password` autoriza
+explicitamente alinhar apenas o usuário dedicado do projeto com o `.env`, após
+verificar privilégios, vínculos e propriedade. O setup usa verificador SCRAM e
+testa escrita/leitura temporária; isso não substitui aceitação persistida. Dados em
 `.local/` e o arquivo `.env` ficam fora do Git. Não inicie outro cluster sobre as
 portas ocupadas nem apague os diretórios dos serviços instalados.
 
@@ -123,6 +138,68 @@ Os scripts carregam `.env` sem sobrescrever variáveis já definidas. O cliente 
 é ignorado pelo Git. Migrações usam `migrate deploy`, sem reset destrutivo. Apenas
 a saúde do processo independe de banco; autenticação e operações financeiras exigem
 PostgreSQL acessível, credenciais válidas e migrações aplicadas.
+
+## Recover local PostgreSQL 17 / Recuperar PostgreSQL 17 local
+
+The Windows recovery procedure is restricted to `postgresql-x64-17`, port 5432,
+and the verified data/HBA directory `C:\Program Files\PostgreSQL\17\data`.
+It refuses a different instance. Port 5433 is not modified. Run in your own
+PowerShell terminal (as administrator if file/service access requires it):
+
+```powershell
+Set-Location C:\Projetos\fintrack-pro
+node scripts/recover-postgres-admin.mjs --inspect
+node scripts/recover-postgres-admin.mjs
+```
+
+The script backs up the exact HBA bytes under ignored `.local/postgres17-recovery-*`.
+It temporarily permits **only** `postgres` connecting to database `postgres` over
+`127.0.0.1/32`. The first command in the authenticated psql session restores the
+original configuration **before** `\password postgres` prompts for a new password.
+The password is typed twice without echo, then once more to verify a fresh password
+connection. It never enters Node, process arguments, script files or SQL history.
+The script also restores in `finally`; an independent 30-second watchdog restores
+the backup if the parent exits or hangs before restoration. No service restart,
+reinstall, database deletion or global Windows policy change is used.
+
+O procedimento verifica serviço, PID, versão, porta, diretório e HBA antes de agir.
+O backup preserva os bytes originais; a restauração grava no mesmo arquivo para
+preservar suas permissões. A exceção temporária permite somente `postgres` no banco
+`postgres` via `127.0.0.1`. A configuração original volta **antes** dos prompts de
+senha. A senha fica exclusivamente no terminal do psql, sem eco, argumentos ou
+histórico. Uma restauração adicional em `finally` e um processo independente com
+prazo de 30 segundos protegem falhas/interrupções. A porta 5433 fica intacta.
+
+Do not run simultaneous HBA edits during recovery. Keep the printed backup path.
+After a whole-machine power failure, inspect authentication before starting use;
+if necessary restore with `node scripts/recover-postgres-admin.mjs --restore
+<printed-directory>\state.json`. No software watchdog runs while Windows is off.
+Never send passwords in chat or commit `.env`/recovery backups.
+
+Não edite o HBA simultaneamente. Guarde o caminho do backup. Após queda de energia
+do computador inteiro, confira a configuração antes de usar o serviço e restaure
+com o comando acima se necessário. Nenhum watchdog funciona com o Windows desligado.
+Validação dos testes do procedimento não comprova que a senha real foi redefinida:
+essa confirmação exige executar o comando local e concluir a conexão final do psql.
+
+Sources / Fontes: [PostgreSQL 17 HBA on Windows](https://www.postgresql.org/docs/17/auth-pg-hba-conf.html)
+and [psql password handling](https://www.postgresql.org/docs/17/app-psql.html).
+
+## Isolated Windows acceptance / Aceitação Windows isolada
+
+`npm.cmd run test:e2e:isolated` uses installed PostgreSQL 17 binaries to create a
+fresh, password-protected cluster under ignored `.local/` on loopback port **55432**.
+It does not change `.env` or the services on 5432/5433. Random test credentials stay
+in memory; a one-use Windows named pipe supplies initdb. It provisions an ordinary
+`fintrack_test` role, validates SCRAM reconciliation, applies the four migrations,
+runs SQL integration and desktop/mobile browser acceptance, then stops its own
+cluster. Diagnostic data is retained locally. The command refuses an occupied port.
+It requires the existing Node installation, PostgreSQL 17 and Microsoft Edge.
+
+Esse comando permite validar PostgreSQL real sem depender da senha administrativa
+das instâncias instaladas. Usa um cluster novo, credenciais aleatórias em memória e
+usuário de aplicação sem superpoderes. Apenas o banco `_test` recebe dados e limpeza
+dos testes. O resultado não prova recuperação da instância pessoal em 5432.
 
 ## Identity model / Modelo de identidade
 

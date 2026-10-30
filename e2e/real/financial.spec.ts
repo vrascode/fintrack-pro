@@ -72,6 +72,17 @@ test('personal finance persists through reload, API restart and login with real 
     await expect(
       page.getByRole('heading', { name: 'Cadastre sua primeira conta', exact: true }),
     ).toBeVisible();
+    await expect(page).toHaveURL(/\/accounts$/);
+    const empty = await db.query(
+      'SELECT COUNT(*)::int AS count FROM "Account" WHERE "userId" = (SELECT id FROM "User" WHERE email = $1)',
+      [email],
+    );
+    expect(empty.rows[0].count).toBe(0);
+    // Interrupted onboarding resumes from real records after cookie restoration.
+    await page.reload();
+    await expect(
+      page.getByRole('heading', { name: 'Cadastre sua primeira conta', exact: true }),
+    ).toBeVisible();
     await page.getByLabel('Nome da conta', { exact: true }).fill('Conta pessoal E2E');
     await page.getByLabel('Saldo inicial (R$)', { exact: true }).fill('1000');
     await page.getByRole('button', { name: 'Salvar conta', exact: true }).click();
@@ -84,7 +95,7 @@ test('personal finance persists through reload, API restart and login with real 
       ['− Despesa', 'Pagamento E2E', '200'],
     ]) {
       await page.getByRole('button', { name: 'Nova receita ou despesa', exact: true }).click();
-      await page.getByRole('button', { name: kind, exact: true }).click();
+      await page.getByRole('radio', { name: kind, exact: true }).click();
       await page.getByLabel('Descrição', { exact: true }).fill(description);
       await page.getByLabel('Valor (R$)', { exact: true }).fill(amount);
       await page.getByRole('button', { name: 'Salvar lançamento', exact: true }).click();
