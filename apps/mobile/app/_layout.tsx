@@ -9,10 +9,13 @@ import { Button, Card, ErrorState, Loading, Screen } from '../src/components/ui'
 import { useTheme } from '../src/theme';
 import { useI18n } from '../src/i18n';
 import { useDemo } from '../src/demo';
+import { useAuth } from '../src/auth';
 
 export default function RootLayout() {
   const { status, error, hydrate, reset, saving } = usePreferences();
-  const { hydrate: hydrateDemo } = useDemo();
+  const { hydrate: hydrateDemo, status: demoStatus, mode: demoMode } = useDemo();
+  const authStatus = useAuth((state) => state.status);
+  const hydrateAuth = useAuth((state) => state.hydrate);
   const colors = useTheme();
   const { t, language } = useI18n();
   useEffect(() => {
@@ -21,6 +24,9 @@ export default function RootLayout() {
   useEffect(() => {
     void hydrateDemo();
   }, [hydrateDemo]);
+  useEffect(() => {
+    void hydrateAuth();
+  }, [hydrateAuth]);
   useEffect(() => {
     if (Platform.OS === 'web') document.documentElement.lang = language;
   }, [language]);
@@ -40,7 +46,7 @@ export default function RootLayout() {
         <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </Head>
-      {status !== 'ready' ? (
+      {status !== 'ready' || authStatus === 'loading' || demoStatus === 'loading' ? (
         <Screen title={t('shell.workspace')} subtitle={t('brand.tagline')}>
           {status === 'loading' ? (
             <Loading />
@@ -67,7 +73,12 @@ export default function RootLayout() {
         </Screen>
       ) : (
         <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
+          <Stack.Protected guard={authStatus === 'authenticated' || demoMode === 'demo'}>
+            <Stack.Screen name="(tabs)" />
+          </Stack.Protected>
+          <Stack.Protected guard={authStatus !== 'authenticated'}>
+            <Stack.Screen name="login" />
+          </Stack.Protected>
         </Stack>
       )}
     </SafeAreaProvider>

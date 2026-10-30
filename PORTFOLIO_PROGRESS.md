@@ -11,6 +11,27 @@ Updated / Atualizado: 2026-10-27
   ESLint and Prettier checks passed. / Classificação de erros de autenticação
   revisada e validada: falhas não salvam sessão nem prosseguem com login após erro
   de cadastro. Os quatro testes passaram, assim como lint e formatação específicos.
+- Registration/routing checkpoint (WIP): saved the existing bilingual login and
+  registration screen, auth hydration, selector hook and guarded navigation with a
+  secondary demo entry. Moved its existing onboarding scenario to
+  `e2e/onboarding.spec.ts`; assertions are unchanged. `npm run check`: passed (67
+  tests); `npm run bundle`: web/Android/iOS exports passed.
+  `npm run test:e2e -- e2e/onboarding.spec.ts`: 2 failed (desktop and mobile viewport).
+  A direct browser probe confirmed an empty page and
+  `EXPO_PUBLIC_API_URL must point to the deployed HTTPS API.` before render: the
+  API client resolves the URL at module import. Export success is not runtime
+  acceptance. / Checkpoint em andamento da tela bilíngue e navegação protegida:
+  check completo e três exports aprovados, mas os dois E2E de entrada falharam.
+  O cliente exige a URL de produção antes de renderizar a tela; não há integração
+  real de cadastro/login com PostgreSQL comprovada.
+
+Review follow-ups / Pendências da revisão: the root treats auth/demo loading as a
+preferences error when preferences are already ready, and submitting auth unmounts
+the form; the sign-in subtitle lacks the heading role required by its E2E assertion.
+/ O carregamento de auth/demo pode mostrar erro de preferências e desmonta o
+formulário ao enviar; o subtítulo de login não tem o papel acessível esperado no teste.
+These findings are recorded, not fixed in this versioning-only task.
+/ Essas constatações foram registradas, sem desenvolvimento nesta tarefa de versionamento.
 
 This review publishes existing work only to `feature/own-finance-flow`; no merge
 to `main`. PostgreSQL persistence and the complete own-data flow remain unverified.
