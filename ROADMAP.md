@@ -4,11 +4,14 @@ Scope: FinTrack Pro MASTER DEVELOPMENT PROMPT supplied on 2026-10-25.
 
 Current own-finance milestone (2026-10-30): authenticated account/entry forms,
 personal dashboard, browser session recovery and real PostgreSQL E2E harness are
-implemented in source. Validation passed for unit/static checks and demo/error E2E;
-real database acceptance is blocked by P1000 for the local application roles on
-5432/5433. Do not mark persistence/onboarding complete until `test:e2e:real` passes.
-/ Contas, lançamentos, dashboard pessoal e sessão estão conectados no código;
-conclusão depende da validação real após configurar as credenciais locais.
+implemented and accepted against isolated PostgreSQL 17 on 55432. Validation:
+81 unit tests, 9 SQL integration tests, 2 real financial browser cases, 12 regular
+E2E cases and web/Android/iOS exports passed. Local services 5432/5433 still need
+credential recovery/provisioning. Complete financial editing/payment lifecycles,
+production security and native release remain open; no whole phase is marked complete.
+/ Fluxo básico e persistência aprovados em PostgreSQL isolado; a instalação pessoal
+depende das credenciais locais. Próxima prioridade: provisionar 5432, aplicar suas
+migrações e confirmar prontidão antes de avançar no ciclo financeiro completo.
 The earlier five-project portfolio prompt remains unavailable. / Escopo: prompt
 do FinTrack Pro recebido; não presume o prompt anterior de cinco projetos.
 

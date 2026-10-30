@@ -6,8 +6,9 @@ Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Pr
 dependencies, schema/client generation, versioned identity and ledger migrations,
 and real-database integration suites. Prisma validates the schema and generates the
 client locally. Native Windows PostgreSQL services are now running on 5432 and 5433,
-but project-role authentication fails with P1000; migrations and real integration
-remain unverified. The API has process and database
+but their project-role credentials still need local recovery/provisioning. A separate
+PostgreSQL 17.11 cluster on 55432 passed all four migrations, nine SQL tests and both
+desktop/mobile real browser scenarios. The API has process and database
 readiness endpoints, a lazy Prisma service, registration/login, and bearer-session
 authorization for logout. Credentials are hashed; login stores session and refresh
 token digests transactionally. Authenticated `GET /v1/accounts` and `POST
@@ -15,9 +16,10 @@ token digests transactionally. Authenticated `GET /v1/accounts` and `POST
 owner-scoped records; `/v1/transactions` lists and creates posted entries with
 per-user idempotency keys and account/category ownership checks. Future-dated entries
 are rejected until a scheduled-entry model exists. Other financial workflows remain
-unimplemented. Current service tests use a Prisma-shaped fake and do not prove
-PostgreSQL persistence. Persisted refresh rotation is implemented under a row lock
-but still awaits real-database acceptance. Rate limiting remains pending.
+unimplemented. Service unit tests use Prisma-shaped fakes; the separate SQL and
+browser suites now also prove persistence against real PostgreSQL. Persisted refresh
+rotation under a row lock was exercised by reload/API-restart/login acceptance.
+Rate limiting and a complete concurrency/security audit remain pending.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
@@ -29,7 +31,8 @@ A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
 dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas
 de identidade e ledger e suítes para banco real. O Prisma valida o schema e gera o
 cliente localmente. PostgreSQL está instalado em duas instâncias locais, mas as
-credenciais de aplicação são recusadas. As migrações e suítes reais ainda não passaram.
+credenciais de aplicação ainda exigem recuperação. Quatro migrações, nove testes SQL
+e dois cenários de navegador passaram em um cluster PostgreSQL 17 isolado na 55432.
 Existem serviços Prisma para identidade, contas, categorias e lançamentos com
 autorização por usuário. Testes locais com repositórios simulados não comprovam
 persistência PostgreSQL.
@@ -39,7 +42,8 @@ AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1
 never passwords, tokens or financial records. Native authentication credentials use
 Expo SecureStore. Web keeps access credentials in memory and restores sessions from
 an HttpOnly SameSite refresh cookie; production cookies require HTTPS. No refresh
-credential is returned in browser JSON. Real-database acceptance remains pending.
+credential is returned in browser JSON. Real-database browser acceptance passed in
+the isolated cluster; native-device and production deployment checks remain pending.
 
 Configure `EXPO_PUBLIC_API_URL` for the API reachable by the target device. Android
 emulator development defaults to `10.0.2.2`; physical devices require a reachable

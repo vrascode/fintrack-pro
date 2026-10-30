@@ -1,12 +1,15 @@
 # Architecture / Arquitetura
 
 The source connects Prisma-backed identity/accounts/categories/transactions with
-personal Expo screens. PostgreSQL acceptance remains pending local credentials.
-/ Integração no código entre API Prisma e telas pessoais; aceitação real pendente.
+personal Expo screens. Real SQL and desktop/mobile browser acceptance passed on
+isolated PostgreSQL 17 (55432); local service 5432 provisioning remains pending.
+/ Integração validada em PostgreSQL isolado; configuração da instância pessoal pendente.
 
 `apps/mobile/src/personal/` loads only the authenticated user's API records, clears
 screen data on session/focus changes and distinguishes query failures from empty
 results. Account balances reuse the exact-cent domain function; transaction history
+is loaded before deciding whether to resume first-account setup. API failures never
+trigger onboarding as if the account list were empty. Transaction history
 is paged until complete before computing dashboard values. Account creation records
 the opening date; entry retries reuse the same idempotency key. Demo routes remain
 separate and retain their fictional-data labels. Browser access grants stay in memory;
@@ -32,7 +35,7 @@ fintrack-pro/
 flowchart LR
   Mobile[Expo mobile] -->|HTTPS + Zod contracts| API[NestJS modular monolith]
   Mobile --> Preferences[Local non-sensitive preferences]
-  API -. Phase 2: Prisma .-> PG[(PostgreSQL)]
+  API -->|Prisma| PG[(PostgreSQL)]
   API -. Phase 7: jobs .-> Redis[(Redis / BullMQ)]
   API -. Attachments .-> S3[Private S3 storage]
   API -. Phase 8: consent + minimized data .-> AI[AI provider]
@@ -50,8 +53,8 @@ schema. English and Brazilian Portuguese dictionaries share compile-time key
 parity. Date and currency display uses `Intl`; monetary inputs to the currency
 formatter are integer cents (`bigint`), avoiding floating-point arithmetic.
 
-The financial dashboard is available only after the user explicitly enters the
-fictional demo. `packages/shared/src/demo.ts` defines a deterministic six-month
+The separate fictional planning dashboard requires explicit demo entry.
+`packages/shared/src/demo.ts` defines a deterministic six-month
 fixture and shared calculations; `apps/mobile/src/demo/core.ts` stores it under
 the dedicated `fintrack.demo.v1` key, isolated from personal preferences. Demo
 payments, transaction entries and virtual-envelope events validate the entire
@@ -93,7 +96,7 @@ before an installable APK exists.
 - Shared contracts are platform-independent and validated at runtime. API prefix
   is `/v1`. No server secret can enter the shared/mobile packages.
 - Money uses bigint minor units internally and canonical integer strings in JSON;
-  planned PostgreSQL BIGINT. No floating-point arithmetic for money.
+  PostgreSQL BIGINT. No floating-point arithmetic for money.
 - UTC event timestamps; YYYY-MM-DD calendar due dates; America/Sao_Paulo business
   timezone; explicit month-end clamping. / Instantes UTC e datas civis separadas.
 - Future integrity: owner-scoped foreign keys, atomic postings, owner/operation
@@ -109,32 +112,34 @@ before an installable APK exists.
 Identity contracts and server-only password/token/session transitions are implemented
 and unit-tested. `PasswordHasher` uses bounded asynchronous scrypt. Opaque access and
 refresh credentials are separate from the persisted digest-only state. Refresh
-transitions detect replay and require atomic repository integration before use.
-No identity HTTP routes are mounted; there is no in-memory persistence substitute.
+transitions detect replay and use transactional Prisma repositories. Identity HTTP
+routes are mounted; there is no in-memory persistence substitute.
 
 The Prisma schema now also defines owner-scoped accounts, categories and ledger
 transactions. Amounts are `BIGINT` minor units, transfers use source/destination
 account references, and an owner-scoped idempotency key prevents duplicate entries.
 Composite foreign keys enforce that referenced accounts/categories belong to the
-same user. Prisma schema validation and client generation pass locally; both SQL
-migrations still need execution against PostgreSQL. There are no financial routes,
-repositories, authenticated owner context or mobile ledger flows yet.
+same user. Four migrations and nine SQL integration tests passed on PostgreSQL 17.
+Authenticated account/entry routes and shared mobile/web forms passed the real
+browser acceptance scenario in desktop and mobile viewports. Native-device session
+behavior and broader ledger editing/payment workflows still need validation/work.
 
 Contratos e funções de senha, tokens e transições de sessão estão implementados e
-testados. A integração exige repositório transacional PostgreSQL. Schema Prisma,
-migração e testes reais foram escritos, mas aguardam execução e validação em PostgreSQL. Não há
-endpoints de identidade nem armazenamento em memória apresentado como integração.
+testados. Repositórios transacionais Prisma e rotas reais de identidade/finanças
+foram validados no PostgreSQL isolado, inclusive reload, reinício da API e novo login.
+Isso não recupera automaticamente as credenciais da instância pessoal em 5432.
 
 ## Boundaries / Limites
 
 Navigation and display preferences are real local behavior. Empty screens must
 not present zeros as verified bank balances. Health means process liveness only,
-not database readiness. No financial CRUD, authentication or database connection
-is claimed. Web is a development preview of the same React Native UI.
+not database readiness. The accepted scope is registration/login, account creation,
+posted entries and dashboard persistence; complete editing, billing and planning
+lifecycles are still pending. Web uses the same React Native UI.
 
 Navegação e preferências funcionam localmente. Telas vazias não inventam saldos.
-Saúde da API não significa prontidão do banco. Banco, autenticação e operações
-financeiras serão implementados e testados nas próximas fases.
+Saúde da API não significa prontidão do banco. O fluxo básico foi validado com banco
+real isolado; configuração pessoal, ciclo financeiro completo e release continuam pendentes.
 
 See [roadmap](ROADMAP.md), [database](DATABASE.md), [security](SECURITY.md) and
 [ADR](docs/adr/0001-foundation.md).

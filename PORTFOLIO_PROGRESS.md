@@ -4,6 +4,18 @@ Updated / Atualizado: 2026-10-27
 
 ## Main synchronization and administrative recovery / Integração e recuperação — 2026-10-30
 
+Current delivery summary: five logical units cover controlled admin recovery,
+environment-scoped provisioning, isolated real-PostgreSQL acceptance, first-account
+navigation and bilingual readiness documentation. Recovery/provisioning of personal
+5432 still awaits terminal password entry. No credential retry or service/data change
+was performed on 5432/5433. The pre-existing root `tsconfig.json` remains untracked.
+Documentation now distinguishes the accepted isolated financial flow from local
+installation and broader product/release gaps; formatting and diff checks passed.
+
+Resumo atual: fluxo básico aceito em banco real isolado; instalação pessoal ainda
+depende da senha digitada localmente. Documentação bilíngue atualizada sem declarar
+produto completo, APK instalado ou recuperação administrativa já executada.
+
 Remote PR #2 had already merged `d7a7376`, `71b945f` and `e9cfc8a` into
 `a7c1b70`; local main was fast-forwarded without rewriting any commit. Preserved
 the pre-existing untracked root `tsconfig.json`. `npm.cmd run check` passed:
