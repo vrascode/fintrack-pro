@@ -41,6 +41,22 @@ without printing secrets or attempting authentication.
 Setup separado por ambiente, com reconciliação explícita e restrita. Quatro testes
 aprovados; URLs locais inspecionadas sem segredos nem tentativas de conexão.
 
+## Isolated real PostgreSQL acceptance / Aceitação isolada — 2026-10-30
+
+Added `npm.cmd run test:e2e:isolated` using installed PostgreSQL 17.11 on 55432,
+with a new ignored cluster, random in-memory credentials and an unprivileged test
+role. No changes to `.env` or services 5432/5433. Real role provisioning and SCRAM
+reconciliation passed. Four migrations applied successfully; reapplication was a
+no-op. All 9 SQL integration tests passed. Both browser cases failed after real
+registration: the authentication guard opened the empty dashboard instead of the
+first-account form. The runner stopped only its own cluster and preserved diagnostics.
+This is a reproduced onboarding defect, not successful browser acceptance.
+
+Quatro migrações e nove testes SQL aprovados com PostgreSQL real isolado. Os dois
+cenários web falharam: cadastro autentica, mas abre dashboard vazio em vez da
+primeira conta. Correção da navegação é a próxima unidade. A recuperação de 5432
+continua dependendo da entrada local da senha pelo usuário.
+
 ## Local PostgreSQL verification — 2026-10-30
 
 Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS

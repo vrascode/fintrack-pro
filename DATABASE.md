@@ -181,6 +181,22 @@ essa confirmação exige executar o comando local e concluir a conexão final do
 Sources / Fontes: [PostgreSQL 17 HBA on Windows](https://www.postgresql.org/docs/17/auth-pg-hba-conf.html)
 and [psql password handling](https://www.postgresql.org/docs/17/app-psql.html).
 
+## Isolated Windows acceptance / Aceitação Windows isolada
+
+`npm.cmd run test:e2e:isolated` uses installed PostgreSQL 17 binaries to create a
+fresh, password-protected cluster under ignored `.local/` on loopback port **55432**.
+It does not change `.env` or the services on 5432/5433. Random test credentials stay
+in memory; a one-use Windows named pipe supplies initdb. It provisions an ordinary
+`fintrack_test` role, validates SCRAM reconciliation, applies the four migrations,
+runs SQL integration and desktop/mobile browser acceptance, then stops its own
+cluster. Diagnostic data is retained locally. The command refuses an occupied port.
+It requires the existing Node installation, PostgreSQL 17 and Microsoft Edge.
+
+Esse comando permite validar PostgreSQL real sem depender da senha administrativa
+das instâncias instaladas. Usa um cluster novo, credenciais aleatórias em memória e
+usuário de aplicação sem superpoderes. Apenas o banco `_test` recebe dados e limpeza
+dos testes. O resultado não prova recuperação da instância pessoal em 5432.
+
 ## Identity model / Modelo de identidade
 
 | Model / Modelo | Purpose and invariants / Finalidade e invariantes                                                                                       |
