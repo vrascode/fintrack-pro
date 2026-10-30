@@ -4,8 +4,9 @@ test('fictional dashboard and financial pages stay responsive', async ({ page },
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Comece com seus dados' })).toBeVisible();
+  await page.getByRole('button', { name: /Explorar demonstração/ }).click();
   await expect(page.getByText('Seu dinheiro, com mais clareza.', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Explorar demonstração' }).click();
   await expect(page.getByText('DEMONSTRAÇÃO · DADOS FICTÍCIOS', { exact: true })).toBeVisible();
   await expect(page.getByText(/7\.340,00/)).toBeVisible();
   await expect(page.getByText(/84% da renda em despesas planejadas/)).toBeVisible();
@@ -55,6 +56,8 @@ test('fictional dashboard and financial pages stay responsive', async ({ page },
 });
 
 test('theme, language and privacy persist through reload', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Explorar demonstração/ }).click();
   await page.goto('/preferences');
   await expect(page.getByRole('radio', { name: /Autom/ })).toBeVisible();
   await page.getByRole('radio', { name: /Escuro/ }).click();
@@ -88,6 +91,8 @@ test('income and expense chart series remain distinct in both themes', async ({ 
     };
   };
 
+  await page.goto('/');
+  await page.getByRole('button', { name: /Explorar demonstração/ }).click();
   await page.goto('/preferences');
   await page.getByRole('radio', { name: /Escuro/ }).click();
   await page.goto('/');
@@ -109,6 +114,8 @@ test('corrupt preferences can be reset without silently overwriting them', async
   await page.reload();
   await expect(page.getByRole('alert')).toBeVisible();
   await page.getByRole('button', { name: /Restaurar prefer/ }).click();
-  await expect(page.getByRole('button', { name: 'Explorar demonstração' })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /Explorar demonstração · dados fictícios/ }),
+  ).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('fintrack.preferences.v1'))).toBeNull();
 });

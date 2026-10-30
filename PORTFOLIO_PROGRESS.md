@@ -25,6 +25,20 @@ Updated / Atualizado: 2026-10-27
   O cliente exige a URL de produção antes de renderizar a tela; não há integração
   real de cadastro/login com PostgreSQL comprovada.
 
+- Demo E2E checkpoint (WIP): preserved the existing test changes that enter the demo
+  through the new login screen before exercising preferences, charts and recovery.
+  A diagnostic web export using the reserved `https://api.fintrack.invalid/v1` URL
+  succeeded; no real API was contacted or validated. The subsequent E2E run was
+  interrupted at the user's request to stop testing (partial output: two passed,
+  one failed). No full-suite success is claimed. / Checkpoint dos testes existentes
+  de demonstração: export de diagnóstico aprovado com URL reservada, sem backend
+  real. A execução E2E foi interrompida por solicitação do usuário, após resultados
+  parciais de dois aprovados e um reprovado; não houve aprovação da suíte completa.
+  The demo scenario still expects the pre-demo title after entering the demo, and
+  the chart scenario attempts to enter it a second time; these assertions need
+  follow-up. / Permanecem expectativas antigas de título e uma segunda tentativa
+  de entrar na demonstração; a correção fica para a próxima tarefa.
+
 Review follow-ups / Pendências da revisão: the root treats auth/demo loading as a
 preferences error when preferences are already ready, and submitting auth unmounts
 the form; the sign-in subtitle lacks the heading role required by its E2E assertion.
