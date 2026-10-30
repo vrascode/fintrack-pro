@@ -14,6 +14,27 @@ const expense = {
   description: 'Lunch',
 };
 
+test('transaction history accepts bounded pagination and stable ordering instead of silently truncating balances', async () => {
+  let query;
+  const service = new TransactionsService({
+    db: {
+      transaction: {
+        findMany: async (input) => {
+          query = input;
+          return [];
+        },
+      },
+    },
+  });
+  await service.list(userId, { limit: '100', offset: '100' });
+  assert.equal(query.where.userId, userId);
+  assert.equal(query.take, 100);
+  assert.equal(query.skip, 100);
+  assert.deepEqual(query.orderBy, [{ occurredOn: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }]);
+  await assert.rejects(() => service.list(userId, { offset: '-1' }), /Bad Request/);
+  await assert.rejects(() => service.list(userId, { offset: '1000001' }), /Bad Request/);
+});
+
 test('transaction writes are owner-scoped, exact-cent, and idempotent', async () => {
   const records = new Map();
   let creates = 0;

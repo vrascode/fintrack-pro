@@ -7,8 +7,9 @@
 O FinTrack Pro está sendo desenvolvido para dispositivos móveis, com contratos
 compartilhados, cálculos monetários exatos e limites explícitos de segurança. Há
 uma demonstração fictícia e isolada com fluxos de planejamento para web e mobile.
-Persistência financeira real, API autenticada e login conectado ao banco ainda
-não estão disponíveis.
+O código agora conecta contas autenticadas, receitas/despesas realizadas, categorias
+e dashboard pessoal à API Prisma. A aceitação real com PostgreSQL ainda está bloqueada
+pelas credenciais locais (P1000); esta versão não está validada como pronta para uso.
 
 ## O que funciona hoje
 
@@ -21,9 +22,31 @@ não estão disponíveis.
 | Núcleo de identidade | Derivação/verificação de senha, tokens opacos, expiração, rotação/reutilização e transições de revogação por dispositivo, testadas independentemente do banco |
 | Preparação do banco  | Dependências Prisma 7, schemas/migrações de identidade e ledger, cliente gerado e suítes para banco real; execução PostgreSQL ainda bloqueada                 |
 
-O núcleo de identidade ainda não está conectado ao HTTP nem à persistência.
-Nenhum banco simulado é usado para declarar integração. Veja a
+A API inclui cadastro/login, autorização por usuário, recuperação de sessão por
+cookie e endpoints financeiros. Testes unitários não comprovam PostgreSQL. Veja a
 [configuração do banco e pendências](DATABASE.md).
+
+### Uso local com dados próprios
+
+Com os serviços PostgreSQL ativos em 5432 (desenvolvimento) e 5433 (teste), execute
+`node scripts/setup-local-postgres.mjs` em seu terminal. Informe as senhas
+administrativas apenas ali; elas ficam ocultas e não são salvas. O comando cria
+somente usuários/bancos ausentes. Se um usuário existente tiver outra senha, ajuste
+apenas o `.env` local ignorado pelo Git, preservando os dados.
+
+Execute `npm.cmd run db:migrate`; depois `npm.cmd run api` e `npm.cmd run web` em
+terminais separados. Abra `http://localhost:8081/login`. O cadastro leva à primeira
+conta: informe nome, saldo inicial e data de referência. No dashboard pessoal, use
+**Nova receita ou despesa** para registrar valores. Nenhum exemplo é inserido na
+conta pessoal. O endpoint `http://127.0.0.1:3000/v1/health/ready` precisa retornar 200.
+
+`npm.cmd run test:e2e:real` exige o banco separado `_test`, aplica migrações e cobre
+cadastro pela interface, saldo inicial de R$ 1.000, receita de R$ 500, despesa de
+R$ 200 e saldo de R$ 1.300; também inclui reload, reinício da API, logout/login,
+isolamento e repetição de lançamento. A tentativa atual parou na autenticação do
+banco; esses resultados de aceitação ainda não foram aprovados.
+O uso local exige banco e API em execução. Celular físico precisa de uma API
+acessível por ele; não há implantação independente no aparelho validada.
 
 ## Interface e idiomas
 

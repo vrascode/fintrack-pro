@@ -22,6 +22,12 @@ const querySchema = z
       .transform(Number)
       .pipe(z.number().int().min(1).max(100))
       .optional(),
+    offset: z
+      .string()
+      .regex(/^\d+$/)
+      .transform(Number)
+      .pipe(z.number().int().min(0).max(1000000))
+      .optional(),
   })
   .strict()
   .superRefine((query, context) => {
@@ -79,7 +85,7 @@ export class TransactionsService {
   async list(userId: string, query: unknown): Promise<FinancialTransaction[]> {
     const parsed = querySchema.safeParse(query);
     if (!parsed.success) throw new BadRequestException(parsed.error.issues);
-    const { from, to, limit, kind, accountId, categoryId } = parsed.data;
+    const { from, to, limit, offset, kind, accountId, categoryId } = parsed.data;
     const rows = await this.prisma.db.transaction.findMany({
       where: {
         userId,
@@ -95,8 +101,9 @@ export class TransactionsService {
             }
           : {}),
       },
-      orderBy: [{ occurredOn: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ occurredOn: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       take: limit ?? 50,
+      ...(offset ? { skip: offset } : {}),
       select: {
         id: true,
         kind: true,

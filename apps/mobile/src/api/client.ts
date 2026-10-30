@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import {
-  authSessionSchema,
+  clientSessionSchema,
   financialAccountInputSchema,
   financialAccountSchema,
   financialCategoryInputSchema,
@@ -9,7 +9,7 @@ import {
   financialTransactionSchema,
   loginSchema,
   registerSchema,
-  type AuthSession,
+  type ClientSession,
   type FinancialAccount,
   type FinancialAccountInput,
   type FinancialCategory,
@@ -19,7 +19,6 @@ import {
   type Registration,
 } from '@fintrack/shared';
 import { resolveApiBaseUrl } from './url';
-
 
 async function list<T>(
   path: string,
@@ -47,9 +46,15 @@ async function request<T>(
 ) {
   let response: Response;
   try {
-    const baseUrl = resolveApiBaseUrl(process.env.EXPO_PUBLIC_API_URL, Platform.OS, __DEV__);
+    const baseUrl = resolveApiBaseUrl(
+      process.env.EXPO_PUBLIC_API_URL,
+      Platform.OS,
+      __DEV__,
+      typeof window !== 'undefined' ? window.location.hostname : undefined,
+    );
     response = await fetch(`${baseUrl}${path}`, {
       method: options.method ?? 'GET',
+      credentials: 'include',
       headers: {
         Accept: 'application/json',
         ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
@@ -73,13 +78,22 @@ async function request<T>(
 }
 
 export const apiClient = {
+  async restore(): Promise<ClientSession | null> {
+    if (Platform.OS !== 'web') return null;
+    try {
+      return clientSessionSchema.parse(await request('/auth/session', { method: 'POST' }));
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) return null;
+      throw error;
+    }
+  },
   async register(input: Registration) {
     const body = registerSchema.parse(input);
     return request<{ id: string; email: string }>('/auth/register', { method: 'POST', body });
   },
-  async login(input: Login): Promise<AuthSession> {
+  async login(input: Login): Promise<ClientSession> {
     const body = loginSchema.parse(input);
-    return authSessionSchema.parse(await request('/auth/login', { method: 'POST', body }));
+    return clientSessionSchema.parse(await request('/auth/login', { method: 'POST', body }));
   },
   logout(token: string): Promise<{ success: true }> {
     return request('/auth/logout', { token, method: 'POST' });
@@ -106,7 +120,17 @@ export const apiClient = {
     );
   },
   async transactions(token: string): Promise<FinancialTransaction[]> {
-    return list('/transactions', token, financialTransactionSchema);
+    const rows: FinancialTransaction[] = [];
+    for (let offset = 0; offset <= 1000000; offset += 100) {
+      const page = await list(
+        `/transactions?limit=100&offset=${offset}`,
+        token,
+        financialTransactionSchema,
+      );
+      rows.push(...page);
+      if (page.length < 100) return rows;
+    }
+    throw new ApiClientError(502, 'Transaction history is too large to load completely.');
   },
   async createTransaction(
     token: string,

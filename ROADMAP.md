@@ -1,6 +1,14 @@
 # FinTrack Pro — Roadmap / Roteiro
 
 Scope: FinTrack Pro MASTER DEVELOPMENT PROMPT supplied on 2026-10-25.
+
+Current own-finance milestone (2026-10-30): authenticated account/entry forms,
+personal dashboard, browser session recovery and real PostgreSQL E2E harness are
+implemented in source. Validation passed for unit/static checks and demo/error E2E;
+real database acceptance is blocked by P1000 for the local application roles on
+5432/5433. Do not mark persistence/onboarding complete until `test:e2e:real` passes.
+/ Contas, lançamentos, dashboard pessoal e sessão estão conectados no código;
+conclusão depende da validação real após configurar as credenciais locais.
 The earlier five-project portfolio prompt remains unavailable. / Escopo: prompt
 do FinTrack Pro recebido; não presume o prompt anterior de cinco projetos.
 

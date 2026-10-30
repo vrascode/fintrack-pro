@@ -1,17 +1,16 @@
 # Security / Segurança
 
-The foundation exposes only process liveness on loopback by default. There are no
-identity, financial-write or upload endpoints. Mobile preferences are non-sensitive
-and schema-validated; tokens must never enter AsyncStorage.
+The API binds to loopback by default and exposes identity, readiness and owner-scoped
+financial endpoints. There are no upload endpoints. Mobile preferences are
+non-sensitive and schema-validated; tokens must never enter AsyncStorage.
 
-A fundação expõe apenas saúde do processo, em loopback por padrão. Não há endpoints
-de identidade, movimentação ou upload. Preferências são não sensíveis e validadas;
-tokens nunca devem ser gravados no AsyncStorage.
+A API usa loopback por padrão e inclui identidade, prontidão e operações financeiras
+por usuário. Preferências são não sensíveis; tokens não entram no AsyncStorage.
 
 ## Identity core — 2026-10-27 / Núcleo de identidade
 
-Server-only primitives are implemented and locally tested; they are not exposed
-as HTTP authentication or connected to a database yet.
+Identity primitives are connected to HTTP and Prisma in source. Unit tests have
+passed; real-database acceptance remains blocked by local application credentials.
 
 - Passwords: asynchronous scrypt (`N=131072`, `r=8`, `p=1`), random 16-byte salts,
   32-byte derived keys and constant-time comparison. The default hasher allows two
@@ -24,7 +23,11 @@ as HTTP authentication or connected to a database yet.
   random high-entropy tokens; passwords use scrypt.
 - Session transitions: 15-minute access, 7-day idle and 30-day absolute expiry,
   refresh rotation, consumed-token replay detection, idempotent device revocation.
-  These are pure transitions; persistence, locking and HTTP authorization are pending.
+  The pure transitions now also support a Prisma restore endpoint using a session
+  row lock, atomic token consumption and committed replay revocation. Browser refresh
+  credentials use HttpOnly/SameSite cookies and are omitted from browser JSON;
+  production uses Secure cookies, with explicit origin/CORS checks. Real PostgreSQL
+  acceptance is still pending local application credentials.
 
 The scrypt configuration follows the fallback described in the
 [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html),

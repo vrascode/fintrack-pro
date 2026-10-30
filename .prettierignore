@@ -6,3 +6,4 @@ coverage
 package-lock.json
 apps/api/generated
 test-results
+.local

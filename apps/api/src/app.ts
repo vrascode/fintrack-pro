@@ -8,6 +8,7 @@ import { AuthModule } from './identity/auth.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
+import { webOrigins } from './identity/web-session.js';
 
 @Controller('health')
 class HealthController {
@@ -44,6 +45,7 @@ export async function createApp(logger: false | undefined = undefined) {
     logger: logger === false ? false : ['error', 'warn', 'log'],
   });
   app.setGlobalPrefix('v1');
+  app.enableCors({ origin: webOrigins(), credentials: true });
   app.enableShutdownHooks();
   return app;
 }

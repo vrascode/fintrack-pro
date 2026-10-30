@@ -4,6 +4,51 @@ Updated / Atualizado: 2026-10-27
 
 ## Local PostgreSQL verification — 2026-10-30
 
+Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS
+exports passed; `npm.cmd run test:e2e` passed all 12 demo/onboarding/error cases.
+`playwright test --config playwright.financial.config.ts --list` collected two real
+browser cases (desktop/mobile). `npm.cmd run db:migrate` failed P1000 on 5432;
+`npm.cmd run test:e2e:real` failed P1000 on 5433 during migrations, so its browser
+cases and SQL suites did not execute. No existing databases, roles or passwords
+were changed. The API listens on 3000, but readiness is 503. User action required:
+run `node scripts/setup-local-postgres.mjs` in the local terminal and enter the
+administrator passwords there (never in chat), then rerun migrations and real tests.
+
+Validação final: checks e 12 E2E existentes aprovados; teste real coletado, mas
+bloqueado antes da execução por autenticação. API iniciada não significa integração
+aprovada. A branch deve permanecer em desenvolvimento até passar a aceitação real.
+
+Personal finance integration in source: registration leaves demo mode and opens
+account setup; account name/type/opening cents/date are sent to the owner-scoped
+API. Posted income/expense/transfer forms use per-request idempotency and retain
+fields after failure; categories can be created. The personal dashboard reloads
+server records on focus, derives balances using the existing exact-cent domain,
+shows posted monthly series/history and offers logout. No fixture or local financial
+array substitutes for persistence. Full `npm.cmd run check` passed (69 tests before
+four additional cookie tests); all three platform exports and all 12 regular E2E
+cases passed. These E2E cover demo/onboarding/errors, not successful real registration.
+`npm.cmd run test:e2e:real` stopped at P1000 during test migrations, before browser
+acceptance could run. No real account write/reload/API-restart success is claimed.
+
+Integração pessoal implementada no código; a validação com PostgreSQL continua
+pendente das credenciais. Não promover esta branch à main como aplicação pronta.
+
+Cookie/session checks: four dedicated HTTP/cookie security tests and eight focused
+auth-store/API-URL tests passed. Typecheck passed after separating native refresh
+grants from browser payloads. Browser JSON never contains the refresh credential;
+it is issued through an HttpOnly cookie. Source implementation only: actual persisted
+rotation remains behind the PostgreSQL authentication gate described below.
+
+API source now loads the ignored root `.env` for local startup. Added a browser
+session restore endpoint that rotates the existing opaque refresh grant under a
+PostgreSQL row lock, with HttpOnly/SameSite cookies, production Secure cookies and
+explicit CORS/origin checks. No tokens are written to browser localStorage.
+`npm.cmd run check` passed (69 tests) before adding dedicated cookie/CORS cases.
+Readiness on port 3000 returns 503; development migration and the real E2E command
+both stopped at P1000 authentication (5432 and 5433). No successful database writes
+or real end-to-end authentication are claimed. / Sessão web implementada no código,
+mas a validação real permanece bloqueada pelas credenciais locais.
+
 Confirmed installed/running Windows services: PostgreSQL 17.11 on 5432 and PostgreSQL
 18 on 5433. Existing application URLs in the ignored `.env` reach the servers but
 both return authentication code `28P01`. Added `scripts/setup-local-postgres.mjs`

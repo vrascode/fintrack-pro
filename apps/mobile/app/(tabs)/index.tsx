@@ -19,8 +19,15 @@ import { demoLabel } from '../../src/demo/labels';
 import { useI18n } from '../../src/i18n';
 import { usePreferences } from '../../src/preferences';
 import { designTokens, useTheme } from '../../src/theme';
+import { useAuth } from '../../src/auth';
+import { PersonalOverview } from '../../src/personal/screens';
 
 export default function Overview() {
+  const session = useAuth((state) => state.session);
+  return session ? <PersonalOverview /> : <DemoOverview />;
+}
+
+function DemoOverview() {
   const colors = useTheme();
   const { language, formatCurrency, formatDate } = useI18n();
   const { value: preferences } = usePreferences();

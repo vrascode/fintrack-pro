@@ -1,7 +1,19 @@
 # Architecture / Arquitetura
 
-Phase 1 foundation and phase 2 identity core. Database-backed services remain pending.
-/ Fundação da fase 1 e núcleo da fase 2; serviços persistentes continuam pendentes.
+The source connects Prisma-backed identity/accounts/categories/transactions with
+personal Expo screens. PostgreSQL acceptance remains pending local credentials.
+/ Integração no código entre API Prisma e telas pessoais; aceitação real pendente.
+
+`apps/mobile/src/personal/` loads only the authenticated user's API records, clears
+screen data on session/focus changes and distinguishes query failures from empty
+results. Account balances reuse the exact-cent domain function; transaction history
+is paged until complete before computing dashboard values. Account creation records
+the opening date; entry retries reuse the same idempotency key. Demo routes remain
+separate and retain their fictional-data labels. Browser access grants stay in memory;
+refresh is recovered through an HttpOnly SameSite cookie and atomically rotated in
+the existing PostgreSQL session model. Native grants continue to use SecureStore.
+Production cookies require HTTPS and configured `CORS_ORIGINS`. Local development
+keeps localhost/127.0.0.1 frontend and API hostnames aligned for SameSite cookies.
 
 ```text
 fintrack-pro/
@@ -53,8 +65,8 @@ operate on the filtered demo transactions; CSV text is quoted and prefixed when
 it could be interpreted as a spreadsheet formula. Virtual envelope movements
 do not affect bank-account balances or net worth. The savings simulator is
 transient and does not create records. A persistent “fictional data” label marks
-these screens. Without demo mode, the app continues to explain that real finance
-services are not connected.
+these screens. Authenticated account/entry/dashboard routes instead render personal
+API records and surface query errors; they do not fall back to the fixture.
 
 Currency rendering groups bigint whole units and formats the fractional cents
 without converting the financial amount to floating-point. Demo input accepts

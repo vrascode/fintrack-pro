@@ -2,13 +2,14 @@ export function resolveApiBaseUrl(
   configured: string | undefined,
   platform: string,
   development: boolean,
+  webHostname?: string,
 ): string {
   const value =
     configured?.trim() ||
     (development
       ? platform === 'android'
         ? 'http://10.0.2.2:3000/v1'
-        : 'http://127.0.0.1:3000/v1'
+        : `http://${platform === 'web' && webHostname === 'localhost' ? 'localhost' : '127.0.0.1'}:3000/v1`
       : '');
   if (!value) throw new Error('EXPO_PUBLIC_API_URL must point to the deployed HTTPS API.');
   let url: URL;

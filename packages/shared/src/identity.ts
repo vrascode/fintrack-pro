@@ -36,3 +36,11 @@ export const authSessionSchema = z
   })
   .strict();
 export type AuthSession = z.infer<typeof authSessionSchema>;
+
+// Browser refresh credentials live only in an HttpOnly cookie. Native grants
+// retain the refresh credential for SecureStore.
+export const clientSessionSchema = z.union([
+  authSessionSchema,
+  authSessionSchema.omit({ refreshToken: true }),
+]);
+export type ClientSession = z.infer<typeof clientSessionSchema>;

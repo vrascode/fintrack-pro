@@ -6,6 +6,7 @@ import { useDemo } from '../src/demo';
 import { Button, Card, Field, Label, Screen, StatusMessage } from '../src/components/ui';
 import { useI18n } from '../src/i18n';
 import { designTokens, useTheme } from '../src/theme';
+import { emailSchema, passwordSchema } from '@fintrack/shared';
 
 export default function LoginScreen() {
   const { language } = useI18n();
@@ -13,6 +14,7 @@ export default function LoginScreen() {
   const { width } = useWindowDimensions();
   const { signIn, register, error } = useAuth();
   const enterDemo = useDemo().enterDemo;
+  const exitDemo = useDemo().exitDemo;
   const [isRegistering, setIsRegistering] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,17 +27,18 @@ export default function LoginScreen() {
   const text = (portuguese: string, english: string) => (pt ? portuguese : english);
   const normalizedEmail = email.trim();
   const emailError =
-    emailTouched && normalizedEmail && !/^\S+@\S+\.\S+$/.test(normalizedEmail)
+    emailTouched && !emailSchema.safeParse(normalizedEmail).success
       ? text('Informe um e-mail válido.', 'Enter a valid email address.')
       : null;
   const passwordError =
-    passwordTouched && isRegistering && password.length < 15
+    passwordTouched && !passwordSchema.safeParse(password).success
       ? text(
-          'A senha precisa ter pelo menos 15 caracteres.',
-          'Password must be at least 15 characters.',
+          'A senha precisa ter de 15 a 128 caracteres válidos.',
+          'Password must contain 15 to 128 valid characters.',
         )
       : null;
-  const valid = /^\S+@\S+\.\S+$/.test(normalizedEmail) && password.length >= 15;
+  const valid =
+    emailSchema.safeParse(normalizedEmail).success && passwordSchema.safeParse(password).success;
 
   async function submit() {
     setEmailTouched(true);
@@ -48,7 +51,10 @@ export default function LoginScreen() {
       const success = isRegistering
         ? await register(input, `FinTrack Pro ${Platform.OS}`)
         : await signIn({ ...input, deviceName: `FinTrack Pro ${Platform.OS}` });
-      if (success) router.replace('/(tabs)');
+      if (success) {
+        await exitDemo();
+        router.replace(isRegistering ? '/accounts' : '/(tabs)');
+      }
     } finally {
       submitting.current = false;
       setBusy(false);

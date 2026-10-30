@@ -24,7 +24,7 @@ test('registration validates inputs and preserves them when the API is unavailab
   await password.blur();
   await expect(submit).toBeDisabled();
   await expect(page.getByText('Informe um e-mail válido.')).toBeVisible();
-  await expect(page.getByText('A senha precisa ter pelo menos 15 caracteres.')).toBeVisible();
+  await expect(page.getByText('A senha precisa ter de 15 a 128 caracteres válidos.')).toBeVisible();
 
   await email.fill('new-user@example.test');
   await password.fill('correct horse battery');

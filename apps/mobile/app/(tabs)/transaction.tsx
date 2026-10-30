@@ -6,10 +6,17 @@ import { demoLabel } from '../../src/demo/labels';
 import { parseLocalizedCents } from '../../src/demo/input';
 import { useI18n } from '../../src/i18n';
 import { useTheme } from '../../src/theme';
+import { useAuth } from '../../src/auth';
+import { PersonalTransaction } from '../../src/personal/screens';
 
 type Kind = 'income' | 'expense' | 'transfer';
 
 export default function TransactionForm() {
+  const session = useAuth((state) => state.session);
+  return session ? <PersonalTransaction /> : <DemoTransactionForm />;
+}
+
+function DemoTransactionForm() {
   const { language } = useI18n();
   const { mode, dataset, updateDataset, saving } = useDemo();
   const colors = useTheme();
