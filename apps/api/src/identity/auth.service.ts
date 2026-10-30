@@ -66,4 +66,12 @@ export class AuthService {
       expiresAt: session.session.accessExpiresAt.toISOString(),
     };
   }
+
+  async logout(sessionId: string) {
+    await this.prisma.db.session.updateMany({
+      where: { id: sessionId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return { success: true };
+  }
 }

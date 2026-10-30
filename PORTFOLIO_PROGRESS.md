@@ -2,6 +2,15 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Session authorization and logout — 2026-10-30
+
+Added a bearer access-token guard that verifies the stored token digest and session
+expiry, then derives the user and session IDs from the persisted session. Added
+authenticated logout with idempotent revocation and HTTP coverage for unauthenticated
+requests. Full `npm run check` passed (lint, types/build, 54 tests, formatting).
+Guard tests use a fake Prisma boundary; database-backed authorization is not yet
+verified. Refresh-token rotation and rate limiting remain open.
+
 ## Registration and login API — 2026-10-30
 
 Added validated registration and login endpoints. Passwords use the existing scrypt

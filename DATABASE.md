@@ -7,11 +7,11 @@ dependencies, schema/client generation, versioned identity and ledger migrations
 and real-database integration suites. Prisma validates the schema and generates the
 client locally. PostgreSQL/Docker are unavailable here, so no migration has been
 applied and the integration suites have not passed. The API has process and database
-readiness endpoints, a lazy Prisma service and `POST /v1/auth/register` and
-`POST /v1/auth/login`, but user-scoped financial repositories and application
-services remain unimplemented. Credentials are hashed; login stores session and
-refresh-token digests transactionally. The current tests use a Prisma-shaped fake
-and do not prove PostgreSQL persistence.
+readiness endpoints, a lazy Prisma service, registration/login, and bearer-session
+authorization for logout. Credentials are hashed; login stores session and refresh
+token digests transactionally. User-scoped financial repositories and application
+services remain unimplemented. The current tests use a Prisma-shaped fake and do not
+prove PostgreSQL persistence. Rate limiting and refresh rotation are still pending.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
