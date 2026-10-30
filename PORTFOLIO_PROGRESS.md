@@ -2,6 +2,21 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Local PostgreSQL verification — 2026-10-30
+
+Confirmed installed/running Windows services: PostgreSQL 17.11 on 5432 and PostgreSQL
+18 on 5433. Existing application URLs in the ignored `.env` reach the servers but
+both return authentication code `28P01`. Added `scripts/setup-local-postgres.mjs`
+for interactive local admin-password entry and creation of missing project roles and
+databases, preserving existing role passwords and records. `.local/` is now ignored.
+Validation: `node --check scripts/setup-local-postgres.mjs` passed. Provisioning and
+migrations still depend on successful local credential entry; no persistence success
+is claimed at this point.
+
+Serviços e portas confirmados; as duas credenciais de aplicação foram recusadas.
+O comando de configuração solicita senhas apenas no terminal local e preserva dados.
+Próxima etapa: validar provisionamento/migrações com as credenciais administrativas.
+
 ## Pending-work review / Revisão do trabalho pendente
 
 - Auth error classification: versioned the existing distinction between invalid

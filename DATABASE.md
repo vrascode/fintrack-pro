@@ -45,6 +45,25 @@ production API is not deployed by this repository yet.
 
 ## Local setup / Configuração local
 
+### Native Windows installation / Instalação Windows sem Docker
+
+The local Windows services currently use PostgreSQL 17 on port 5432 and PostgreSQL
+18 on port 5433. The application uses the separate `fintrack` and `fintrack_test`
+databases configured in the ignored root `.env`. Never repurpose an existing database.
+To provision missing roles/databases, run `node scripts/setup-local-postgres.mjs`
+from an interactive terminal at the repository root. It asks for the `postgres`
+administrator password on each configured port without echoing or saving it. Existing
+role passwords and records are preserved. If application authentication fails, update
+the ignored `.env` locally to match the intended role; do not send credentials in chat.
+Then run `npm.cmd run db:migrate` and `npm.cmd run test:integration`.
+
+Os serviços Windows usam 5432 para desenvolvimento e 5433 para a instância separada
+de testes. Execute `node scripts/setup-local-postgres.mjs` no terminal da raiz para
+informar as senhas administrativas localmente, sem exibi-las. O comando cria apenas
+os usuários e bancos ausentes e nunca redefine senhas existentes. Dados locais em
+`.local/` e o arquivo `.env` ficam fora do Git. Não inicie outro cluster sobre as
+portas ocupadas nem apague os diretórios dos serviços instalados.
+
 Run from the repository root with registry access and Docker Compose available.
 Installations must produce real manifests and lock entries; none were fabricated.
 / Execute na raiz com npm e Docker disponíveis. Não se inventam entradas no lockfile.

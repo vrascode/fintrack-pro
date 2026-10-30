@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { Platform, Text, View, useWindowDimensions } from 'react-native';
 import { useAuth } from '../src/auth';
@@ -11,21 +11,48 @@ export default function LoginScreen() {
   const { language } = useI18n();
   const colors = useTheme();
   const { width } = useWindowDimensions();
-  const { signIn, register, error, status } = useAuth();
+  const { signIn, register, error } = useAuth();
   const enterDemo = useDemo().enterDemo;
   const [isRegistering, setIsRegistering] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
   const pt = language === 'pt-BR';
   const text = (portuguese: string, english: string) => (pt ? portuguese : english);
-  const busy = status === 'loading';
+  const normalizedEmail = email.trim();
+  const emailError =
+    emailTouched && normalizedEmail && !/^\S+@\S+\.\S+$/.test(normalizedEmail)
+      ? text('Informe um e-mail válido.', 'Enter a valid email address.')
+      : null;
+  const passwordError =
+    passwordTouched && isRegistering && password.length < 15
+      ? text(
+          'A senha precisa ter pelo menos 15 caracteres.',
+          'Password must be at least 15 characters.',
+        )
+      : null;
+  const valid = /^\S+@\S+\.\S+$/.test(normalizedEmail) && password.length >= 15;
 
   async function submit() {
-    const input = { email, password };
-    const success = isRegistering
-      ? await register(input, `FinTrack Pro ${Platform.OS}`)
-      : await signIn({ ...input, deviceName: `FinTrack Pro ${Platform.OS}` });
-    if (success) router.replace('/(tabs)');
+    setEmailTouched(true);
+    setPasswordTouched(true);
+    if (!valid || submitting.current) return;
+    submitting.current = true;
+    setBusy(true);
+    try {
+      const input = { email: normalizedEmail, password };
+      const success = isRegistering
+        ? await register(input, `FinTrack Pro ${Platform.OS}`)
+        : await signIn({ ...input, deviceName: `FinTrack Pro ${Platform.OS}` });
+      if (success) router.replace('/(tabs)');
+    } finally {
+      submitting.current = false;
+      setBusy(false);
+    }
   }
 
   async function exploreDemo() {
@@ -73,7 +100,10 @@ export default function LoginScreen() {
           padding: width < designTokens.breakpoints.tablet ? 20 : 32,
         }}
       >
-        <Text accessibilityRole="header" style={{ color: colors.ink, fontSize: 21, fontWeight: '800' }}>
+        <Text
+          accessibilityRole="header"
+          style={{ color: colors.ink, fontSize: 21, fontWeight: '800' }}
+        >
           {isRegistering ? text('Criar conta', 'Create account') : text('Entrar', 'Sign in')}
         </Text>
         <Label muted>
@@ -97,22 +127,36 @@ export default function LoginScreen() {
           autoComplete="email"
           textContentType="emailAddress"
           editable={!busy}
+          onBlur={() => setEmailTouched(true)}
+          {...(emailError ? { error: emailError } : {})}
         />
         <Field
           label={text('Senha', 'Password')}
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={!passwordVisible}
           autoComplete={isRegistering ? 'new-password' : 'current-password'}
           textContentType={isRegistering ? 'newPassword' : 'password'}
           editable={!busy}
           onSubmitEditing={() => void submit()}
+          onBlur={() => setPasswordTouched(true)}
+          {...(passwordError ? { error: passwordError } : {})}
+        />
+        <Button
+          variant="quiet"
+          disabled={busy}
+          label={
+            passwordVisible
+              ? text('Ocultar senha', 'Hide password')
+              : text('Mostrar senha', 'Show password')
+          }
+          onPress={() => setPasswordVisible((visible) => !visible)}
         />
         {isRegistering ? (
           <Label muted style={{ fontSize: 13 }}>
             {text(
-              'Use uma senha longa, com pelo menos 15 caracteres.',
-              'Use a long password with at least 15 characters.',
+              'A senha deve ter de 15 a 128 caracteres. Espaços e acentos são aceitos.',
+              'Password must contain 15 to 128 characters. Spaces and Unicode are allowed.',
             )}
           </Label>
         ) : null}
@@ -124,7 +168,7 @@ export default function LoginScreen() {
                 ? text('Criar minha conta', 'Create my account')
                 : text('Entrar', 'Sign in')
           }
-          disabled={busy || !email.trim() || !password}
+          disabled={busy || !valid}
           onPress={() => void submit()}
         />
         <View style={{ alignItems: 'center', gap: 12 }}>

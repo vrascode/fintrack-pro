@@ -56,7 +56,7 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
       }
     },
     async signIn(input) {
-      set({ status: 'loading', error: null });
+      set({ error: null });
       try {
         const session = authSessionSchema.parse(await api.login(loginSchema.parse(input)));
         await storage.set(JSON.stringify(session));
@@ -72,7 +72,7 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
       }
     },
     async register(input, deviceName) {
-      set({ status: 'loading', error: null });
+      set({ error: null });
       try {
         await api.register(input);
       } catch (error) {
