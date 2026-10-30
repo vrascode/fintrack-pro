@@ -24,6 +24,16 @@ are not available yet.
 The identity core is not connected to HTTP or persistence. No mock database is
 used to claim integration. See [database setup and remaining work](DATABASE.md).
 
+## Interface and localization
+
+The mobile app and web export share a responsive UI foundation with light, dark,
+and system themes. Non-sensitive theme, language, privacy, and desktop sidebar
+preferences are stored locally. The interface supports Brazilian Portuguese and
+English, with locale-aware date and exact-cent currency formatters. The web
+layout adds a collapsible desktop sidebar; mobile keeps bottom-tab navigation.
+Financial areas intentionally remain empty until real account and transaction
+services are available. See [architecture](ARCHITECTURE.md) for UI boundaries.
+
 ## Quick start
 
 Requirements: Node.js 24 LTS (`>=24.13.0 <25`), npm and registry access for the first

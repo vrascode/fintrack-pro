@@ -2,6 +2,18 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Responsive UI and localization — 2026-10-29
+
+Implemented a tokenized light/dark palette with system-following behavior, a
+responsive Expo web desktop shell and collapsible sidebar, mobile bottom-tab
+navigation, bilingual English/pt-BR navigation and settings, locale-aware exact
+cent/date helpers, and truthful empty states for financial areas. Theme, language,
+privacy, and sidebar preferences persist locally; older valid preference records
+receive defaults for the newly added fields. Added unit tests for translation
+parity/use, exact-cent formatting, localized civil dates, and preference
+migration/persistence. Financial analytics, account and transaction operations
+remain unavailable because there is no connected financial API/database.
+
 ## Continuous-development audit and CI — 2026-10-27 / Auditoria e CI
 
 Audited the repository at `89ec17e`. CI was the highest-value missing improvement:

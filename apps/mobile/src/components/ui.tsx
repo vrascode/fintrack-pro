@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import { useState, type PropsWithChildren } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -7,49 +7,86 @@ import {
   TextInput,
   View,
   type TextInputProps,
+  type TextStyle,
+  type ViewStyle,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../theme';
+import { useI18n } from '../i18n';
+import { designTokens, useTheme } from '../theme';
 
-export function Label({ children, muted = false }: PropsWithChildren<{ muted?: boolean }>) {
+export function Label({
+  children,
+  muted = false,
+  style,
+}: PropsWithChildren<{ muted?: boolean; style?: TextStyle }>) {
   const colors = useTheme();
   return (
-    <Text style={{ color: muted ? colors.muted : colors.ink, fontSize: 16, lineHeight: 25 }}>
+    <Text
+      style={[
+        {
+          color: muted ? colors.muted : colors.ink,
+          fontFamily: designTokens.typography.family,
+          fontSize: designTokens.typography.sizes.md,
+          lineHeight: 24,
+        },
+        style,
+      ]}
+    >
       {children}
     </Text>
   );
 }
-export function Card({ children }: PropsWithChildren) {
+
+export function Card({
+  children,
+  accent = false,
+  style,
+}: PropsWithChildren<{ accent?: boolean; style?: ViewStyle }>) {
   const colors = useTheme();
   return (
     <View
-      style={{
-        backgroundColor: colors.surface,
-        borderColor: colors.border,
-        borderWidth: 1,
-        borderRadius: 24,
-        padding: 24,
-        gap: 16,
-      }}
+      style={[
+        {
+          backgroundColor: colors.surface,
+          borderColor: accent ? colors.accent : colors.border,
+          borderWidth: 1,
+          borderRadius: designTokens.radius.lg,
+          padding: designTokens.spacing.xl,
+          gap: designTokens.spacing.lg,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.28,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 2,
+        },
+        style,
+      ]}
     >
       {children}
     </View>
   );
 }
+
 export function Button({
   label,
   onPress,
   disabled = false,
-  secondary = false,
+  variant = 'primary',
   selected,
+  compact = false,
 }: {
   label: string;
   onPress(): void;
   disabled?: boolean;
-  secondary?: boolean;
+  variant?: 'primary' | 'secondary' | 'quiet';
   selected?: boolean;
+  compact?: boolean;
 }) {
   const colors = useTheme();
+  const [focused, setFocused] = useState(false);
+  const primary = variant === 'primary';
+  const quiet = variant === 'quiet';
   return (
     <Pressable
       accessibilityRole={selected === undefined ? 'button' : 'radio'}
@@ -58,22 +95,35 @@ export function Button({
       {...(selected === undefined ? {} : { 'aria-checked': selected })}
       disabled={disabled}
       onPress={onPress}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       style={({ pressed }) => ({
-        minHeight: 48,
-        paddingHorizontal: 20,
-        paddingVertical: 13,
-        borderRadius: 14,
-        backgroundColor: secondary ? colors.tint : colors.accent,
-        opacity: disabled ? 0.5 : pressed ? 0.75 : 1,
+        minHeight: compact ? 42 : 48,
+        minWidth: compact ? 42 : undefined,
+        paddingHorizontal: compact ? 14 : 20,
+        paddingVertical: compact ? 9 : 12,
+        borderRadius: designTokens.radius.md,
+        borderWidth: focused ? 2 : selected ? 1 : 0,
+        borderColor: focused || selected ? colors.accent : 'transparent',
+        backgroundColor: primary
+          ? colors.accent
+          : quiet
+            ? 'transparent'
+            : selected
+              ? colors.accentSoft
+              : colors.elevated,
+        opacity: disabled ? 0.52 : pressed ? 0.76 : 1,
+        transform: [{ scale: pressed && !disabled ? 0.985 : 1 }],
         alignItems: 'center',
         justifyContent: 'center',
       })}
     >
       <Text
         style={{
-          color: secondary ? colors.accent : colors.mode === 'dark' ? '#102A22' : '#FFFFFF',
+          color: primary ? colors.accentInk : selected ? colors.accent : colors.ink,
+          fontFamily: designTokens.typography.family,
           fontWeight: '700',
-          fontSize: 15,
+          fontSize: compact ? 14 : 15,
         }}
       >
         {label}
@@ -81,64 +131,85 @@ export function Button({
     </Pressable>
   );
 }
+
 export function Field({
   label,
   error,
   ...props
 }: TextInputProps & { label: string; error?: string }) {
   const colors = useTheme();
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={{ gap: 8 }}>
+    <View style={{ gap: designTokens.spacing.sm }}>
       <Label>{label}</Label>
       <TextInput
         {...props}
         accessibilityLabel={label}
-        placeholderTextColor={colors.muted}
-        style={{
-          color: colors.ink,
-          backgroundColor: colors.surface,
-          borderColor: error ? colors.danger : colors.border,
-          borderWidth: 1,
-          borderRadius: 12,
-          minHeight: 48,
-          padding: 12,
+        onFocus={(event) => {
+          setFocused(true);
+          props.onFocus?.(event);
         }}
+        onBlur={(event) => {
+          setFocused(false);
+          props.onBlur?.(event);
+        }}
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.accent}
+        style={[
+          {
+            color: colors.ink,
+            backgroundColor: colors.surface,
+            borderColor: error ? colors.danger : focused ? colors.accent : colors.border,
+            borderWidth: focused ? 2 : 1,
+            borderRadius: designTokens.radius.md,
+            minHeight: 50,
+            padding: 13,
+            fontFamily: designTokens.typography.family,
+          },
+          props.style,
+        ]}
       />
       {error ? (
-        <Text accessibilityRole="alert" style={{ color: colors.danger }}>
+        <Text accessibilityRole="alert" style={{ color: colors.danger, lineHeight: 20 }}>
           {error}
         </Text>
       ) : null}
     </View>
   );
 }
-export function Loading({ label = 'Carregando preferências…' }: { label?: string }) {
+
+export function Loading({ label }: { label?: string }) {
   const colors = useTheme();
+  const { t } = useI18n();
+  const message = label ?? t('common.loading');
   return (
     <View
       accessibilityRole="progressbar"
-      accessibilityLabel={label}
-      style={{ padding: 32, alignItems: 'center', gap: 16 }}
+      accessibilityLabel={message}
+      style={{ padding: designTokens.spacing.xxl, alignItems: 'center', gap: 14 }}
     >
       <ActivityIndicator color={colors.accent} />
-      <Label>{label}</Label>
+      <Label>{message}</Label>
     </View>
   );
 }
+
 export function ErrorState({ message, retry }: { message: string; retry?: () => void }) {
   const colors = useTheme();
+  const { t } = useI18n();
   return (
-    <View style={{ gap: 16 }}>
+    <View style={{ gap: designTokens.spacing.lg }}>
       <Text
         accessibilityRole="alert"
-        style={{ color: colors.danger, fontSize: 16, lineHeight: 24 }}
+        style={{ color: colors.danger, fontSize: 15, lineHeight: 23 }}
       >
         {message}
       </Text>
-      {retry ? <Button label="Tentar novamente" onPress={retry} secondary /> : null}
+      {retry ? <Button label={t('common.retry')} onPress={retry} variant="secondary" /> : null}
     </View>
   );
 }
+
 export function EmptyState({
   symbol,
   title,
@@ -150,13 +221,13 @@ export function EmptyState({
 }) {
   const colors = useTheme();
   return (
-    <Card>
+    <View style={{ gap: designTokens.spacing.lg, maxWidth: 620 }}>
       <View
         style={{
-          backgroundColor: colors.tint,
-          borderRadius: 20,
-          width: 64,
-          height: 64,
+          backgroundColor: colors.accentSoft,
+          borderRadius: designTokens.radius.md,
+          width: 54,
+          height: 54,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -164,64 +235,103 @@ export function EmptyState({
         <Text
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          style={{ color: colors.accent, fontSize: 30 }}
+          style={{ color: colors.accent, fontSize: 24, fontWeight: '700' }}
         >
           {symbol}
         </Text>
       </View>
       <Text
         accessibilityRole="header"
-        style={{ color: colors.ink, fontSize: 23, fontWeight: '600' }}
+        style={{
+          color: colors.ink,
+          fontSize: 23,
+          lineHeight: 30,
+          fontWeight: '700',
+          fontFamily: designTokens.typography.family,
+        }}
       >
         {title}
       </Text>
       <Label muted>{description}</Label>
-    </Card>
+    </View>
   );
 }
+
+export function SectionHeading({ title, detail }: { title: string; detail?: string }) {
+  const colors = useTheme();
+  return (
+    <View style={{ gap: 5 }}>
+      <Text
+        accessibilityRole="header"
+        style={{
+          color: colors.ink,
+          fontSize: 18,
+          fontWeight: '700',
+          fontFamily: designTokens.typography.family,
+        }}
+      >
+        {title}
+      </Text>
+      {detail ? (
+        <Label muted style={{ fontSize: 14 }}>
+          {detail}
+        </Label>
+      ) : null}
+    </View>
+  );
+}
+
 export function Screen({
   title,
   subtitle,
+  eyebrow,
   children,
-}: PropsWithChildren<{ title: string; subtitle: string }>) {
+}: PropsWithChildren<{ title: string; subtitle: string; eyebrow?: string }>) {
   const colors = useTheme();
+  const { width } = useWindowDimensions();
+  const { t } = useI18n();
+  const horizontal = width >= designTokens.breakpoints.desktop ? 40 : width >= 700 ? 30 : 20;
   return (
-    <SafeAreaView
-      edges={['top', 'left', 'right']}
-      style={{ flex: 1, backgroundColor: colors.background }}
-    >
+    <SafeAreaView edges={['left', 'right']} style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingVertical: 28 }}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: horizontal, paddingVertical: 28 }}
       >
-        <View style={{ width: '100%', maxWidth: 1040, alignSelf: 'center', gap: 24 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Text
-              style={{ color: colors.accent, fontSize: 16, fontWeight: '800', letterSpacing: 1 }}
-            >
-              fintrack <Text style={{ fontWeight: '400' }}>pro</Text>
-            </Text>
-            <Text style={{ color: colors.muted, fontSize: 12 }}>SUA VIDA, EM EQUILÍBRIO</Text>
-          </View>
-          <View style={{ gap: 10, paddingTop: 16 }}>
+        <View style={{ width: '100%', maxWidth: 1280, alignSelf: 'center', gap: 28 }}>
+          <View style={{ gap: 8, maxWidth: 820 }}>
+            {eyebrow ? (
+              <Text
+                style={{
+                  color: colors.accent,
+                  fontSize: 11,
+                  letterSpacing: 1.8,
+                  fontWeight: '800',
+                  fontFamily: designTokens.typography.family,
+                }}
+              >
+                {eyebrow}
+              </Text>
+            ) : null}
             <Text
               accessibilityRole="header"
-              style={{ color: colors.ink, fontSize: 36, fontWeight: '700', letterSpacing: -1 }}
+              style={{
+                color: colors.ink,
+                fontSize: width < 400 ? 30 : 36,
+                lineHeight: width < 400 ? 38 : 44,
+                fontWeight: '700',
+                letterSpacing: -1.2,
+                fontFamily: designTokens.typography.family,
+              }}
             >
               {title}
             </Text>
-            <Label muted>{subtitle}</Label>
+            <Label muted style={{ fontSize: 16, maxWidth: 720 }}>
+              {subtitle}
+            </Label>
           </View>
           {children}
-          <Text style={{ color: colors.muted, fontSize: 12, paddingVertical: 12 }}>
-            FinTrack Pro · Organização financeira pessoal
+          <Text style={{ color: colors.muted, fontSize: 12, paddingVertical: 8 }}>
+            FinTrack Pro · {t('common.footer')}
           </Text>
         </View>
       </ScrollView>

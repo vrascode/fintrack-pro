@@ -8,6 +8,8 @@ export const preferencesSchema = z
     version: z.literal(1),
     theme: z.enum(['system', 'light', 'dark']),
     hideAmounts: z.boolean(),
+    language: z.enum(['pt-BR', 'en']).default('pt-BR'),
+    desktopSidebarCollapsed: z.boolean().default(false),
   })
   .strict();
 export type Preferences = z.infer<typeof preferencesSchema>;
@@ -15,6 +17,8 @@ export const defaultPreferences: Readonly<Preferences> = Object.freeze({
   version: 1,
   theme: 'system',
   hideAmounts: false,
+  language: 'pt-BR',
+  desktopSidebarCollapsed: false,
 });
 export const healthSchema = z
   .object({

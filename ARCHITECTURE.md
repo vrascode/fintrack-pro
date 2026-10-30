@@ -26,6 +26,22 @@ flowchart LR
   API -. Phase 8: consent + minimized data .-> AI[AI provider]
 ```
 
+## UI foundation / Base de interface
+
+The Expo app shares theme tokens and components across native and web. The web
+export switches to a desktop sidebar at the shared 1080 px breakpoint; smaller
+viewports keep the native bottom-tab pattern. Screens constrain content width
+and use responsive grids, safe areas, keyboard-aware scrolling, accessible
+labels, and visible focus/press states. Theme, language, privacy, and sidebar
+collapse are non-sensitive local preferences parsed through the shared Zod
+schema. English and Brazilian Portuguese dictionaries share compile-time key
+parity. Date and currency display uses `Intl`; monetary inputs to the currency
+formatter are integer cents (`bigint`), avoiding floating-point arithmetic.
+
+No analytics, transaction list, balances, or operational financial controls are
+rendered without a real persisted data source. The current empty states describe
+that limitation directly; implementing a UI does not imply backend integration.
+
 ## Decisions / Decisões
 
 - Modular monolith keeps transactions in one service; future identity, ledger,

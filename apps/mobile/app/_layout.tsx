@@ -5,10 +5,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { usePreferences } from '../src/preferences';
 import { Button, Card, ErrorState, Loading, Screen } from '../src/components/ui';
 import { useTheme } from '../src/theme';
+import { useI18n } from '../src/i18n';
 
 export default function RootLayout() {
   const { status, error, hydrate, reset, saving } = usePreferences();
   const colors = useTheme();
+  const { t } = useI18n();
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
@@ -16,28 +18,23 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style={colors.mode === 'dark' ? 'light' : 'dark'} />
       {status !== 'ready' ? (
-        <Screen
-          title="Bem-vindo ao seu espaço"
-          subtitle="Suas escolhas acompanham você neste dispositivo."
-        >
+        <Screen title={t('shell.workspace')} subtitle={t('brand.tagline')}>
           {status === 'loading' ? (
             <Loading />
           ) : (
             <Card>
               <ErrorState
                 message={
-                  error === 'invalid'
-                    ? 'As preferências salvas estão danificadas ou usam uma versão incompatível.'
-                    : 'Não foi possível acessar as preferências deste dispositivo.'
+                  error === 'invalid' ? t('common.invalidPreferences') : t('common.readError')
                 }
                 retry={() => {
                   void hydrate();
                 }}
               />
               <Button
-                label="Restaurar preferências padrão"
+                label={t('common.restore')}
                 disabled={saving}
-                secondary
+                variant="secondary"
                 onPress={() => {
                   void reset();
                 }}

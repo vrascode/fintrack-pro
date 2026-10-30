@@ -25,6 +25,16 @@ O núcleo de identidade ainda não está conectado ao HTTP nem à persistência.
 Nenhum banco simulado é usado para declarar integração. Veja a
 [configuração do banco e pendências](DATABASE.md).
 
+## Interface e idiomas
+
+O app mobile e a versão web compartilham uma base de interface responsiva, com
+temas claro, escuro e automático. Tema, idioma, privacidade e recolhimento da
+sidebar no desktop são preferências locais não sensíveis. A interface oferece
+português brasileiro e inglês, além de formatação de datas por locale e valores
+monetários exatos em centavos. No desktop há uma sidebar recolhível; no mobile,
+a navegação usa abas inferiores. As áreas financeiras permanecem vazias até que
+existam serviços reais de contas e movimentações. Veja a [arquitetura](ARCHITECTURE.md).
+
 ## Início rápido
 
 Requisitos: Node.js 24 LTS (`>=24.13.0 <25`), npm e acesso ao registro na primeira

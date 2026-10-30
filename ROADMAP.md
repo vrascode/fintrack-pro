@@ -22,6 +22,16 @@ testes e documentação são obrigatórios em cada fase, com aprofundamento na f
 
 ## Phase 1 acceptance / Aceite da fase 1
 
+### Interface refresh — 2026-10-29
+
+Implemented: shared dark/light palettes and tokens, system theme support,
+persisted language and desktop sidebar preferences, English and Brazilian
+Portuguese dictionaries, responsive desktop shell with collapsible navigation,
+mobile bottom tabs, redesigned overview and honest financial empty states.
+Localized currency/date helpers and UI preference tests are included. This is a
+presentation and local-preferences improvement; it does not complete the
+PostgreSQL, account, transaction, or real-data dashboard roadmap phases.
+
 - npm workspaces, strict TypeScript, generated lockfile, shared lint/format config.
 - Expo pt-BR app: overview, activity, accounts, cards and preferences tabs;
   responsive light/dark theme, accessible controls, honest empty states.

@@ -13,7 +13,11 @@ interface PreferenceState {
   saving: boolean;
   error: 'read' | 'invalid' | 'write' | null;
   hydrate(): Promise<void>;
-  update(patch: Partial<Pick<Preferences, 'theme' | 'hideAmounts'>>): Promise<boolean>;
+  update(
+    patch: Partial<
+      Pick<Preferences, 'theme' | 'hideAmounts' | 'language' | 'desktopSidebarCollapsed'>
+    >,
+  ): Promise<boolean>;
   reset(): Promise<boolean>;
 }
 

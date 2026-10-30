@@ -28,10 +28,18 @@ test('preferences survive store recreation using real disk persistence', async (
   const first = createPreferences(storage);
   await first.getState().hydrate();
   assert.equal(first.getState().status, 'ready');
-  await first.getState().update({ theme: 'dark', hideAmounts: true });
+  await first
+    .getState()
+    .update({ theme: 'dark', hideAmounts: true, language: 'en', desktopSidebarCollapsed: true });
   const restarted = createPreferences(storage);
   await restarted.getState().hydrate();
-  assert.deepEqual(restarted.getState().value, { version: 1, theme: 'dark', hideAmounts: true });
+  assert.deepEqual(restarted.getState().value, {
+    version: 1,
+    theme: 'dark',
+    hideAmounts: true,
+    language: 'en',
+    desktopSidebarCollapsed: true,
+  });
   await restarted.getState().reset();
   await first.getState().hydrate();
   assert.equal(first.getState().value.theme, 'system');
@@ -103,5 +111,28 @@ test('overlapping updates merge in order and persist both fields', async (t) => 
   await Promise.all([hydration, theme, privacy]);
   const restarted = createPreferences(storage);
   await restarted.getState().hydrate();
-  assert.deepEqual(restarted.getState().value, { version: 1, theme: 'dark', hideAmounts: true });
+  assert.deepEqual(restarted.getState().value, {
+    version: 1,
+    theme: 'dark',
+    hideAmounts: true,
+    language: 'pt-BR',
+    desktopSidebarCollapsed: false,
+  });
+});
+
+test('older valid preferences receive language and sidebar defaults', async () => {
+  const store = createPreferences({
+    getItem: async () => '{"version":1,"theme":"light","hideAmounts":true}',
+    setItem: async () => undefined,
+    removeItem: async () => undefined,
+  });
+  await store.getState().hydrate();
+  assert.equal(store.getState().status, 'ready');
+  assert.deepEqual(store.getState().value, {
+    version: 1,
+    theme: 'light',
+    hideAmounts: true,
+    language: 'pt-BR',
+    desktopSidebarCollapsed: false,
+  });
 });
