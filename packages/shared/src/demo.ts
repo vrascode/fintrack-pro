@@ -193,7 +193,7 @@ export function createDemoDataset(referenceMonth = DEMO_REFERENCE_MONTH): Financ
         id: 'personal',
         name: 'Personal goal',
         icon: 'target',
-        color: '#F5A623',
+        color: '#C84A01',
         targetCents: '600000',
         plannedMonthlyCents: '20000',
         essentialCategoryIds: [],

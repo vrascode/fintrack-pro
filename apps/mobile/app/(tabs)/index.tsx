@@ -10,7 +10,7 @@ import {
   Button,
   Card,
   Label,
-  NegativeGradientBar,
+  ExpenseSeriesBar,
   Screen,
   SectionHeading,
 } from '../../src/components/ui';
@@ -57,6 +57,7 @@ export default function Overview() {
           </View>
           {demo.error ? (
             <Text accessibilityRole="alert" style={{ color: colors.danger }}>
+              ⚠{' '}
               {demo.error === 'read'
                 ? text(
                     'Não foi possível ler a demonstração deste dispositivo.',
@@ -247,6 +248,7 @@ export default function Overview() {
         </View>
         {demo.error === 'write' ? (
           <Text accessibilityRole="alert" style={{ color: colors.danger }}>
+            ⚠{' '}
             {text(
               'Não foi possível salvar a alteração local.',
               'The local change could not be saved.',
@@ -365,7 +367,7 @@ export default function Overview() {
             }}
           >
             <View accessibilityLabel="84% expenses" style={{ width: '84%' }}>
-              <NegativeGradientBar height={12} radius={0} />
+              <ExpenseSeriesBar height={12} radius={0} />
             </View>
             <View
               accessibilityLabel="16% surplus"
@@ -391,7 +393,7 @@ export default function Overview() {
             {formatCurrency(summary.obligationsRemainingCents, 'BRL', hidden)}
           </Text>
           <Text style={{ color: colors.danger, fontWeight: '700' }}>
-            {text('Vencido', 'Overdue')}:{' '}
+            ⚠ {text('Vencida', 'Overdue')}:{' '}
             {formatCurrency(summary.overdueObligationsCents, 'BRL', hidden)}
           </Text>
           {obligations.slice(0, 3).map((bill) => (
@@ -449,9 +451,10 @@ export default function Overview() {
                     backgroundColor: colors.positive,
                   }}
                 />
-                <NegativeGradientBar
+                <ExpenseSeriesBar
                   accessibilityLabel={`${text('Despesas', 'Expenses')} ${formatCurrency(item.expenses, 'BRL', hidden)}`}
                   width={`${Math.max(1, expenseWidth)}%`}
+                  radius={1}
                 />
               </View>
               <View
@@ -472,9 +475,27 @@ export default function Overview() {
             </View>
           );
         })}
-        <View style={{ flexDirection: 'row', gap: 16 }}>
-          <Label muted>● {text('Receitas realizadas', 'Posted income')}</Label>
-          <Label muted>● {text('Despesas realizadas', 'Posted expenses')}</Label>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View
+              accessibilityElementsHidden
+              style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: colors.positive }}
+            />
+            <Label muted>{text('Receitas realizadas', 'Posted income')}</Label>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View
+              accessibilityElementsHidden
+              style={{
+                width: 9,
+                height: 9,
+                borderWidth: 2,
+                borderColor: colors.expenseSeries,
+                backgroundColor: colors.surface,
+              }}
+            />
+            <Label muted>{text('Despesas realizadas', 'Posted expenses')}</Label>
+          </View>
         </View>
       </Card>
 
@@ -507,7 +528,7 @@ export default function Overview() {
                     overflow: 'hidden',
                   }}
                 >
-                  <NegativeGradientBar height={8} width={`${Math.min(100, ratio)}%`} />
+                  <ExpenseSeriesBar height={8} width={`${Math.min(100, ratio)}%`} radius={1} />
                 </View>
               </View>
             );
@@ -553,7 +574,12 @@ export default function Overview() {
                   {demoLabel(transaction.description, language)}
                 </Text>
                 <Text style={{ color: colors.muted, fontSize: 12 }}>
-                  {formatDate(transaction.date)}
+                  {transaction.kind === 'income'
+                    ? text('↗ Entrada', '↗ Income')
+                    : transaction.kind === 'expense'
+                      ? text('↘ Saída', '↘ Expense')
+                      : text('⇄ Transferência', '⇄ Transfer')}{' '}
+                  · {formatDate(transaction.date)}
                 </Text>
               </View>
               <Text
@@ -562,7 +588,7 @@ export default function Overview() {
                   fontWeight: '800',
                 }}
               >
-                {transaction.kind === 'expense' ? '−' : '+'}
+                {transaction.kind === 'expense' ? '−' : transaction.kind === 'transfer' ? '↔' : '+'}
                 {formatCurrency(BigInt(transaction.amountCents), 'BRL', hidden)}
               </Text>
             </View>

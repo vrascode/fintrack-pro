@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { calculateEnvelopeBalance, calculateGoalPlan } from '@fintrack/shared';
-import { Button, Card, Label, Screen } from '../../src/components/ui';
+import { Button, Card, Label, Screen, StatusMessage } from '../../src/components/ui';
 import { useDemo } from '../../src/demo';
 import { demoLabel } from '../../src/demo/labels';
 import { parseLocalizedCents } from '../../src/demo/input';
@@ -16,6 +16,7 @@ export default function Envelopes() {
   const colors = useTheme();
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('success');
   const pt = language === 'pt-BR';
   const text = (a: string, b: string) => (pt ? a : b);
   const data = mode === 'demo' ? dataset : null;
@@ -44,6 +45,7 @@ export default function Envelopes() {
           },
         ],
       }));
+      setMessageTone(ok ? 'success' : 'error');
       setMessage(
         ok
           ? text(
@@ -54,6 +56,7 @@ export default function Envelopes() {
       );
       if (ok) setAmounts((current) => ({ ...current, [envelopeId]: '' }));
     } catch {
+      setMessageTone('error');
       setMessage(
         text(
           'Confira o valor e o saldo reservado disponível.',
@@ -83,11 +86,7 @@ export default function Envelopes() {
               )}
             </Label>
           </Card>
-          {message ? (
-            <Text accessibilityRole="alert" style={{ color: colors.positiveText }}>
-              {message}
-            </Text>
-          ) : null}
+          {message ? <StatusMessage message={message} tone={messageTone} /> : null}
           {data.envelopes.map((envelope) => {
             const saved = calculateEnvelopeBalance(envelope, data.envelopeEvents, data.asOfDate);
             const goal = calculateGoalPlan(

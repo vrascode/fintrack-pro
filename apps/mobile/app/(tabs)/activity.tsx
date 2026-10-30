@@ -134,9 +134,9 @@ export default function Activity() {
                   item === 'all'
                     ? text('Todas', 'All')
                     : item === 'income'
-                      ? text('Receitas', 'Income')
+                      ? text('Entradas', 'Income')
                       : item === 'expense'
-                        ? text('Despesas', 'Expenses')
+                        ? text('Saídas', 'Expenses')
                         : item === 'transfer'
                           ? text('Transferências', 'Transfers')
                           : text('Previstas', 'Planned')
@@ -156,6 +156,12 @@ export default function Activity() {
                 )?.name;
                 const sign =
                   transaction.kind === 'income' ? '+' : transaction.kind === 'expense' ? '−' : '↔';
+                const kindLabel =
+                  transaction.kind === 'income'
+                    ? text('↗ Entrada', '↗ Income')
+                    : transaction.kind === 'expense'
+                      ? text('↘ Saída', '↘ Expense')
+                      : text('⇄ Transferência', '⇄ Transfer');
                 const color =
                   transaction.kind === 'income'
                     ? colors.positiveText
@@ -180,6 +186,7 @@ export default function Activity() {
                         {demoLabel(transaction.description, language)}
                       </Text>
                       <Text style={{ color: colors.muted, fontSize: 12 }}>
+                        {kindLabel} ·{' '}
                         {category
                           ? demoLabel(category, language)
                           : text('Transferência', 'Transfer')}{' '}

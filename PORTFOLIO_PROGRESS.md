@@ -596,3 +596,30 @@ Validation: `npm run check` passed (lint, builds, type checks, 50 unit tests and
 formatting); `npm run bundle` exported web, Android and iOS; `npm run test:e2e`
 passed 6/6 desktop and mobile tests. The generated desktop dashboard screenshot
 was reviewed.
+
+## Orange, white and neutral financial interface — 2026-10-30
+
+Replaced traffic-light financial emphasis with orange, white and neutral tokens.
+Income remains identifiable by its plus sign, localized entry label and arrow;
+expenses use a minus sign, exit label and a neutral chart series. Charts use
+orange/white in dark mode and orange/graphite in light mode, with a shape-based
+legend. Overdue bills have an attention mark and orange border; inline errors
+and success messages include symbols and explicit text. Demo envelope accents
+are orange. Amounts, calculations, demo isolation and external artwork are unchanged.
+
+Validation: `npm run check` passed with 51 unit tests; `npm run bundle` exported
+web, Android and iOS; `npm run test:e2e` passed 8/8 desktop and mobile tests,
+including computed income/expense series colors in both themes. The light
+dashboard screenshot was reviewed.
+
+### Persistence readiness remains blocked
+
+`npm run test:integration` validated the Prisma schema and generated Prisma
+Client, then failed before applying migrations with PostgreSQL `P1001` at
+`127.0.0.1:5433`. Both database ports are closed; Docker and PostgreSQL commands
+are unavailable. The API currently exposes process health only; authentication
+primitives and financial schema are not HTTP persistence. Demo records remain
+device-local and must not be presented as server-backed data. Next: authorize or
+provision a local PostgreSQL runtime, apply migrations non-destructively, pass
+the real integration suite, then implement authenticated repositories and
+owner-scoped financial endpoints before connecting mobile CRUD.

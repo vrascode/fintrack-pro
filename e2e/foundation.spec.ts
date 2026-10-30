@@ -28,7 +28,7 @@ test('fictional dashboard and financial pages stay responsive', async ({ page },
   await page.goto('/transaction');
   await page.getByRole('textbox', { name: 'Descrição' }).fill('Freelance project');
   await page.getByRole('textbox', { name: 'Valor' }).fill('300,00');
-  await page.getByRole('radio', { name: 'Receita', exact: true }).click();
+  await page.getByRole('radio', { name: '↑ Entrada', exact: true }).click();
   await page.getByRole('button', { name: 'Salvar na demonstração' }).click();
   await expect(page.getByText('Registro adicionado à demonstração fictícia.')).toBeVisible();
   await page.goto('/accounts');
@@ -74,6 +74,33 @@ test('theme, language and privacy persist through reload', async ({ page }) => {
   await expect(page.getByRole('switch')).toBeChecked();
   await page.getByRole('radio', { name: 'System', exact: true }).click();
   await page.getByRole('radio', { name: /Portugu/ }).click();
+});
+
+test('income and expense chart series remain distinct in both themes', async ({ page }) => {
+  const seriesColors = async () => {
+    const income = page.getByLabel(/Receita R\$/).first();
+    const expense = page.getByLabel(/Despesas R\$/).first();
+    await expect(income).toBeVisible();
+    await expect(expense).toBeVisible();
+    return {
+      income: await income.evaluate((element) => getComputedStyle(element).backgroundColor),
+      expense: await expense.evaluate((element) => getComputedStyle(element).backgroundColor),
+    };
+  };
+
+  await page.goto('/preferences');
+  await page.getByRole('radio', { name: /Escuro/ }).click();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Explorar demonstração' }).click();
+  expect(await seriesColors()).toEqual({
+    income: 'rgb(200, 74, 1)',
+    expense: 'rgb(245, 245, 245)',
+  });
+
+  await page.goto('/preferences');
+  await page.getByRole('radio', { name: /Claro/ }).click();
+  await page.goto('/');
+  expect(await seriesColors()).toEqual({ income: 'rgb(200, 74, 1)', expense: 'rgb(69, 75, 70)' });
 });
 
 test('corrupt preferences can be reset without silently overwriting them', async ({ page }) => {

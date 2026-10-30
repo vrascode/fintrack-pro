@@ -144,6 +144,7 @@ export default function Planning() {
             </Label>
             {invalid ? (
               <Text accessibilityRole="alert" style={{ color: colors.danger }}>
+                ⚠{' '}
                 {text(
                   'Use valores positivos com até duas casas decimais.',
                   'Enter positive values with up to two decimal places.',

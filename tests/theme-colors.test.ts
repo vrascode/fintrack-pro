@@ -19,13 +19,13 @@ function contrast(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-test('expense palette uses the vivid red scale in both themes', () => {
-  for (const palette of [palettes.light, palettes.dark]) {
-    assert.equal(palette.negativeBright, '#FF0000');
-    assert.equal(palette.negativeStrong, '#E60000');
-    assert.equal(palette.negativeDeep, '#990000');
-    assert.equal(palette.negativeDeepest, '#800000');
-  }
+test('positive and expense chart series use orange and theme-safe neutrals', () => {
+  assert.equal(palettes.light.positive, '#C84A01');
+  assert.equal(palettes.dark.positive, '#C84A01');
+  assert.equal(palettes.light.expenseSeries, '#454B46');
+  assert.equal(palettes.dark.expenseSeries, '#F5F5F5');
+  assert.equal(palettes.light.negative, '#172019');
+  assert.equal(palettes.dark.negative, '#F5F5F5');
 });
 
 test('solid negative text keeps readable contrast on its theme surfaces', () => {
@@ -37,9 +37,7 @@ test('solid negative text keeps readable contrast on its theme surfaces', () => 
   }
 });
 
-test('positive palette uses the requested green and readable text variants', () => {
-  assert.equal(palettes.light.positive, '#22C55E');
-  assert.equal(palettes.dark.positive, '#22C55E');
+test('orange positive labels retain readable contrast in both themes', () => {
   assert.equal(palettes.light.accent, '#C84A01');
   assert.equal(palettes.dark.accent, '#C84A01');
   assert.equal(palettes.light.accentStrong, '#E45A12');
@@ -50,6 +48,13 @@ test('positive palette uses the requested green and readable text variants', () 
   for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
     assert.ok(contrast(palettes.dark.positiveText, surface) >= 4.5);
   }
+});
+
+test('alerts no longer use separate traffic-light colors', () => {
+  assert.equal(palettes.light.warning, palettes.light.accentText);
+  assert.equal(palettes.light.danger, palettes.light.accentText);
+  assert.equal(palettes.dark.warning, palettes.dark.accentText);
+  assert.equal(palettes.dark.danger, palettes.dark.accentText);
 });
 
 test('orange labels and primary button text keep readable contrast in both themes', () => {

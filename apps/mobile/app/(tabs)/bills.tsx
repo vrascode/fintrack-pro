@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { calculateObligationRemaining } from '@fintrack/shared';
-import { Button, Card, Label, Screen } from '../../src/components/ui';
+import { Button, Card, Label, Screen, StatusMessage } from '../../src/components/ui';
 import { useDemo } from '../../src/demo';
 import { demoLabel } from '../../src/demo/labels';
 import { parseLocalizedCents } from '../../src/demo/input';
@@ -16,6 +16,7 @@ export default function Bills() {
   const colors = useTheme();
   const [amounts, setAmounts] = useState<Record<string, string>>({});
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('success');
   const pt = language === 'pt-BR';
   const text = (a: string, b: string) => (pt ? a : b);
   const data = mode === 'demo' ? dataset : null;
@@ -56,6 +57,7 @@ export default function Bills() {
           },
         ],
       }));
+      setMessageTone(ok ? 'success' : 'error');
       setMessage(
         ok
           ? text(
@@ -66,6 +68,7 @@ export default function Bills() {
       );
       if (ok) setAmounts((current) => ({ ...current, [billId]: '' }));
     } catch {
+      setMessageTone('error');
       setMessage(
         text(
           'Informe um valor válido que não exceda o restante da obrigação.',
@@ -96,32 +99,22 @@ export default function Bills() {
               )}
             </Label>
           </Card>
-          {message ? (
-            <Text
-              accessibilityRole="alert"
-              style={{
-                color:
-                  message.toLowerCase().includes('não') ||
-                  message.toLowerCase().includes('could') ||
-                  message.toLowerCase().includes('valid')
-                    ? colors.danger
-                    : colors.positiveText,
-              }}
-            >
-              {message}
-            </Text>
-          ) : null}
+          {message ? <StatusMessage message={message} tone={messageTone} /> : null}
           {bills.length ? (
             bills.map(({ bill, remaining }) => {
               const overdue = bill.dueOn < data.asOfDate;
               return (
-                <Card key={bill.id} style={{ gap: 12 }}>
+                <Card
+                  key={bill.id}
+                  style={{ gap: 12, borderColor: overdue ? colors.accent : colors.border }}
+                >
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
                     <View style={{ flex: 1, gap: 4 }}>
                       <Text style={{ color: colors.ink, fontWeight: '800', fontSize: 17 }}>
                         {demoLabel(bill.description, language)}
                       </Text>
                       <Text style={{ color: overdue ? colors.danger : colors.muted }}>
+                        {overdue ? '⚠ ' : ''}
                         {overdue ? text('Vencida', 'Overdue') : text('Vence', 'Due')} ·{' '}
                         {formatDate(bill.dueOn)}
                       </Text>

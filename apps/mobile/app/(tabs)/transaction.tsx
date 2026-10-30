@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
-import { Button, Card, Label, Screen } from '../../src/components/ui';
+import { Button, Card, Label, Screen, StatusMessage } from '../../src/components/ui';
 import { useDemo } from '../../src/demo';
 import { demoLabel } from '../../src/demo/labels';
 import { parseLocalizedCents } from '../../src/demo/input';
@@ -23,6 +23,7 @@ export default function TransactionForm() {
   const [accountId, setAccountId] = useState('checking');
   const [targetAccountId, setTargetAccountId] = useState('savings');
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState<'error' | 'success'>('success');
   const data = mode === 'demo' ? dataset : null;
 
   async function save() {
@@ -56,6 +57,7 @@ export default function TransactionForm() {
           },
         ],
       }));
+      setMessageTone(ok ? 'success' : 'error');
       setMessage(
         ok
           ? text(
@@ -69,6 +71,7 @@ export default function TransactionForm() {
         setAmount('');
       }
     } catch {
+      setMessageTone('error');
       setMessage(
         text(
           'Confira descrição, valor, data, categoria e contas selecionadas.',
@@ -112,10 +115,10 @@ export default function TransactionForm() {
                   variant="secondary"
                   label={
                     item === 'expense'
-                      ? text('Despesa', 'Expense')
+                      ? text('↓ Saída', '↓ Expense')
                       : item === 'income'
-                        ? text('Receita', 'Income')
-                        : text('Transferência', 'Transfer')
+                        ? text('↑ Entrada', '↑ Income')
+                        : text('↔ Transferência', '↔ Transfer')
                   }
                   onPress={() => {
                     setKind(item);
@@ -250,20 +253,7 @@ export default function TransactionForm() {
                 </View>
               </View>
             ) : null}
-            {message ? (
-              <Text
-                accessibilityRole="alert"
-                style={{
-                  color:
-                    message.includes(text('Não foi possível', 'Could not')) ||
-                    message.includes(text('Confira', 'Check'))
-                      ? colors.danger
-                      : colors.positiveText,
-                }}
-              >
-                {message}
-              </Text>
-            ) : null}
+            {message ? <StatusMessage message={message} tone={messageTone} /> : null}
             <Button
               label={text('Salvar na demonstração', 'Save in demo')}
               disabled={saving}

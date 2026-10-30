@@ -171,7 +171,7 @@ export function Field({
       />
       {error ? (
         <Text accessibilityRole="alert" style={{ color: colors.danger, lineHeight: 20 }}>
-          {error}
+          ⚠ {error}
         </Text>
       ) : null}
     </View>
@@ -203,9 +203,30 @@ export function ErrorState({ message, retry }: { message: string; retry?: () => 
         accessibilityRole="alert"
         style={{ color: colors.danger, fontSize: 15, lineHeight: 23 }}
       >
-        {message}
+        ⚠ {message}
       </Text>
       {retry ? <Button label={t('common.retry')} onPress={retry} variant="secondary" /> : null}
+    </View>
+  );
+}
+
+export function StatusMessage({ message, tone }: { message: string; tone: 'error' | 'success' }) {
+  const colors = useTheme();
+  const isError = tone === 'error';
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+      <Text
+        accessibilityElementsHidden
+        style={{ color: isError ? colors.danger : colors.positiveText, fontWeight: '800' }}
+      >
+        {isError ? '⚠' : '✓'}
+      </Text>
+      <Text
+        accessibilityRole={isError ? 'alert' : 'text'}
+        style={{ color: isError ? colors.danger : colors.positiveText, flex: 1, lineHeight: 21 }}
+      >
+        {message}
+      </Text>
     </View>
   );
 }
@@ -281,7 +302,7 @@ export function SectionHeading({ title, detail }: { title: string; detail?: stri
   );
 }
 
-export function NegativeGradientBar({
+export function ExpenseSeriesBar({
   width = '100%',
   height = 8,
   radius = 5,
@@ -293,29 +314,6 @@ export function NegativeGradientBar({
   accessibilityLabel?: string;
 }) {
   const colors = useTheme();
-  const stops = [
-    colors.negativeBright,
-    colors.negativeStrong,
-    colors.negativeDeep,
-    colors.negativeDeepest,
-  ];
-  const segments = Array.from({ length: 12 }, (_, index) => {
-    const position = (index / 11) * (stops.length - 1);
-    const start = Math.floor(position);
-    const end = Math.min(start + 1, stops.length - 1);
-    const fraction = position - start;
-    const startColor = stops[start] ?? colors.negativeBright;
-    const endColor = stops[end] ?? colors.negativeDeepest;
-    const channel = (hex: string, offset: number) =>
-      Number.parseInt(hex.slice(offset, offset + 2), 16);
-    const blend = (offset: number) =>
-      Math.round(
-        channel(startColor, offset) * (1 - fraction) + channel(endColor, offset) * fraction,
-      )
-        .toString(16)
-        .padStart(2, '0');
-    return `#${blend(1)}${blend(3)}${blend(5)}`;
-  });
 
   return (
     <View
@@ -325,13 +323,9 @@ export function NegativeGradientBar({
         height,
         borderRadius: radius,
         overflow: 'hidden',
-        flexDirection: 'row',
+        backgroundColor: colors.expenseSeries,
       }}
-    >
-      {segments.map((color, index) => (
-        <View key={index} style={{ flex: 1, backgroundColor: color }} />
-      ))}
-    </View>
+    />
   );
 }
 
