@@ -10,14 +10,16 @@ applied and the integration suites have not passed. The API has process and data
 readiness endpoints, a lazy Prisma service, registration/login, and bearer-session
 authorization for logout. Credentials are hashed; login stores session and refresh
 token digests transactionally. Authenticated `GET /v1/accounts` and `POST
-/v1/accounts` list and create owner-scoped accounts with exact-cent opening balances.
-Other financial repositories and application services remain unimplemented. Current
-service tests use a Prisma-shaped fake and do not prove PostgreSQL persistence. Rate
-limiting and refresh rotation are still pending.
+/v1/accounts` and `GET /v1/categories` and `POST /v1/categories` list and create
+owner-scoped records. Other financial repositories and application services remain
+unimplemented. Current service tests use a Prisma-shaped fake and do not prove
+PostgreSQL persistence. Rate limiting and refresh rotation are still pending.
 
 Migration `202610300001_account_opening_balance` adds exact-cent opening balance,
 reference date and planning inclusion to accounts without deleting or rewriting
 ledger data. Existing rows default to zero cents, migration date and planning enabled.
+Migration `202610300002_category_reserve_flag` adds an opt-in essential-expense
+classification, defaulting existing categories to nonessential.
 
 A preparação da fase 2 e do ledger está no código: serviços PostgreSQL 17,
 dependências Prisma 7, validação do schema/geração do cliente, migrações versionadas

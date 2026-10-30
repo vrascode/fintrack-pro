@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Owner-scoped category API — 2026-10-30
+
+Added list/create endpoints for user-owned categories, including expense/income
+kind and the essential-for-reserve flag. A non-destructive migration adds that flag
+with a conservative default for existing rows. Service tests cover owner scoping,
+mapping and validation before writes. Full `npm run check` passed (lint, types/build,
+58 tests, formatting), and Prisma schema validation succeeded. Neither migration has
+been applied because PostgreSQL is unavailable; fake-backed tests do not validate DB
+constraints or actual persistence.
+
 ## Owner-scoped account API — 2026-10-30
 
 Added authenticated account listing and creation endpoints. The owner ID comes from

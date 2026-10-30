@@ -115,6 +115,7 @@ model Category {
   userId       String        @db.Uuid
   name         String        @db.VarChar(60)
   kind         CategoryKind
+  essentialForReserve Boolean @default(false)
   archivedAt   DateTime?     @db.Timestamptz(3)
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)

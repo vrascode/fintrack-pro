@@ -6,6 +6,7 @@ import { PrismaModule } from './database/prisma.module.js';
 import { PrismaService } from './database/prisma.service.js';
 import { AuthModule } from './identity/auth.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
+import { CategoriesModule } from './categories/categories.module.js';
 
 @Controller('health')
 class HealthController {
@@ -31,7 +32,10 @@ class HealthController {
   }
 }
 
-@Module({ imports: [PrismaModule, AuthModule, AccountsModule], controllers: [HealthController] })
+@Module({
+  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule],
+  controllers: [HealthController],
+})
 class AppModule {}
 
 export async function createApp(logger: false | undefined = undefined) {
