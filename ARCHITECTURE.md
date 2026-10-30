@@ -38,9 +38,34 @@ schema. English and Brazilian Portuguese dictionaries share compile-time key
 parity. Date and currency display uses `Intl`; monetary inputs to the currency
 formatter are integer cents (`bigint`), avoiding floating-point arithmetic.
 
-No analytics, transaction list, balances, or operational financial controls are
-rendered without a real persisted data source. The current empty states describe
-that limitation directly; implementing a UI does not imply backend integration.
+The financial dashboard is available only after the user explicitly enters the
+fictional demo. `packages/shared/src/demo.ts` defines a deterministic six-month
+fixture and shared calculations; `apps/mobile/src/demo/core.ts` stores it under
+the dedicated `fintrack.demo.v1` key, isolated from personal preferences. Demo
+payments, transaction entries and virtual-envelope events validate the entire
+dataset before replacing that key. Restoring the demo never clears other local
+keys. This AsyncStorage behavior is a presentation/testing sandbox, not server
+financial persistence, authenticated ownership, or an offline-sync contract.
+
+The web dashboard derives account balances, current-month figures, obligations,
+budget bars and six-month posted cash flow from this fixture. Search and CSV
+operate on the filtered demo transactions; CSV text is quoted and prefixed when
+it could be interpreted as a spreadsheet formula. Virtual envelope movements
+do not affect bank-account balances or net worth. The savings simulator is
+transient and does not create records. A persistent “fictional data” label marks
+these screens. Without demo mode, the app continues to explain that real finance
+services are not connected.
+
+Currency rendering groups bigint whole units and formats the fractional cents
+without converting the financial amount to floating-point. Demo input accepts
+locale decimal/grouping conventions and rejects malformed precision.
+
+Original SVG identity sources, generated native/web icons and splash artwork
+live in `apps/mobile/assets/brand/`. Expo config consumes the app icon, Android
+adaptive foreground/monochrome artwork, splash and favicon. Native icon changes
+require a new build and reinstall. `apps/mobile/eas.json` defines an internal
+APK profile; an Expo account/project link and actual EAS build are still needed
+before an installable APK exists.
 
 ## Decisions / Decisões
 
@@ -49,8 +74,9 @@ that limitation directly; implementing a UI does not imply backend integration.
   / Monólito modular preserva atomicidade e limites entre módulos.
 - npm workspaces: one lockfile, strict TypeScript, default Expo Metro support.
 - Planned: TanStack Query for server state and React Hook Form for forms.
-  Implemented: Zustand for local preferences and Zod contracts.
-  AsyncStorage only holds non-sensitive settings.
+  Implemented: Zustand for local preferences/demo state and Zod contracts.
+  AsyncStorage holds non-sensitive settings and isolated fictional demo data only;
+  it does not store real financial records or authentication credentials.
   Tokens use SecureStore in phase 2. / Estados locais, remotos e segredos separados.
 - Shared contracts are platform-independent and validated at runtime. API prefix
   is `/v1`. No server secret can enter the shared/mobile packages.

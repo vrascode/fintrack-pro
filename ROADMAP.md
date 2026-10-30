@@ -17,6 +17,23 @@ do FinTrack Pro recebido; não presume o prompt anterior de cinco projetos.
 | 9            | Threat review, rate limiting, authorization audit, retention, recovery drills, failure/concurrency tests, performance, observability / Segurança                            | Pending / Pendente                                                                                |
 | 10           | GitHub Actions, native release validation, signing, deployment/runbooks, bilingual docs, publication preparation / Entrega                                                  | Pending / Pendente                                                                                |
 
+## Isolated financial demo — 2026-10-29
+
+Delivered an explicitly fictional, deterministic six-month dashboard scenario
+with the R$ 5,000 income and R$ 4,200 budget. The dashboard derives actual demo
+balances, paid/remaining obligations, budget categories and six-month cash flow
+from one dataset. The demo supports local income/expense/transfer entries,
+filtered CSV export, partial obligation payments, virtual envelope events and
+an unsaved savings simulator with four scenarios. Demo state uses a dedicated
+AsyncStorage key and restore cannot clear unrelated user keys. Portuguese copy
+encoding was corrected and demo fixture labels are localized.
+
+This is an opt-in UI/domain sandbox only. It does not fulfill phase 2 or 3:
+PostgreSQL is still unavailable, financial endpoints/repositories and authenticated
+ownership do not exist, and demo entries never sync. Card, subscription, real
+recurrence, reminders, reports, real account CRUD and production financial flows
+remain pending. No phase is marked complete by this demo work.
+
 Security, tests and docs apply to every phase; phase 9 deepens them. / Segurança,
 testes e documentação são obrigatórios em cada fase, com aprofundamento na fase 9.
 

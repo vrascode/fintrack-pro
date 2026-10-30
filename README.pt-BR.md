@@ -5,18 +5,18 @@
 [English](README.md) · [Roteiro](ROADMAP.md) · [Registro de validação](PORTFOLIO_PROGRESS.md)
 
 O FinTrack Pro está sendo desenvolvido para dispositivos móveis, com contratos
-compartilhados, cálculos monetários exatos e limites explícitos de segurança. O app
-atual oferece navegação e preferências funcionais. A fase 2 começou com o modelo
-de identidade e primitivas de segurança testadas; login com persistência em banco
-e operações financeiras ainda não estão disponíveis.
+compartilhados, cálculos monetários exatos e limites explícitos de segurança. Há
+uma demonstração fictícia e isolada com fluxos de planejamento para web e mobile.
+Persistência financeira real, API autenticada e login conectado ao banco ainda
+não estão disponíveis.
 
 ## O que funciona hoje
 
 | Área                 | Comportamento implementado                                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| App                  | Abas de visão geral, movimentações, contas, cartões e ajustes; layouts responsivos e estados vazios explícitos                                                |
+| App                  | Shell responsivo desktop/mobile; dashboard, contas/movimentações/contas a pagar/caixinhas/simulador de demonstração e ajustes                                 |
 | Preferências         | Tema claro/escuro/automático, privacidade, persistência, recuperação de corrupção e tratamento de falhas                                                      |
-| Domínio              | Dinheiro em inteiros exatos, datas civis validadas e contratos Zod compartilhados                                                                             |
+| Domínio              | Dinheiro em inteiros exatos, cálculos financeiros, datas civis validadas, CSV seguro contra fórmulas e contratos Zod compartilhados                           |
 | API                  | NestJS `GET /v1/health`, loopback por padrão, somente saúde do processo                                                                                       |
 | Núcleo de identidade | Derivação/verificação de senha, tokens opacos, expiração, rotação/reutilização e transições de revogação por dispositivo, testadas independentemente do banco |
 | Preparação do banco  | Dependências Prisma 7, schemas/migrações de identidade e ledger, cliente gerado e suítes para banco real; execução PostgreSQL ainda bloqueada                 |
@@ -32,8 +32,36 @@ temas claro, escuro e automático. Tema, idioma, privacidade e recolhimento da
 sidebar no desktop são preferências locais não sensíveis. A interface oferece
 português brasileiro e inglês, além de formatação de datas por locale e valores
 monetários exatos em centavos. No desktop há uma sidebar recolhível; no mobile,
-a navegação usa abas inferiores. As áreas financeiras permanecem vazias até que
-existam serviços reais de contas e movimentações. Veja a [arquitetura](ARCHITECTURE.md).
+a navegação usa abas inferiores.
+
+Selecione **Explorar demonstração** no dashboard para abrir um conjunto fictício
+de seis meses, salvo em uma chave local separada. A demonstração permite lançar
+receitas/despesas/transferências, exportar CSV filtrado, pagar obrigações total
+ou parcialmente, aportar/resgatar caixinhas virtuais e simular cenários sem
+gravar movimentações. O selo de dados fictícios permanece visível. Restaurar ou
+editar a demonstração nunca altera registros pessoais ou uma conta bancária.
+Esses fluxos não substituem serviços financeiros reais. Veja a
+[arquitetura](ARCHITECTURE.md).
+
+| Demonstração desktop                                                                          | Demonstração mobile                                                                         |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ![Dashboard fictício do FinTrack Pro no desktop](docs/screenshots/demo-dashboard-desktop.png) | ![Dashboard fictício do FinTrack Pro no mobile](docs/screenshots/demo-dashboard-mobile.png) |
+
+## Marca e APK Android
+
+Os SVGs originais e ícones gerados estão em `apps/mobile/assets/brand/`. O Expo
+usa o ícone do app, foreground/monocromático adaptive do Android, splash e
+favicon web. Alterar um ícone nativo exige nova compilação e reinstalação; hot
+reload não atualiza o ícone instalado.
+
+Há um perfil interno de APK em `apps/mobile/eas.json`. Após vincular o projeto a
+uma conta Expo autenticada, execute no diretório `apps/mobile`:
+
+```sh
+npx eas-cli build --platform android --profile preview
+```
+
+Esta entrega não inclui um APK gerado nem declara um release publicado.
 
 ## Início rápido
 

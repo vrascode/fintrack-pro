@@ -511,3 +511,44 @@ loopback, uses a persistent named development volume and ephemeral test storage.
 No service was started and no migration was applied because a PostgreSQL runtime is
 not installed. The remaining blocker is authorization to install WSL/Docker Desktop
 (which can require administrator privileges and a restart) or native PostgreSQL.
+
+## Fictional finance experience — 2026-10-29
+
+Implemented an opt-in demo path from the empty dashboard. The deterministic
+October 20, 2026 snapshot shows R$ 5,000 planned/received income, R$ 4,200
+budgeted expense, R$ 3,660 posted expense, R$ 540 remaining obligations
+(including R$ 100 overdue), R$ 7,340 current account balance and R$ 6,800
+projected month-end balance. These values come from one six-month fictional
+dataset with a dated R$ 2,000 opening balance. The R$ 800 planned monthly
+surplus is clearly distinguished from available cash. Suggested goal allocations
+are R$ 500 emergency reserve, R$ 200 personal goal and R$ 100 buffer; no automatic
+cash movement is performed.
+
+The local demo now supports account balance views, income/expense/transfer entry,
+activity search and kind filters, safe filtered CSV export, partial or full
+fictional bill payment, virtual envelope contributions/withdrawals, and an
+unsaved what-if simulator. Demo persistence is isolated under `fintrack.demo.v1`;
+tests verify unrelated keys survive restore. Localized input and exact currency
+formatting avoid floating-point money conversion. An original SVG orange identity,
+generated app/adaptive/monochrome/web icons, PWA manifest, social artwork, splash,
+Expo config and EAS preview APK profile were added. Portuguese translations and
+demo labels are now correctly encoded/localized.
+
+### Validation
+
+- `npm run check`: passed lint, strict type checks, builds, 46 unit tests and Prettier.
+- `npm run bundle`: passed web, Android and iOS Expo exports after the final app routes.
+- `npm run test:e2e`: passed 6/6 desktop/mobile tests, including demo entry, balance
+  changes, bill payment, CSV download, envelope contribution, theme/language/privacy,
+  and horizontal overflow checks.
+- APK: not built. EAS preview config is present, but an authenticated Expo project
+  link/build is still required. Icon changes need a new native build and reinstall.
+- PostgreSQL integration and real-user persistence: still blocked/unimplemented;
+  demo behavior must not be represented as real server-backed finance.
+
+Next priorities: provision PostgreSQL and apply the migrations safely; implement
+authenticated owner-scoped repositories and financial API routes; then connect
+the app to real accounts and transactions. Cards, recurring billing, notifications,
+budget editing, full reports, native-device verification and release signing remain
+open. Files for this task are committed individually and will be published after
+remote branch/authorship and synchronization checks.

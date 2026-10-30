@@ -5,18 +5,18 @@
 [Português (Brasil)](README.pt-BR.md) · [Roadmap](ROADMAP.md) · [Validation log](PORTFOLIO_PROGRESS.md)
 
 FinTrack Pro is being developed for mobile devices with shared contracts, exact
-money calculations and explicit security boundaries. The current app provides
-working navigation and preferences. Phase 2 has started with an identity model
-and tested security primitives; database-backed login and financial operations
-are not available yet.
+money calculations and explicit security boundaries. A clearly labelled,
+isolated fictional demo now exercises planning flows on web and mobile. Real
+account and transaction persistence, authenticated finance APIs, and database-
+backed login are still unavailable.
 
 ## What works today
 
 | Area                 | Implemented behavior                                                                                                                           |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| App                  | Overview, activity, accounts, cards and preferences tabs; responsive layouts and honest empty states                                           |
+| App                  | Responsive desktop/mobile shell; overview, demo accounts/activity/bills/envelopes/planning and preferences                                     |
 | Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                         |
-| Domain               | Exact integer money, validated calendar dates and shared Zod contracts                                                                         |
+| Domain               | Exact integer money, financial planning calculations, validated calendar dates, CSV formula protection and shared Zod contracts                |
 | API                  | NestJS `GET /v1/health`, loopback by default, process liveness only                                                                            |
 | Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database    |
 | Database preparation | Prisma 7 dependencies, identity/ledger schemas and migrations, generated client and real-database suites; PostgreSQL execution remains blocked |
@@ -31,8 +31,33 @@ and system themes. Non-sensitive theme, language, privacy, and desktop sidebar
 preferences are stored locally. The interface supports Brazilian Portuguese and
 English, with locale-aware date and exact-cent currency formatters. The web
 layout adds a collapsible desktop sidebar; mobile keeps bottom-tab navigation.
-Financial areas intentionally remain empty until real account and transaction
-services are available. See [architecture](ARCHITECTURE.md) for UI boundaries.
+Selecting **Explore demo** on the dashboard opens a six-month fictional dataset
+persisted under a separate local key. The demo supports transaction entry,
+filtered CSV export, partial bill payments, virtual envelope contributions and
+withdrawals, and an unsaved savings simulator. A visible fictional-data badge
+marks these routes. Restoring or editing demo data never touches personal
+records or a bank account. These screens are not real-user finance services.
+See [architecture](ARCHITECTURE.md) for UI and persistence boundaries.
+
+| Desktop demo                                                                                        | Mobile demo                                                                                       |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| ![FinTrack Pro fictional finance dashboard on desktop](docs/screenshots/demo-dashboard-desktop.png) | ![FinTrack Pro fictional finance dashboard on mobile](docs/screenshots/demo-dashboard-mobile.png) |
+
+### Brand assets and Android preview
+
+Original SVG source artwork and generated icons are in `apps/mobile/assets/brand/`.
+The Expo config uses the app icon, Android adaptive foreground/monochrome icon,
+splash artwork and web favicon. Native icon changes require a new native build
+and reinstall; Expo fast refresh cannot replace the installed icon.
+
+An internal APK profile is configured in `apps/mobile/eas.json`. To build after
+linking the project to an authenticated Expo account, run from `apps/mobile`:
+
+```sh
+npx eas-cli build --platform android --profile preview
+```
+
+No APK is checked into the repository or claimed as released by this change.
 
 ## Quick start
 
