@@ -37,9 +37,22 @@ test('solid negative text keeps readable contrast on its theme surfaces', () => 
   }
 });
 
-test('expense palette change preserves income green and orange identity', () => {
+test('orange palette update preserves the current income green', () => {
   assert.equal(palettes.light.positive, '#207A4B');
   assert.equal(palettes.dark.positive, '#52D98A');
-  assert.equal(palettes.light.accentStrong, '#FF5A00');
-  assert.equal(palettes.dark.accentStrong, '#FF741F');
+  assert.equal(palettes.light.accent, '#C84A01');
+  assert.equal(palettes.dark.accent, '#C84A01');
+  assert.equal(palettes.light.accentStrong, '#E45A12');
+  assert.equal(palettes.dark.accentStrong, '#E45A12');
+});
+
+test('orange labels and primary button text keep readable contrast in both themes', () => {
+  for (const surface of ['#F2EFE9', '#FAF8F4']) {
+    assert.ok(contrast(palettes.light.accentText, surface) >= 4.5);
+  }
+  for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
+    assert.ok(contrast(palettes.dark.accentText, surface) >= 4.5);
+  }
+  assert.ok(contrast(palettes.light.accentInk, palettes.light.accent) >= 4.5);
+  assert.ok(contrast(palettes.dark.accentInk, palettes.dark.accent) >= 4.5);
 });

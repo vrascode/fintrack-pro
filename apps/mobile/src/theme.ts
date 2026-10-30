@@ -5,7 +5,7 @@ import { palettes } from './theme-colors';
 export { palettes } from './theme-colors';
 
 export const designTokens = Object.freeze({
-  brand: { orange: '#FF5A00', orangeInteraction: '#FF741F' },
+  brand: { orange: '#C84A01', orangeInteraction: '#E45A12' },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 },
   radius: { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 },
   typography: {

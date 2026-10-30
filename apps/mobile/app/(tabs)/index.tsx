@@ -44,7 +44,7 @@ export default function Overview() {
       >
         <Card accent style={{ padding: compact ? 22 : 32, gap: 20 }}>
           <View style={{ gap: 8 }}>
-            <Text style={{ color: colors.accent, fontWeight: '800', letterSpacing: 1 }}>
+            <Text style={{ color: colors.accentText, fontWeight: '800', letterSpacing: 1 }}>
               FINTRACK PRO
             </Text>
             <SectionHeading
@@ -167,7 +167,7 @@ export default function Overview() {
       label: text('Saldo disponível', 'Available balance'),
       amount: available,
       note: text('Saldo inicial e movimentos realizados', 'Opening balance and posted activity'),
-      color: colors.accent,
+      color: colors.accentText,
     },
     {
       label: text('Receita recebida', 'Income received'),
@@ -201,7 +201,7 @@ export default function Overview() {
         'A demo snapshot through October 20. The R$ 800 surplus is a full-month plan, not today’s available balance.',
       )}
     >
-      <Card style={{ padding: 16, gap: 14, borderColor: colors.warning }}>
+      <Card style={{ padding: 16, gap: 14, borderColor: colors.accent }}>
         <View
           style={{
             flexDirection: compact ? 'column' : 'row',
@@ -212,7 +212,12 @@ export default function Overview() {
         >
           <View style={{ gap: 5 }}>
             <Text
-              style={{ color: colors.warning, fontWeight: '800', fontSize: 12, letterSpacing: 0.7 }}
+              style={{
+                color: colors.accentText,
+                fontWeight: '800',
+                fontSize: 12,
+                letterSpacing: 0.7,
+              }}
             >
               {text('DEMONSTRAÇÃO · DADOS FICTÍCIOS', 'DEMO · FICTIONAL DATA')}
             </Text>
@@ -323,7 +328,7 @@ export default function Overview() {
               {
                 label: text('Sobra planejada', 'Planned surplus'),
                 value: summary.plannedSurplusCents,
-                color: colors.accent,
+                color: colors.accentText,
               },
             ].map((item) => (
               <View
@@ -525,7 +530,7 @@ export default function Overview() {
               )}
             />
             <Pressable accessibilityRole="link" onPress={() => router.push('/activity')}>
-              <Text style={{ color: colors.accent, fontWeight: '800' }}>
+              <Text style={{ color: colors.accentText, fontWeight: '800' }}>
                 {text('Ver tudo', 'View all')}
               </Text>
             </Pressable>

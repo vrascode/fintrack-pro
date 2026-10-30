@@ -120,7 +120,7 @@ export function Button({
     >
       <Text
         style={{
-          color: primary ? colors.accentInk : selected ? colors.accent : colors.ink,
+          color: primary ? colors.accentInk : selected ? colors.accentText : colors.ink,
           fontFamily: designTokens.typography.family,
           fontWeight: '700',
           fontSize: compact ? 14 : 15,
@@ -235,7 +235,7 @@ export function EmptyState({
         <Text
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          style={{ color: colors.accent, fontSize: 24, fontWeight: '700' }}
+          style={{ color: colors.accentText, fontSize: 24, fontWeight: '700' }}
         >
           {symbol}
         </Text>
@@ -356,7 +356,7 @@ export function Screen({
             {eyebrow ? (
               <Text
                 style={{
-                  color: colors.accent,
+                  color: colors.accentText,
                   fontSize: 11,
                   letterSpacing: 1.8,
                   fontWeight: '800',

@@ -568,3 +568,18 @@ financial calculations.
 Validation: `npm run check` passed (lint, builds, type checks, 49 unit tests and
 formatting); `npm run bundle` exported web, Android and iOS; `npm run test:e2e`
 passed 6/6 desktop and mobile tests. The generated desktop screenshot was reviewed.
+
+## Brand orange and demo banner — 2026-10-30
+
+Updated the orange identity token to `#C84A01` across both themes, navigation,
+financial highlights, demo banner borders, browser theme metadata, PWA metadata,
+and the source/generated brand assets. The dashboard, accounts, and activity
+fictional-data banners now use the orange identity; unrelated amber warnings
+remain unchanged. Orange text uses accessible theme-specific shades where the
+exact brand color would not provide sufficient contrast. Income green and
+financial calculations are unchanged in this stage.
+
+Validation: `npm run check` passed with 50 unit tests; `npm run bundle` exported
+web, Android and iOS; `npm run test:e2e` passed 6/6 desktop and mobile tests;
+`npm run brand:assets` regenerated icons successfully. The desktop dashboard and
+generated app icon were visually reviewed. Next: update the positive green palette.

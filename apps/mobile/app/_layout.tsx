@@ -35,7 +35,7 @@ export default function RootLayout() {
         <meta property="og:description" content={t('brand.tagline')} />
         <meta property="og:image" content="/social-card.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="theme-color" content="#FF5A00" />
+        <meta name="theme-color" content={colors.accent} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

@@ -27,8 +27,8 @@ export default function Accounts() {
     >
       {data ? (
         <>
-          <Card style={{ gap: 8, borderColor: colors.warning }}>
-            <Text style={{ color: colors.warning, fontWeight: '800', fontSize: 12 }}>
+          <Card style={{ gap: 8, borderColor: colors.accent }}>
+            <Text style={{ color: colors.accentText, fontWeight: '800', fontSize: 12 }}>
               {text('DEMONSTRAÇÃO · DADOS FICTÍCIOS', 'DEMO · FICTIONAL DATA')}
             </Text>
             <Label muted>

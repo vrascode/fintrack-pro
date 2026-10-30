@@ -183,7 +183,7 @@ export function createDemoDataset(referenceMonth = DEMO_REFERENCE_MONTH): Financ
         id: 'emergency',
         name: 'Emergency reserve',
         icon: 'shield',
-        color: '#FF5A00',
+        color: '#C84A01',
         targetCents: '1008000',
         plannedMonthlyCents: '50000',
         essentialCategoryIds: expenses.filter(({ essential }) => essential).map(({ id }) => id),

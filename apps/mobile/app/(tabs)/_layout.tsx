@@ -81,7 +81,7 @@ function DesktopNavItem({
           style={{
             width: 22,
             textAlign: 'center',
-            color: active ? colors.accent : colors.muted,
+            color: active ? colors.accentText : colors.muted,
             fontSize: 18,
             fontWeight: '700',
           }}
@@ -180,7 +180,7 @@ function DesktopShell({ children, collapsed }: { children: ReactNode; collapsed:
             {!collapsed ? (
               <View style={{ gap: 1 }}>
                 <Text style={{ color: colors.ink, fontWeight: '800', fontSize: 15 }}>
-                  FinTrack <Text style={{ color: colors.accent }}>Pro</Text>
+                  FinTrack <Text style={{ color: colors.accentText }}>Pro</Text>
                 </Text>
                 <Text style={{ color: colors.muted, fontSize: 10 }}>{t('brand.tagline')}</Text>
               </View>
@@ -349,7 +349,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: colors.accentText,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
           display: isDesktop ? 'none' : 'flex',
