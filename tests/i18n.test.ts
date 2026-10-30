@@ -13,6 +13,7 @@ test('currency formatting preserves cent precision and supports amount privacy',
   assert.equal(formatCurrency(123456n, 'pt-BR'), 'R$ 1.234,56');
   assert.equal(formatCurrency(123456n, 'en'), 'R$1,234.56');
   assert.equal(formatCurrency(-1n, 'pt-BR'), '-R$ 0,01');
+  assert.equal(formatCurrency(900719925474099312345n, 'pt-BR'), 'R$ 9.007.199.254.740.993.123,45');
   assert.equal(formatCurrency(123456n, 'en', 'BRL', true), '••••');
 });
 

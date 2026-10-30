@@ -18,15 +18,30 @@ export function formatCurrency(
   if (hidden) return '••••';
   const negative = cents < 0n;
   const magnitude = negative ? -cents : cents;
-  const amount = `${negative ? '-' : ''}${magnitude / 100n}.${(magnitude % 100n).toString().padStart(2, '0')}`;
   const locale = language === 'pt-BR' ? 'pt-BR' : 'en';
-  // Intl formats decimal strings as exact mathematical values, without Number rounding.
-  return new Intl.NumberFormat(locale, {
+  const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount as unknown as number);
+  });
+  const groupedWhole = new Intl.NumberFormat(locale, {
+    useGrouping: true,
+    maximumFractionDigits: 0,
+  }).format(magnitude / 100n);
+  let placedInteger = false;
+  return formatter
+    .formatToParts(negative ? -1 : 1)
+    .map((part) => {
+      if (part.type === 'integer') {
+        if (placedInteger) return '';
+        placedInteger = true;
+        return groupedWhole;
+      }
+      if (part.type === 'fraction') return (magnitude % 100n).toString().padStart(2, '0');
+      return part.value;
+    })
+    .join('');
 }
 
 export function formatDate(value: Date | string, language: 'pt-BR' | 'en'): string {
