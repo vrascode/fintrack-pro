@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Idempotent transaction API — 2026-10-30
+
+Added authenticated transaction listing with bounded date/type/account/category
+filters and posted transaction creation using exact cents. Writes require a
+per-user idempotency key; matching retries return the prior entry and mismatched
+retries conflict. Account and category ownership are checked before writes, and
+future-dated records are rejected until planned entries have a distinct model.
+Validation has passed at service level with Prisma-shaped fakes; real PostgreSQL
+constraints and duplicate races still require integration testing.
+
 ## Owner-scoped category API — 2026-10-30
 
 Added list/create endpoints for user-owned categories, including expense/income

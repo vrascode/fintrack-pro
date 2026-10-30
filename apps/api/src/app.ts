@@ -7,6 +7,7 @@ import { PrismaService } from './database/prisma.service.js';
 import { AuthModule } from './identity/auth.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
+import { TransactionsModule } from './transactions/transactions.module.js';
 
 @Controller('health')
 class HealthController {
@@ -33,7 +34,7 @@ class HealthController {
 }
 
 @Module({
-  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule],
+  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule, TransactionsModule],
   controllers: [HealthController],
 })
 class AppModule {}

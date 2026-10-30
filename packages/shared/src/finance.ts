@@ -59,6 +59,52 @@ export const financialTransactionSchema = z
   });
 
 export type FinancialTransaction = z.infer<typeof financialTransactionSchema>;
+export const financialTransactionInputSchema = z
+  .object({
+    kind: z.enum(['income', 'expense', 'transfer']),
+    amountCents: minorUnitsSchema,
+    date: calendarDateSchema,
+    accountId: z.string().uuid(),
+    transferAccountId: z.string().uuid().optional(),
+    categoryId: z.string().uuid().optional(),
+    description: z.string().trim().min(1).max(160),
+  })
+  .strict()
+  .superRefine((transaction, context) => {
+    if (BigInt(transaction.amountCents) <= 0n) {
+      context.addIssue({
+        code: 'custom',
+        path: ['amountCents'],
+        message: 'Amount must be positive.',
+      });
+    }
+    if (transaction.kind === 'transfer') {
+      if (
+        !transaction.transferAccountId ||
+        transaction.transferAccountId === transaction.accountId
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['transferAccountId'],
+          message: 'Transfer requires two different accounts.',
+        });
+      }
+      if (transaction.categoryId) {
+        context.addIssue({
+          code: 'custom',
+          path: ['categoryId'],
+          message: 'Transfers cannot have a category.',
+        });
+      }
+    } else if (transaction.transferAccountId) {
+      context.addIssue({
+        code: 'custom',
+        path: ['transferAccountId'],
+        message: 'Only transfers have a destination account.',
+      });
+    }
+  });
+export type FinancialTransactionInput = z.infer<typeof financialTransactionInputSchema>;
 
 export const financialAccountSchema = z
   .object({

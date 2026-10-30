@@ -11,7 +11,9 @@ readiness endpoints, a lazy Prisma service, registration/login, and bearer-sessi
 authorization for logout. Credentials are hashed; login stores session and refresh
 token digests transactionally. Authenticated `GET /v1/accounts` and `POST
 /v1/accounts` and `GET /v1/categories` and `POST /v1/categories` list and create
-owner-scoped records. Other financial repositories and application services remain
+owner-scoped records; `/v1/transactions` lists and creates posted entries with
+per-user idempotency keys and account/category ownership checks. Future-dated entries
+are rejected until a scheduled-entry model exists. Other financial workflows remain
 unimplemented. Current service tests use a Prisma-shaped fake and do not prove
 PostgreSQL persistence. Rate limiting and refresh rotation are still pending.
 
