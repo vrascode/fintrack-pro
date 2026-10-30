@@ -2,6 +2,21 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Pending-work review / Revisão do trabalho pendente
+
+- Auth error classification: versioned the existing distinction between invalid
+  credentials, validation errors, duplicate email and network failures. Added a
+  regression test proving failures do not save a session or continue registration
+  with login. `node --import tsx --test tests/auth-store.test.ts`: 4 passed; targeted
+  ESLint and Prettier checks passed. / Classificação de erros de autenticação
+  revisada e validada: falhas não salvam sessão nem prosseguem com login após erro
+  de cadastro. Os quatro testes passaram, assim como lint e formatação específicos.
+
+This review publishes existing work only to `feature/own-finance-flow`; no merge
+to `main`. PostgreSQL persistence and the complete own-data flow remain unverified.
+/ Esta revisão publica o trabalho existente somente na branch de desenvolvimento,
+sem merge na main. Persistência PostgreSQL e fluxo completo continuam sem validação.
+
 ## Mobile authentication state — 2026-10-30
 
 Added an authentication store that hydrates validated session credentials, registers

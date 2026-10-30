@@ -16,11 +16,19 @@ export interface AuthApi {
 export interface AuthState {
   status: 'loading' | 'anonymous' | 'authenticated';
   session: AuthSession | null;
-  error: 'read' | 'invalid' | 'network' | 'credentials' | null;
+  error: 'read' | 'invalid' | 'network' | 'credentials' | 'exists' | null;
   hydrate(): Promise<void>;
   signIn(input: Login): Promise<boolean>;
   register(input: { email: string; password: string }, deviceName: string): Promise<boolean>;
   signOut(): Promise<void>;
+}
+
+function loginError(error: unknown): AuthState['error'] {
+  if (typeof error !== 'object' || error === null || !('status' in error)) return 'network';
+  if (error.status === 401) return 'credentials';
+  if (error.status === 409) return 'exists';
+  if (error.status === 400) return 'invalid';
+  return 'network';
 }
 
 export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi<AuthState> {
@@ -58,7 +66,7 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
         set({
           status: 'anonymous',
           session: null,
-          error: error instanceof Error ? 'network' : 'credentials',
+          error: loginError(error),
         });
         return false;
       }
@@ -67,8 +75,8 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
       set({ status: 'loading', error: null });
       try {
         await api.register(input);
-      } catch {
-        set({ status: 'anonymous', session: null, error: 'network' });
+      } catch (error) {
+        set({ status: 'anonymous', session: null, error: loginError(error) });
         return false;
       }
       return get().signIn({ ...input, deviceName });

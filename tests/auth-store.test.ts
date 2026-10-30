@@ -80,3 +80,53 @@ test('invalid saved credentials are cleared and logout clears local credentials'
   assert.deepEqual(fixture.calls, ['login', 'logout']);
   assert.equal(fixture.saved, null);
 });
+
+test('failed authentication reports its cause without saving a session or continuing registration', async () => {
+  const input = {
+    email: 'user@example.test',
+    password: 'a sufficiently long password phrase',
+    deviceName: 'phone',
+  };
+  const cases = [
+    { action: 'signIn', status: 401, expected: 'credentials' },
+    { action: 'signIn', status: 400, expected: 'invalid' },
+    { action: 'signIn', status: 0, expected: 'network' },
+    { action: 'register', status: 409, expected: 'exists' },
+  ] as const;
+  for (const scenario of cases) {
+    let saves = 0;
+    let logins = 0;
+    const failure = Object.assign(new Error('Request failed'), { status: scenario.status });
+    const store = createAuthStore(
+      {
+        get: async () => null,
+        set: async () => {
+          saves++;
+        },
+        clear: async () => {},
+      },
+      {
+        login: async () => {
+          logins++;
+          throw failure;
+        },
+        register: async () => {
+          throw failure;
+        },
+        logout: async () => {},
+      },
+    );
+    const success =
+      scenario.action === 'signIn'
+        ? await store.getState().signIn(input)
+        : await store
+            .getState()
+            .register({ email: input.email, password: input.password }, input.deviceName);
+    assert.equal(success, false);
+    assert.equal(store.getState().status, 'anonymous');
+    assert.equal(store.getState().session, null);
+    assert.equal(store.getState().error, scenario.expected);
+    assert.equal(saves, 0);
+    if (scenario.action === 'register') assert.equal(logins, 0);
+  }
+});
