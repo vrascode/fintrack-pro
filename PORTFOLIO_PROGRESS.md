@@ -57,6 +57,30 @@ cenários web falharam: cadastro autentica, mas abre dashboard vazio em vez da
 primeira conta. Correção da navegação é a próxima unidade. A recuperação de 5432
 continua dependendo da entrada local da senha pelo usuário.
 
+## First-account navigation accepted / Primeiro acesso validado — 2026-10-30
+
+Fixed the reproduced protected-route race: after authentication, the personal
+dashboard redirects to account creation only when an authenticated API query
+successfully confirms no accounts. Query failures remain errors. Onboarding resumes
+after reload; users with stored accounts keep their dashboard. The real browser
+test now also checks zero initial account records and reload before account setup,
+and selects transaction kinds using their actual accessible `radio` role.
+
+Executed `npm.cmd run test:e2e:isolated`: PostgreSQL 17.11 on 55432, four migrations
+applied, second deployment a no-op, all 9 SQL tests and both desktop/mobile E2E
+passed. Each browser case proved registration, 1,000 + 500 - 200 = 1,300 BRL,
+real stored password hash, refresh, API restart, logout/login, duplicate email,
+invalid input/password, user isolation and idempotent transaction replay. The
+test cluster was stopped afterward. `npm.cmd run check` passed all 81 tests plus
+lint, typecheck, build and formatting; `npm.cmd run bundle` exported web/Android/iOS;
+`npm.cmd run test:e2e -- --output=.local/regular-e2e` passed all 12 existing cases.
+
+Primeiro acesso corrigido e fluxo financeiro real aprovado no PostgreSQL isolado:
+saldo final R$ 1.300, persistência após reload/reinício/login, isolamento e ausência
+de duplicação. Não houve alterações nos serviços 5432/5433. A instância pessoal
+em 5432 ainda aguarda a senha administrativa no terminal; não está liberada para
+uso local apenas pelo resultado do ambiente de aceitação.
+
 ## Local PostgreSQL verification — 2026-10-30
 
 Final validation of this continuation: `npm.cmd run check` passed; all web/Android/iOS
