@@ -52,6 +52,36 @@ test('auth store restores valid credentials without storing the password', async
   assert.deepEqual(fixture.store.getState().session, credentials);
 });
 
+test('web hydration restores the API session once and retains the grant in injected memory storage', async () => {
+  let memory: string | null = null;
+  let restored = 0;
+  const store = createAuthStore(
+    {
+      get: async () => memory,
+      set: async (value) => {
+        memory = value;
+      },
+      clear: async () => {
+        memory = null;
+      },
+    },
+    {
+      restore: async () => {
+        restored++;
+        return credentials;
+      },
+      login: async () => credentials,
+      register: async () => undefined,
+      logout: async () => undefined,
+    },
+  );
+  await store.getState().hydrate();
+  assert.equal(store.getState().status, 'authenticated');
+  assert.deepEqual(store.getState().session, credentials);
+  await store.getState().hydrate();
+  assert.equal(restored, 1);
+});
+
 test('first account flow registers then signs in and persists only session credentials', async () => {
   const fixture = setup();
   const success = await fixture.store

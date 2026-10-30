@@ -4,6 +4,22 @@ Updated / Atualizado: 2026-10-27
 
 ## Local PostgreSQL verification — 2026-10-30
 
+Cookie/session checks: four dedicated HTTP/cookie security tests and eight focused
+auth-store/API-URL tests passed. Typecheck passed after separating native refresh
+grants from browser payloads. Browser JSON never contains the refresh credential;
+it is issued through an HttpOnly cookie. Source implementation only: actual persisted
+rotation remains behind the PostgreSQL authentication gate described below.
+
+API source now loads the ignored root `.env` for local startup. Added a browser
+session restore endpoint that rotates the existing opaque refresh grant under a
+PostgreSQL row lock, with HttpOnly/SameSite cookies, production Secure cookies and
+explicit CORS/origin checks. No tokens are written to browser localStorage.
+`npm.cmd run check` passed (69 tests) before adding dedicated cookie/CORS cases.
+Readiness on port 3000 returns 503; development migration and the real E2E command
+both stopped at P1000 authentication (5432 and 5433). No successful database writes
+or real end-to-end authentication are claimed. / Sessão web implementada no código,
+mas a validação real permanece bloqueada pelas credenciais locais.
+
 Confirmed installed/running Windows services: PostgreSQL 17.11 on 5432 and PostgreSQL
 18 on 5433. Existing application URLs in the ignored `.env` reach the servers but
 both return authentication code `28P01`. Added `scripts/setup-local-postgres.mjs`

@@ -48,7 +48,7 @@ export default function RootLayout() {
       </Head>
       {status !== 'ready' || authStatus === 'loading' || demoStatus === 'loading' ? (
         <Screen title={t('shell.workspace')} subtitle={t('brand.tagline')}>
-          {status === 'loading' ? (
+          {status === 'loading' || authStatus === 'loading' || demoStatus === 'loading' ? (
             <Loading />
           ) : (
             <Card>

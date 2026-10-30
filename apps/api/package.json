@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "node ../../scripts/database.mjs generate",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js"
+    "start": "node --env-file-if-exists=../../.env dist/main.js"
   },
   "dependencies": {
     "@fintrack/shared": "0.1.0",

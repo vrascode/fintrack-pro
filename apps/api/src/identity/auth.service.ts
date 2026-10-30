@@ -7,7 +7,8 @@ import {
 import { loginSchema, registerSchema } from '@fintrack/shared';
 import { PrismaService } from '../database/prisma.service.js';
 import { PasswordHasher } from './password.js';
-import { createSession } from './sessions.js';
+import { createSession, rotateSession } from './sessions.js';
+import { tokenDigest } from './tokens.js';
 
 @Injectable()
 export class AuthService {
@@ -73,5 +74,43 @@ export class AuthService {
       data: { revokedAt: new Date() },
     });
     return { success: true };
+  }
+
+  async restore(rawToken: string) {
+    const tokenHash = tokenDigest(rawToken, 'refresh');
+    if (!tokenHash) throw new UnauthorizedException();
+    const result = await this.prisma.db.$transaction(async (db) => {
+      const known = await db.refreshToken.findUnique({ where: { tokenHash } });
+      if (!known) return null;
+      await db.$queryRaw`SELECT id FROM "Session" WHERE id = ${known.sessionId}::uuid FOR UPDATE`;
+      const session = await db.session.findUnique({ where: { id: known.sessionId } });
+      const refresh = await db.refreshToken.findUnique({ where: { tokenHash } });
+      if (!session || !refresh) return null;
+      const rotation = rotateSession(session, refresh, rawToken, new Date());
+      if (rotation.status === 'invalid') return null;
+      if (rotation.status === 'replay') {
+        await db.session.update({
+          where: { id: session.id },
+          data: { revokedAt: rotation.session.revokedAt },
+        });
+        return null;
+      }
+      const { grant, consumed } = rotation;
+      await db.refreshToken.update({
+        where: { id: refresh.id },
+        data: { consumedAt: consumed.consumedAt },
+      });
+      await db.session.update({ where: { id: session.id }, data: grant.session });
+      await db.refreshToken.create({ data: grant.refresh });
+      return {
+        userId: session.userId,
+        sessionId: session.id,
+        ...grant.credentials,
+        expiresAt: grant.session.accessExpiresAt.toISOString(),
+      };
+    });
+    // Throw after the transaction commits so replay revocation is preserved.
+    if (!result) throw new UnauthorizedException();
+    return result;
   }
 }

@@ -1,5 +1,5 @@
 import { createStore, type StoreApi } from 'zustand/vanilla';
-import { authSessionSchema, loginSchema, type AuthSession, type Login } from '@fintrack/shared';
+import { clientSessionSchema, loginSchema, type ClientSession, type Login } from '@fintrack/shared';
 
 export interface SessionStorage {
   get(): Promise<string | null>;
@@ -8,14 +8,15 @@ export interface SessionStorage {
 }
 
 export interface AuthApi {
-  login(input: Login): Promise<AuthSession>;
+  restore?(): Promise<ClientSession | null>;
+  login(input: Login): Promise<ClientSession>;
   register(input: { email: string; password: string }): Promise<unknown>;
   logout(token: string): Promise<unknown>;
 }
 
 export interface AuthState {
   status: 'loading' | 'anonymous' | 'authenticated';
-  session: AuthSession | null;
+  session: ClientSession | null;
   error: 'read' | 'invalid' | 'network' | 'credentials' | 'exists' | null;
   hydrate(): Promise<void>;
   signIn(input: Login): Promise<boolean>;
@@ -32,18 +33,36 @@ function loginError(error: unknown): AuthState['error'] {
 }
 
 export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi<AuthState> {
+  let hydrating = false;
   return createStore<AuthState>((set, get) => ({
     status: 'loading',
     session: null,
     error: null,
     async hydrate() {
+      if (hydrating) return;
+      hydrating = true;
       try {
         const stored = await storage.get();
         if (!stored) {
+          try {
+            const restored = await api.restore?.();
+            if (restored) {
+              await storage.set(JSON.stringify(restored));
+              set({
+                status: 'authenticated',
+                session: clientSessionSchema.parse(restored),
+                error: null,
+              });
+              return;
+            }
+          } catch {
+            set({ status: 'anonymous', session: null, error: 'network' });
+            return;
+          }
           set({ status: 'anonymous', session: null, error: null });
           return;
         }
-        const session = authSessionSchema.parse(JSON.parse(stored));
+        const session = clientSessionSchema.parse(JSON.parse(stored));
         set({ status: 'authenticated', session, error: null });
       } catch {
         try {
@@ -53,12 +72,14 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
           return;
         }
         set({ status: 'anonymous', session: null, error: 'invalid' });
+      } finally {
+        hydrating = false;
       }
     },
     async signIn(input) {
       set({ error: null });
       try {
-        const session = authSessionSchema.parse(await api.login(loginSchema.parse(input)));
+        const session = clientSessionSchema.parse(await api.login(loginSchema.parse(input)));
         await storage.set(JSON.stringify(session));
         set({ status: 'authenticated', session, error: null });
         return true;
