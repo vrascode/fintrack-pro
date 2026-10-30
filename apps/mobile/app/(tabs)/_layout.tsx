@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Tabs, router, usePathname } from 'expo-router';
 import {
   Platform,
+  Image,
   Pressable,
   Text,
   View,
@@ -13,6 +14,8 @@ import type { TranslationKey } from '../../src/i18n';
 import { usePreferences } from '../../src/preferences';
 import { designTokens } from '../../src/theme';
 import { useTheme } from '../../src/theme';
+
+import brandMark from '../../assets/brand/android/adaptive-foreground.png';
 
 const navigation = [
   { key: 'overview', route: '/', icon: '◈', implemented: true },
@@ -168,18 +171,12 @@ function DesktopShell({ children, collapsed }: { children: ReactNode; collapsed:
               gap: 11,
             }}
           >
-            <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 12,
-                backgroundColor: colors.accent,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ color: colors.accentInk, fontWeight: '900', fontSize: 17 }}>F</Text>
-            </View>
+            <Image
+              accessibilityElementsHidden
+              source={brandMark}
+              resizeMode="contain"
+              style={{ width: 40, height: 40 }}
+            />
             {!collapsed ? (
               <View style={{ gap: 1 }}>
                 <Text style={{ color: colors.ink, fontWeight: '800', fontSize: 15 }}>
@@ -372,6 +369,10 @@ export default function TabLayout() {
         options={{ title: t('nav.activityTab'), tabBarIcon: icon('↗') }}
       />
       <Tabs.Screen name="accounts" options={{ title: t('nav.accounts'), tabBarIcon: icon('◫') }} />
+      <Tabs.Screen name="bills" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="envelopes" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="cards" options={{ title: t('nav.cards'), tabBarIcon: icon('▱') }} />
       <Tabs.Screen
         name="preferences"

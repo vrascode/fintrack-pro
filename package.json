@@ -22,6 +22,7 @@
     "mobile": "npm run start -w @fintrack/mobile",
     "web": "npm run web -w @fintrack/mobile",
     "bundle": "npm run bundle -w @fintrack/mobile",
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
     "test:e2e": "playwright test",
     "db:validate": "node scripts/database.mjs validate",
     "db:generate": "node scripts/database.mjs generate",
