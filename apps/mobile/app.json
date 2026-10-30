@@ -17,9 +17,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A0A0A"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.fintrackpro.app" },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fintrackpro.app"
+    },
     "android": {
       "package": "com.fintrackpro.app",
       "adaptiveIcon": {

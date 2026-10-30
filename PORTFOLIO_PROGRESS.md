@@ -2,6 +2,17 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Mobile API and secure session foundation — 2026-10-30
+
+Added the SDK 58 `expo-secure-store` native module, platform-specific token storage,
+and a schema-validated API client for auth, accounts, categories, and transactions.
+Production API URLs must use HTTPS and cannot point to loopback; the Android emulator
+has a development default. Web credentials stay in memory and do not survive reload,
+avoiding localStorage token exposure while the backend lacks an HttpOnly cookie flow.
+Full `npm run check` passed (lint, TypeScript/build, 63 tests, formatting), and
+`npm run bundle` exported web, Android and iOS bundles. This does not compile an APK
+or validate a live API/database.
+
 ## Idempotent transaction API — 2026-10-30
 
 Added authenticated transaction listing with bounded date/type/account/category

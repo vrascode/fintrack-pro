@@ -25,3 +25,14 @@ export const loginSchema = z
 
 export type Registration = z.infer<typeof registerSchema>;
 export type Login = z.infer<typeof loginSchema>;
+
+export const authSessionSchema = z
+  .object({
+    userId: z.uuid(),
+    sessionId: z.uuid(),
+    accessToken: z.string().regex(/^ft_a_[A-Za-z0-9_-]{43}$/),
+    refreshToken: z.string().regex(/^ft_r_[A-Za-z0-9_-]{43}$/),
+    expiresAt: z.iso.datetime(),
+  })
+  .strict();
+export type AuthSession = z.infer<typeof authSessionSchema>;

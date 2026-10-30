@@ -34,8 +34,14 @@ simulado e não comprovam persistência PostgreSQL.
 
 `/v1/health` checks process liveness; `/v1/health/ready` checks database readiness.
 AsyncStorage holds only non-sensitive preferences under `fintrack.preferences.v1`;
-never passwords, tokens or financial records. / A saúde do processo e a prontidão do
-banco têm endpoints distintos; AsyncStorage guarda apenas preferências.
+never passwords, tokens or financial records. Native authentication credentials use
+Expo SecureStore. Web keeps credentials in memory only and requires a fresh login after
+reload until an HTTPS-only, HttpOnly-cookie session flow exists.
+
+Configure `EXPO_PUBLIC_API_URL` for the API reachable by the target device. Android
+emulator development defaults to `10.0.2.2`; physical devices require a reachable
+development host. Production builds reject HTTP and loopback URLs. A configured HTTPS
+production API is not deployed by this repository yet.
 
 ## Local setup / Configuração local
 
