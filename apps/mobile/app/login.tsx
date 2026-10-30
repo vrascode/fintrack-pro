@@ -73,7 +73,7 @@ export default function LoginScreen() {
           padding: width < designTokens.breakpoints.tablet ? 20 : 32,
         }}
       >
-        <Text style={{ color: colors.ink, fontSize: 21, fontWeight: '800' }}>
+        <Text accessibilityRole="header" style={{ color: colors.ink, fontSize: 21, fontWeight: '800' }}>
           {isRegistering ? text('Criar conta', 'Create account') : text('Entrar', 'Sign in')}
         </Text>
         <Label muted>
