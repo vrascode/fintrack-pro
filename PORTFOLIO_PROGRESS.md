@@ -2,6 +2,16 @@
 
 Updated / Atualizado: 2026-10-27
 
+## Owner-scoped account API — 2026-10-30
+
+Added authenticated account listing and creation endpoints. The owner ID comes from
+the verified session, input is validated with the shared finance schema, and opening
+balances remain exact integer cents with an explicit reference date and planning
+flag. Service tests cover mapping, owner filtering and rejection before writes; HTTP
+tests confirm unauthenticated account access returns 401. Full suite results follow
+validation. Persistence has not been tested against PostgreSQL because the database
+service is still unavailable.
+
 ## Session authorization and logout — 2026-10-30
 
 Added a bearer access-token guard that verifies the stored token digest and session

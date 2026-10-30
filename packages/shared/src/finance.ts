@@ -71,6 +71,8 @@ export const financialAccountSchema = z
   })
   .strict();
 export type FinancialAccount = z.infer<typeof financialAccountSchema>;
+export const financialAccountInputSchema = financialAccountSchema.omit({ id: true });
+export type FinancialAccountInput = z.infer<typeof financialAccountInputSchema>;
 
 export const financialCategorySchema = z
   .object({

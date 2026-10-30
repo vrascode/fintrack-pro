@@ -5,6 +5,7 @@ import { healthSchema, type Health } from '@fintrack/shared';
 import { PrismaModule } from './database/prisma.module.js';
 import { PrismaService } from './database/prisma.service.js';
 import { AuthModule } from './identity/auth.module.js';
+import { AccountsModule } from './accounts/accounts.module.js';
 
 @Controller('health')
 class HealthController {
@@ -30,7 +31,7 @@ class HealthController {
   }
 }
 
-@Module({ imports: [PrismaModule, AuthModule], controllers: [HealthController] })
+@Module({ imports: [PrismaModule, AuthModule, AccountsModule], controllers: [HealthController] })
 class AppModule {}
 
 export async function createApp(logger: false | undefined = undefined) {
