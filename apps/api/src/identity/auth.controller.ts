@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Header,
   Headers,
@@ -21,6 +22,36 @@ interface CookieResponse {
 @Controller('auth')
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
+
+  @Get('me')
+  @UseGuards(AccessTokenGuard)
+  @Header('Cache-Control', 'no-store')
+  me(@Req() request: AuthenticatedRequest) {
+    return this.auth.me(request.userId!);
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  async refresh(
+    @Body() body: unknown,
+    @Headers('origin') origin: string | undefined,
+    @Headers('cookie') cookie: string | undefined,
+    @Res({ passthrough: true }) response: CookieResponse,
+  ) {
+    assertWebOrigin(origin);
+    const token = origin
+      ? readRefreshCookie(cookie)
+      : typeof body === 'object' &&
+          body !== null &&
+          'refreshToken' in body &&
+          typeof body.refreshToken === 'string'
+        ? body.refreshToken
+        : '';
+    const session = await this.auth.restore(token);
+    if (origin) response.header('Set-Cookie', refreshCookie(session.refreshToken));
+    return origin ? publicSession(session) : session;
+  }
 
   @Post('register')
   register(@Body() body: unknown, @Headers('origin') origin?: string) {

@@ -16,6 +16,15 @@ export class AuthService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  async me(userId: string) {
+    const user = await this.prisma.db.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true },
+    });
+    if (!user) throw new UnauthorizedException();
+    return user;
+  }
+
   async register(input: unknown) {
     const parsed = registerSchema.safeParse(input);
     if (!parsed.success) throw new BadRequestException(parsed.error.issues);
