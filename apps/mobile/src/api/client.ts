@@ -20,6 +20,11 @@ import {
 } from '@fintrack/shared';
 import { resolveApiBaseUrl } from './url';
 
+let recoverSession: (() => Promise<string | null>) | undefined;
+export function setSessionRecovery(handler: () => Promise<string | null>) {
+  recoverSession = handler;
+}
+
 async function list<T>(
   path: string,
   token: string,
@@ -43,6 +48,7 @@ export class ApiClientError extends Error {
 async function request<T>(
   path: string,
   options: { token?: string; method?: string; body?: unknown; idempotencyKey?: string } = {},
+  retried = false,
 ) {
   let response: Response;
   try {
@@ -68,6 +74,10 @@ async function request<T>(
     throw new ApiClientError(0, 'Could not connect to the FinTrack API.');
   }
   const payload: unknown = await response.json().catch(() => null);
+  if (response.status === 401 && options.token && !retried && recoverSession) {
+    const token = await recoverSession();
+    if (token) return request<T>(path, { ...options, token }, true);
+  }
   if (!response.ok) {
     const message =
       typeof payload === 'object' && payload !== null && 'message' in payload
@@ -79,6 +89,20 @@ async function request<T>(
 }
 
 export const apiClient = {
+  async refresh(session: ClientSession): Promise<ClientSession> {
+    return clientSessionSchema.parse(
+      await request('/auth/refresh', {
+        method: 'POST',
+        ...(Platform.OS === 'web'
+          ? {}
+          : {
+              body: {
+                refreshToken: 'refreshToken' in session ? session.refreshToken : '',
+              },
+            }),
+      }),
+    );
+  },
   async restore(): Promise<ClientSession | null> {
     if (Platform.OS !== 'web') return null;
     try {

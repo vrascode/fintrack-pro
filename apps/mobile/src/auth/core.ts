@@ -9,6 +9,7 @@ export interface SessionStorage {
 
 export interface AuthApi {
   restore?(): Promise<ClientSession | null>;
+  refresh?(session: ClientSession): Promise<ClientSession>;
   login(input: Login): Promise<ClientSession>;
   register(input: { email: string; password: string }): Promise<unknown>;
   logout(token: string): Promise<unknown>;
@@ -19,6 +20,7 @@ export interface AuthState {
   session: ClientSession | null;
   error: 'read' | 'invalid' | 'network' | 'credentials' | 'exists' | null;
   hydrate(): Promise<void>;
+  renew(): Promise<string | null>;
   signIn(input: Login): Promise<boolean>;
   register(input: { email: string; password: string }, deviceName: string): Promise<boolean>;
   signOut(): Promise<void>;
@@ -34,6 +36,7 @@ function loginError(error: unknown): AuthState['error'] {
 
 export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi<AuthState> {
   let hydrating = false;
+  let renewing: Promise<string | null> | null = null;
   return createStore<AuthState>((set, get) => ({
     status: 'loading',
     session: null,
@@ -62,7 +65,10 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
           set({ status: 'anonymous', session: null, error: null });
           return;
         }
-        const session = clientSessionSchema.parse(JSON.parse(stored));
+        let session = clientSessionSchema.parse(JSON.parse(stored));
+        if (api.refresh) session = clientSessionSchema.parse(await api.refresh(session));
+        if (Date.parse(session.expiresAt) <= Date.now()) throw new Error('Expired session');
+        await storage.set(JSON.stringify(session));
         set({ status: 'authenticated', session, error: null });
       } catch {
         try {
@@ -75,6 +81,35 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
       } finally {
         hydrating = false;
       }
+    },
+    renew() {
+      if (renewing) return renewing;
+      renewing = (async () => {
+        const previous = get().session;
+        if (!previous || !api.refresh) return null;
+        try {
+          const session = clientSessionSchema.parse(await api.refresh(previous));
+          // A refresh finishing after logout must not restore a revoked session.
+          if (get().session !== previous) return null;
+          await storage.set(JSON.stringify(session));
+          set({ session, status: 'authenticated', error: null });
+          return session.accessToken;
+        } catch (error) {
+          if (
+            typeof error === 'object' &&
+            error !== null &&
+            'status' in error &&
+            error.status === 401
+          ) {
+            await storage.clear();
+            set({ status: 'anonymous', session: null, error: 'credentials' });
+          }
+          return null;
+        }
+      })().finally(() => {
+        renewing = null;
+      });
+      return renewing;
     },
     async signIn(input) {
       set({ error: null });

@@ -7,7 +7,7 @@ const credentials = {
   sessionId: '00000000-0000-4000-8000-000000000002',
   accessToken: `ft_a_${'a'.repeat(43)}`,
   refreshToken: `ft_r_${'b'.repeat(43)}`,
-  expiresAt: '2026-10-30T12:00:00.000Z',
+  expiresAt: '2099-10-30T12:00:00.000Z',
 };
 
 function setup(initial: string | null = null) {
@@ -159,4 +159,48 @@ test('failed authentication reports its cause without saving a session or contin
     assert.equal(saves, 0);
     if (scenario.action === 'register') assert.equal(logins, 0);
   }
+});
+
+test('concurrent expired requests share one rotation and rejected grants clear authentication', async () => {
+  let saved: string | null = JSON.stringify(credentials);
+  let rotations = 0;
+  let reject = false;
+  const store = createAuthStore(
+    {
+      get: async () => saved,
+      set: async (value) => {
+        saved = value;
+      },
+      clear: async () => {
+        saved = null;
+      },
+    },
+    {
+      login: async () => credentials,
+      register: async () => {},
+      logout: async () => {},
+      refresh: async () => {
+        rotations++;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        if (reject) throw Object.assign(new Error('Expired'), { status: 401 });
+        return { ...credentials, accessToken: `ft_a_${'c'.repeat(43)}` };
+      },
+    },
+  );
+  await store.getState().hydrate();
+  assert.equal(rotations, 1);
+  const results = await Promise.all([store.getState().renew(), store.getState().renew()]);
+  assert.equal(rotations, 2);
+  assert.equal(results[0], results[1]);
+  reject = true;
+  assert.equal(await store.getState().renew(), null);
+  assert.equal(store.getState().status, 'anonymous');
+  assert.equal(saved, null);
+});
+
+test('expired stored credentials never authenticate without server renewal', async () => {
+  const fixture = setup(JSON.stringify({ ...credentials, expiresAt: '2000-01-01T00:00:00.000Z' }));
+  await fixture.store.getState().hydrate();
+  assert.equal(fixture.store.getState().status, 'anonymous');
+  assert.equal(fixture.saved, null);
 });

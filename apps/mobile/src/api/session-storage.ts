@@ -1,4 +1,4 @@
-// Web keeps credentials in memory only; reloads require signing in again.
+// Web keeps access credentials in memory; reload restores through the HttpOnly cookie.
 let session: string | null = null;
 
 export const sessionStorage = {
