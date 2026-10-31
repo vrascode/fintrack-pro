@@ -55,6 +55,7 @@ async function request<T>(
     response = await fetch(`${baseUrl}${path}`, {
       method: options.method ?? 'GET',
       credentials: 'include',
+      signal: AbortSignal.timeout(15000),
       headers: {
         Accept: 'application/json',
         ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),

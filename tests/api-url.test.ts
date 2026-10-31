@@ -3,6 +3,14 @@ import { test } from 'node:test';
 import { resolveApiBaseUrl } from '../apps/mobile/src/api/url.ts';
 
 test('web development preserves localhost hostname for same-site session cookies', () => {
+  assert.equal(
+    resolveApiBaseUrl('http://127.0.0.1:3000/v1', 'web', true, 'localhost'),
+    'http://localhost:3000/v1',
+  );
+  assert.equal(
+    resolveApiBaseUrl('http://localhost:3000/v1', 'web', true, '127.0.0.1'),
+    'http://127.0.0.1:3000/v1',
+  );
   assert.equal(resolveApiBaseUrl(undefined, 'web', true, 'localhost'), 'http://localhost:3000/v1');
   assert.equal(resolveApiBaseUrl(undefined, 'web', true, '127.0.0.1'), 'http://127.0.0.1:3000/v1');
 });

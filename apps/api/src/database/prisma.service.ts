@@ -9,7 +9,9 @@ export class PrismaService implements OnModuleDestroy {
   constructor() {
     const connectionString = process.env.DATABASE_URL;
     this.client = connectionString
-      ? new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
+      ? new PrismaClient({
+          adapter: new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 }),
+        })
       : null;
   }
 

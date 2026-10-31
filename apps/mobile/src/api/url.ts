@@ -30,5 +30,14 @@ export function resolveApiBaseUrl(
   ) {
     throw new Error('The production API must use HTTPS.');
   }
+  // Cookies are host scoped: localhost and 127.0.0.1 are different sites.
+  if (
+    platform === 'web' &&
+    development &&
+    webHostname &&
+    ['localhost', '127.0.0.1'].includes(webHostname) &&
+    ['localhost', '127.0.0.1'].includes(url.hostname)
+  )
+    url.hostname = webHostname;
   return `${url.origin}${url.pathname.replace(/\/$/, '')}`;
 }
