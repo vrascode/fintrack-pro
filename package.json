@@ -30,7 +30,9 @@
     "db:generate": "node scripts/database.mjs generate",
     "db:migrate": "node scripts/database.mjs migrate",
     "db:status": "node scripts/database.mjs status",
-    "test:integration": "npm run build && node scripts/database.mjs test"
+    "test:integration": "npm run build && node scripts/database.mjs test",
+    "doctor": "node scripts/doctor.mjs",
+    "dev": "npm run build && node scripts/dev.mjs"
   },
   "overrides": {
     "multer": "2.5.0"
