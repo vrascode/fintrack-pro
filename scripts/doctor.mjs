@@ -18,7 +18,9 @@ export async function checkDatabase(key = 'DATABASE_URL') {
   } catch {
     throw new Error(`${key}: missing or invalid PostgreSQL configuration. See DATABASE.md.`);
   }
-  console.log(`${key}: ${url.hostname}:${url.port || '5432'}${url.pathname}`);
+  console.log(
+    `${key}: ${url.hostname}:${url.port || '5432'}${url.pathname} (user: ${decodeURIComponent(url.username)})`,
+  );
   const client = new pg.Client({ connectionString: value, connectionTimeoutMillis: 5000 });
   try {
     await client.connect();
@@ -31,7 +33,7 @@ export async function checkDatabase(key = 'DATABASE_URL') {
   } catch (error) {
     const hint =
       error.code === '28P01'
-        ? 'credentials rejected; configure the ignored .env or run the local provisioning helper'
+        ? `credentials rejected; update the ignored .env or run node scripts/setup-local-postgres.mjs ${key === 'TEST_DATABASE_URL' ? '--test' : '--development'} --audit in your terminal (hidden admin password)`
         : error.code === '42P01'
           ? 'application tables missing; run npm.cmd run db:migrate'
           : 'connection failed; check service, port and credentials';

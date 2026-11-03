@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 import { checkDatabase, loadEnvironment, root } from './doctor.mjs';
 
 const require = createRequire(import.meta.url);
@@ -12,9 +13,9 @@ function stop(code = 0) {
   process.exitCode = code;
   for (const child of children) child.kill();
 }
-function launch(args, env = process.env) {
+function launch(args, env = process.env, cwd = root) {
   const child = spawn(process.execPath, args, {
-    cwd: root,
+    cwd,
     env,
     stdio: 'inherit',
     windowsHide: true,
@@ -65,10 +66,14 @@ try {
       'Port 8081 is occupied. Existing frontend preserved; use it or stop it before npm.cmd run dev.',
     );
   }
-  launch([require.resolve('expo/bin/cli'), 'start', '--web', '--port', '8081'], {
-    ...process.env,
-    EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL || `http://localhost:${port}/v1`,
-  });
+  launch(
+    [require.resolve('expo/bin/cli'), 'start', '--web', '--port', '8081'],
+    {
+      ...process.env,
+      EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL || `http://localhost:${port}/v1`,
+    },
+    resolve(root, 'apps/mobile'),
+  );
   console.log(
     'FinTrack Pro: http://localhost:8081/login — Ctrl+C stops only processes started here.',
   );
