@@ -8,7 +8,7 @@ import { AuthModule } from './identity/auth.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
-import { webOrigins } from './identity/web-session.js';
+import { createCorsOptions } from './config/cors.js';
 import { DatabaseErrorFilter } from './database/database-error.filter.js';
 
 @Controller('health')
@@ -47,7 +47,7 @@ export async function createApp(logger: false | undefined = undefined) {
   });
   app.setGlobalPrefix('v1');
   app.useGlobalFilters(new DatabaseErrorFilter());
-  app.enableCors({ origin: webOrigins(), credentials: true });
+  app.enableCors(createCorsOptions());
   app.enableShutdownHooks();
   return app;
 }

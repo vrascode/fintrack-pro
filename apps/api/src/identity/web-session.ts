@@ -1,5 +1,6 @@
 import { ForbiddenException } from '@nestjs/common';
 import type { AuthSession } from '@fintrack/shared';
+import { createOriginPolicy } from '../config/cors.js';
 
 export function publicSession(session: AuthSession) {
   return {
@@ -10,20 +11,8 @@ export function publicSession(session: AuthSession) {
   };
 }
 
-export function webOrigins(): string[] {
-  return (
-    process.env.CORS_ORIGINS ??
-    (process.env.NODE_ENV === 'production'
-      ? ''
-      : 'http://localhost:8081,http://127.0.0.1:8081,http://127.0.0.1:4173')
-  )
-    .split(',')
-    .map((value) => value.trim())
-    .filter(Boolean);
-}
-
 export function assertWebOrigin(origin: string | undefined) {
-  if (origin && !webOrigins().includes(origin))
+  if (origin !== undefined && !createOriginPolicy()(origin))
     throw new ForbiddenException('Origin is not allowed.');
 }
 
