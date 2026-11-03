@@ -11,6 +11,8 @@
     "node": ">=24.13.0 <25"
   },
   "scripts": {
+    "release:check": "node scripts/release.mjs",
+    "release:web": "node scripts/release.mjs --web",
     "build": "npm run build -w @fintrack/shared && npm run build -w @fintrack/api",
     "typecheck": "npm run build && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
     "lint": "eslint . --max-warnings 0",
