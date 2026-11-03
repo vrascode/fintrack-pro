@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
+import { AuthRateLimitGuard } from './auth-rate-limit.guard.js';
 import { AccessTokenGuard, type AuthenticatedRequest } from './access-token.guard.js';
 import { assertWebOrigin, readRefreshCookie, refreshCookie, publicSession } from './web-session.js';
 
@@ -31,6 +32,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @UseGuards(AuthRateLimitGuard)
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')
   async refresh(
@@ -54,12 +56,14 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(AuthRateLimitGuard)
   register(@Body() body: unknown, @Headers('origin') origin?: string) {
     assertWebOrigin(origin);
     return this.auth.register(body);
   }
 
   @Post('login')
+  @UseGuards(AuthRateLimitGuard)
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')
   async login(
@@ -74,6 +78,7 @@ export class AuthController {
   }
 
   @Post('session')
+  @UseGuards(AuthRateLimitGuard)
   @HttpCode(200)
   @Header('Cache-Control', 'no-store')
   async restore(
