@@ -29,7 +29,7 @@ test('positive and expense chart series use orange and theme-safe neutrals', () 
 });
 
 test('solid negative text keeps readable contrast on its theme surfaces', () => {
-  for (const surface of ['#F2EFE9', '#FAF8F4']) {
+  for (const surface of [palettes.light.background, palettes.light.surface]) {
     assert.ok(contrast(palettes.light.negative, surface) >= 4.5);
   }
   for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
@@ -42,7 +42,11 @@ test('orange positive labels retain readable contrast in both themes', () => {
   assert.equal(palettes.dark.accent, '#C84A01');
   assert.equal(palettes.light.accentStrong, '#E85D04');
   assert.equal(palettes.dark.accentStrong, '#E85D04');
-  for (const surface of ['#F2EFE9', '#FAF8F4', '#EAE5DC']) {
+  for (const surface of [
+    palettes.light.background,
+    palettes.light.surface,
+    palettes.light.elevated,
+  ]) {
     assert.ok(contrast(palettes.light.positiveText, surface) >= 4.5);
   }
   for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
@@ -68,7 +72,7 @@ test('alerts no longer use separate traffic-light colors', () => {
 });
 
 test('orange labels and primary button text keep readable contrast in both themes', () => {
-  for (const surface of ['#F2EFE9', '#FAF8F4']) {
+  for (const surface of [palettes.light.background, palettes.light.surface]) {
     assert.ok(contrast(palettes.light.accentText, surface) >= 4.5);
   }
   for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
