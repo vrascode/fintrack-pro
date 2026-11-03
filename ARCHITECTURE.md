@@ -1,5 +1,9 @@
 # Architecture / Arquitetura
 
+## Current checkpoint / Estado atual — 2026-10-31
+
+Current source reuses the existing Prisma identity/ledger modules. Auth refresh/me, client renewal, owner-scoped account metadata/archive and real personal activity extend the same architecture. Archived balances/history remain in totals; new entries select active accounts only. Login uses a scoped palette over the existing preference/theme system. / Sem segunda implementação de autenticação ou preferências. See [current evidence](docs/validation-2026-10-31.md).
+
 The source connects Prisma-backed identity/accounts/categories/transactions with
 personal Expo screens. Real SQL and desktop/mobile browser acceptance passed on
 isolated PostgreSQL 17 (55432); local service 5432 provisioning remains pending.

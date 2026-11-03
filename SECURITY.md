@@ -1,5 +1,9 @@
 # Security / Segurança
 
+## Current checkpoint / Estado atual — 2026-10-31
+
+Current source adds bounded single-process authentication throttling, safe infrastructure errors, native refresh, shared client renewal and logout failure feedback. Browser refresh remains HttpOnly; native credentials remain SecureStore-only. Production proxy/distributed limits, TLS, dependency audit and device validation remain open. / Novas proteções não equivalem a aceite de produção. See [security changes and validation limits](docs/validation-2026-10-31.md). Historical audit statements below describe their recorded dates.
+
 The API binds to loopback by default and exposes identity, readiness and owner-scoped
 financial endpoints. There are no upload endpoints. Mobile preferences are
 non-sensitive and schema-validated; tokens must never enter AsyncStorage.

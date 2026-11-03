@@ -1,184 +1,163 @@
 ﻿# FinTrack Pro
 
-**A personal finance application built with Expo, React Native, TypeScript and NestJS.**
+**Personal finance management with real authentication, accounts, transactions and a clear view of your money.**
 
-[Português (Brasil)](README.pt-BR.md) · [Roadmap](ROADMAP.md) · [Validation log](PORTFOLIO_PROGRESS.md)
+[Português (Brasil)](README.pt-BR.md) · [Local setup](docs/local-development.md) · [Architecture](ARCHITECTURE.md) · [Validation](docs/auth-redesign-validation.md)
 
-FinTrack Pro is being developed for mobile devices with shared contracts, exact
-money calculations and explicit security boundaries. A clearly labelled,
-isolated fictional demo exercises planning flows on web and mobile. The source now
-connects authenticated accounts, posted income/expenses, categories and a personal
-dashboard to the Prisma API. Real PostgreSQL 17 acceptance passed in an isolated
-test cluster: registration, login, accounts, income/expenses and persistence.
-The personal development instance on 5432 still requires local admin-password
-recovery and provisioning; this is not yet a ready-to-use deployment.
+![FinTrack Pro login — actual desktop screenshot, empty fields](docs/screenshots/auth-login-desktop.png)
 
-## What works today
+## Overview
 
-| Area                 | Implemented behavior                                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| App                  | Responsive desktop/mobile shell; overview, demo accounts/activity/bills/envelopes/planning and preferences                                  |
-| Preferences          | Light/dark/system theme, privacy settings, persistence, corruption recovery and storage-error handling                                      |
-| Domain               | Exact integer money, financial planning calculations, validated calendar dates, CSV formula protection and shared Zod contracts             |
-| API                  | NestJS registration/login, readiness and owner-scoped accounts/categories/transactions; loopback by default                                 |
-| Identity core        | Password hashing/verification, opaque tokens, expiry, rotation/replay and device-revocation transitions, tested independently of a database |
-| Database preparation | Four Prisma migrations, nine real SQL tests and two financial browser cases passed on isolated PostgreSQL 17                                |
+FinTrack Pro brings account balances, income, expenses and transaction history into one responsive application. The authenticated experience stores real, owner-scoped records in PostgreSQL. A separate, clearly labelled fictional demo lets visitors explore the interface without creating an account.
 
-The API includes registration/login, owner authorization, refresh-cookie session
-recovery and account/category/transaction endpoints. Unit tests do not establish
-PostgreSQL persistence. See [database setup and remaining work](DATABASE.md).
+The login and registration screens share the app's orange identity, dark surfaces and typography. Desktop uses a split presentation/form layout; mobile uses a scrolling vertical layout. Light, dark and system themes and Portuguese/English preferences remain available.
 
-### Local personal-data workflow
+## Implemented features
 
-Run `node scripts/setup-local-postgres.mjs --development` in your terminal to
-provision missing project roles/databases using `DATABASE_URL` (5432 locally).
-Admin passwords are hidden and never saved. Explicit `--reconcile-password` can
-align the dedicated `fintrack` role with its ignored `.env` password; privileged
-or shared roles are refused. Test provisioning is separate:
-`node scripts/setup-local-postgres.mjs --test` uses only `TEST_DATABASE_URL` (5433).
-Add `--inspect` to see safe target metadata without connecting. For a lost admin
-password, use the [local recovery procedure](DATABASE.md#recover-local-postgresql-17--recuperar-postgresql-17-local).
-Run `npm.cmd run db:migrate`, then `npm.cmd run api` and `npm.cmd run web` in separate
-terminals. Open `http://localhost:8081/login`; registration leads to the first account
-form. Enter its opening balance/reference date, then use **New income or expense**
-on the personal dashboard. No sample records are inserted into personal accounts.
-API readiness is `http://127.0.0.1:3000/v1/health/ready` and must return 200.
+| Area           | Behavior                                                                                                                                  |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentication | Email/password registration, confirmation, login, validation and specific HTTP/network feedback                                           |
+| Sessions       | HttpOnly web refresh cookie, reload restoration, access renewal, logout and protected routes; native grants use SecureStore               |
+| Accounts       | Create accounts with an exact opening balance/date; rename and archive while preserving history                                           |
+| Categories     | Owner-scoped income and expense categories                                                                                                |
+| Transactions   | Posted income/expenses, internal transfer contracts, paginated history and per-user idempotency keys                                      |
+| Dashboard      | Account totals, income, expenses and balances calculated from persisted records using exact integer cents                                 |
+| User isolation | Session-derived identity and account/category ownership checks on financial operations                                                    |
+| Interface      | Responsive navigation, accessible labels/focus, password visibility, loading states, reduced-motion form transition and local preferences |
 
-`npm.cmd run test:e2e:real` requires the isolated `_test` database. It applies
-versioned migrations and runs browser registration → 1,000 BRL opening balance →
-500 BRL income → 200 BRL expense → 1,300 BRL balance, including reload, API restart,
-logout/login, ownership and transaction replay checks. `npm.cmd run test:e2e:isolated`
-ran that suite successfully using a fresh PostgreSQL 17 cluster on 55432: nine SQL
-tests and both desktop/mobile browser cases passed. It leaves `.env` and services
-5432/5433 unchanged; those configured instances still need their own provisioning.
-Local use requires the database and API processes to stay running. A physical phone
-also needs a reachable API; no independent phone deployment is claimed.
+Real browser acceptance covers registration → account → categories → income/expense → reload → refresh → logout/login → user isolation. The reference scenario produces **R$ 1,300.00** from a R$ 1,000 opening balance, R$ 500 income and R$ 200 expense. These are synthetic test records, not preloaded personal data.
 
-## Interface and localization
+Planning, bills, envelopes, CSV export and simulations are available in the **fictional demo**. They are not all connected to the authenticated PostgreSQL workflow. This application does not connect to a bank or move external money.
 
-The mobile app and web export share a responsive UI foundation with light, dark,
-and system themes. Non-sensitive theme, language, privacy, and desktop sidebar
-preferences are stored locally. The interface supports Brazilian Portuguese and
-English, with locale-aware date and exact-cent currency formatters. The web
-layout adds a collapsible desktop sidebar; mobile keeps bottom-tab navigation.
-Selecting **Explore demo** on the dashboard opens a six-month fictional dataset
-persisted under a separate local key. The demo supports transaction entry,
-filtered CSV export, partial bill payments, virtual envelope contributions and
-withdrawals, and an unsaved savings simulator. A visible fictional-data badge
-marks these routes. Restoring or editing demo data never touches personal
-records or a bank account. These screens are not real-user finance services.
-See [architecture](ARCHITECTURE.md) for UI and persistence boundaries.
+## Screenshots
 
-| Desktop demo                                                                                        | Mobile demo                                                                                       |
-| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| ![FinTrack Pro fictional finance dashboard on desktop](docs/screenshots/demo-dashboard-desktop.png) | ![FinTrack Pro fictional finance dashboard on mobile](docs/screenshots/demo-dashboard-mobile.png) |
+Captured from the running application with empty fields and fresh browser contexts. Mobile images use a 390 px-wide viewport tall enough to show the full form; narrow and short screens are separately tested for scrolling and overflow.
 
-### Brand assets and Android preview
+| Registration — desktop                                              | Registration — mobile                                             | Login — mobile                                          |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------- |
+| ![Desktop registration](docs/screenshots/auth-register-desktop.png) | ![Mobile registration](docs/screenshots/auth-register-mobile.png) | ![Mobile login](docs/screenshots/auth-login-mobile.png) |
 
-Original SVG source artwork and generated icons are in `apps/mobile/assets/brand/`.
-The Expo config uses the app icon, Android adaptive foreground/monochrome icon,
-splash artwork and web favicon. Native icon changes require a new native build
-and reinstall; Expo fast refresh cannot replace the installed icon.
+The existing [desktop demo](docs/screenshots/demo-dashboard-desktop.png) and [mobile demo](docs/screenshots/demo-dashboard-mobile.png) screenshots contain explicitly fictional financial data. Regenerate authentication images from a running local app with `node scripts/capture-auth-screenshots.mjs`.
 
-An internal APK profile is configured in `apps/mobile/eas.json`. To build after
-linking the project to an authenticated Expo account, run from `apps/mobile`:
+## Stack and architecture
 
-```sh
-npx eas-cli build --platform android --profile preview
-```
-
-No APK is checked into the repository or claimed as released by this change.
-
-## Quick start
-
-Requirements: Node.js 24 LTS (`>=24.13.0 <25`), npm and registry access for the first
-install. Local checks used Node 24.20.0 and npm 11.19.0. Use `npm.cmd` / `npx.cmd`
-in Windows PowerShell if script policy blocks `npm.ps1`.
-
-```sh
-npm ci
-npm run build
-npm run api
-# In a second terminal
-npm run web
-# Or start Expo for a compatible device/simulator
-npm run mobile
-```
-
-Open the URL printed by Expo. In **Ajustes**, choose **Escuro**, enable
-**Ocultar valores por padrão**, then reload: both settings persist on that device.
-Storage failures are reported without claiming the change was saved.
-
-`GET http://127.0.0.1:3000/v1/health` returns:
-
-```json
-{ "service": "fintrack-api", "status": "ok", "scope": "process" }
-```
-
-Set `HOST` and `PORT` in the shell; the API does not automatically load `.env`.
-Database scripts load the root `.env` separately. [.env.example](.env.example)
-contains configuration names without credentials.
-
-## Development and validation
-
-```sh
-npm run check          # Lint, build/typecheck, local tests and formatting
-npm run bundle         # Android, iOS and web exports
-npm run test:e2e       # Headless Edge: desktop and mobile browser viewports
-```
-
-GitHub Actions runs these checks, native web/mobile exports and both browser
-viewports on pushes and pull requests to `main`. See the [CI workflow](.github/workflows/ci.yml).
-
-E2E requires an up-to-date bundle and installed Microsoft Edge, starts its own
-server on port 4173 and closes it after the run. Manual preview:
-`node scripts/serve.mjs`. Native exports and browser viewports do not establish
-native device, biometric or release-signing compatibility.
-
-Follow [DATABASE.md](DATABASE.md) to configure separate development/test databases and run:
-
-```sh
-npm run db:validate
-npm run db:generate
-npm run db:migrate
-npm run test:integration
-```
-
-Integration is a separate required gate: it fails when prerequisites are missing,
-never falls back to the development database and does not count as a passing unit
-test. Exact results and blockers are in [the progress log](PORTFOLIO_PROGRESS.md).
-
-## Repository
+- **App:** Expo, React Native, React Native Web, Expo Router, React and TypeScript.
+- **State/storage:** Zustand, AsyncStorage for non-sensitive preferences/demo, Expo SecureStore for native grants.
+- **API:** NestJS with shared Zod runtime contracts, Prisma 7 and the PostgreSQL driver adapter.
+- **Database:** PostgreSQL 17 for this local development installation; a separate PostgreSQL 18 test service is configured.
+- **Quality:** npm Workspaces, ESLint, Prettier, Node tests, Playwright and GitHub Actions.
+- **Design:** shared React Native components and tokens; no additional styling library is required.
 
 ```text
-apps/mobile/       Expo Router UI, design system and local preferences
-apps/api/          NestJS health API, identity core, Prisma schema/migration
-packages/shared/   Runtime contracts, money and calendar primitives
-packages/config/   Strict TypeScript and lint defaults
-infra/             Local PostgreSQL services
-tests/             Domain, security, persistence and HTTP tests
-tests/integration/ PostgreSQL/Prisma integration suite
-e2e/               Browser interaction tests
+apps/mobile/          Expo Router app, authentication, personal finance and demo
+apps/api/src/         NestJS identity, accounts, categories and transactions
+apps/api/prisma/      Prisma schema and four versioned SQL migrations
+packages/shared/      Runtime contracts, exact money and calendar/domain rules
+packages/config/      TypeScript and lint configuration
+scripts/              Environment, database, development and validation helpers
+tests/                Unit, domain and HTTP regression tests
+tests/integration/    Dedicated PostgreSQL integration tests
+e2e/                  UI/demo browser tests; real database cases under real/
+infra/                Optional local PostgreSQL Compose configuration
+docs/                 Architecture decisions, setup, screenshots and evidence
 ```
 
-Read the [architecture](ARCHITECTURE.md), [security review](SECURITY.md),
-[development guide](docs/en-US/DEVELOPMENT.md), [decisions](docs/adr/0001-foundation.md)
-and [research](docs/RESEARCH.md).
+The request path is **Expo → shared HTTP client → NestJS → Prisma → PostgreSQL**. Bearer grants identify the current user; client-supplied owner IDs are not trusted. Web refresh credentials stay in a host-scoped HttpOnly cookie. See [architecture](ARCHITECTURE.md) and [security](SECURITY.md) for boundaries.
 
-## Project status
+## Installation and local execution
 
-Phase 2 is **in progress, not accepted**. Prisma schema validation and client
-generation pass locally. Identity and ledger migrations still need a real PostgreSQL
-run; transactional repositories, authenticated HTTP flows, financial CRUD, account
-balance queries and mobile workflows are not implemented. Email lifecycle, SecureStore,
-biometrics and later billing/reporting features also remain. This is not a
-production-ready financial service.
+Requires Node.js **>=24.13.0 <25**, npm, PostgreSQL and registry access for the first install. Use `npm.cmd`/`npx.cmd` in Windows PowerShell if script policy blocks `.ps1` launchers. Microsoft Edge is used by browser tests.
 
-Existing source changes were committed by feature and published to `origin/main`
-on 2026-10-27 after the Git permission and connectivity blockers were resolved
-through approved operations. See the [publication record](PORTFOLIO_PROGRESS.md).
-The latest `npm audit fix` removed the `node-forge` advisory but reported eight
-remaining Expo-tooling findings (three high, five low); the remaining automatic
-fix requires a breaking Expo downgrade and was not applied. Real database
-validation also remains pending. Secrets, local data, caches and generated
-outputs stay out of Git.
+```powershell
+Set-Location C:\Projetos\fintrack-pro
+npm.cmd ci
+# Preserve an existing local environment:
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+```
+
+Edit the ignored root `.env` locally. Configure distinct application credentials for `DATABASE_URL` and `TEST_DATABASE_URL`; URL-encode password characters. Never put a secret in an `EXPO_PUBLIC_` variable.
+
+| Setting                    | Purpose                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| `DATABASE_URL`             | Main local PostgreSQL 17 application database, normally 127.0.0.1:5432/fintrack     |
+| `TEST_DATABASE_URL`        | Separate loopback database ending in `_test`, normally 127.0.0.1:5433/fintrack_test |
+| `EXPO_PUBLIC_API_URL`      | Public API base including `/v1`, e.g. http://127.0.0.1:3000/v1                      |
+| `HOST`, `PORT`             | API bind address and port; default 127.0.0.1:3000                                   |
+| `NODE_ENV`, `CORS_ORIGINS` | Environment and explicit browser-origin allowlist                                   |
+
+For an existing installation, inspect migration status first. `db:migrate` deploys pending migrations without reset; the current main database already has all four applied.
+
+```powershell
+npm.cmd run build
+npm.cmd run db:status
+npm.cmd run db:migrate
+npm.cmd run doctor
+npm.cmd run api
+# Another terminal:
+npm.cmd run web
+# Or use an explicit Expo port:
+npm.cmd run web -- --port 8083
+# Expo for a compatible device/simulator:
+npm.cmd run mobile
+```
+
+Open the URL Expo prints, normally **http://localhost:8081/login**. `npm.cmd run dev` is the combined launcher on 8081. The API start command loads the root `.env`; Expo launchers forward its public API URL with shell overrides taking precedence.
+
+Check database readiness, not just process health:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:3000/v1/health/ready
+# service: fintrack-api; status: ok; scope: database
+```
+
+Development CORS trusts exact `localhost`, `127.0.0.1` and `[::1]` origins on dynamic ports; unrelated external origins are denied. Production requires an explicit `CORS_ORIGINS` list and a deployed HTTPS API. Credentials are never combined with wildcard allow-origin. Keep web/API within the same site for the Strict refresh-cookie policy.
+
+Web loopback resolution keeps the browser's hostname for cookies. Android emulator uses `10.0.2.2`; Expo Go can use the computer's private LAN host. A physical device needs a reachable API, appropriate `HOST` binding and firewall access. An Expo tunnel does not expose the separate Nest API. See [complete networking instructions](docs/local-development.md).
+
+Use `netstat -ano -p tcp` and `Get-Process -Id <PID>` to identify port conflicts. Preserve unknown processes and choose alternative ports. Database provisioning/audit instructions are in [DATABASE.md](DATABASE.md) and the [credential procedure](docs/postgresql-local-credentials.md); an existing working database does not require administrative recovery.
+
+## Tests
+
+```powershell
+npm.cmd run build
+npm.cmd run lint
+npm.cmd run typecheck
+npm.cmd test
+npm.cmd run format:check
+npm.cmd run doctor
+npm.cmd run db:status
+npm.cmd run test:integration
+```
+
+UI/demo browser tests require a fresh export. They intercept API requests so they never register personal users:
+
+```powershell
+$env:EXPO_PUBLIC_API_URL='https://api.example.test/v1'
+npm.cmd run bundle
+Remove-Item Env:EXPO_PUBLIC_API_URL
+npm.cmd run test:e2e
+```
+
+`bundle` exports web, Android and iOS. `test:e2e` serves the export on 4173 and tests desktop/mobile browser viewports. `test:e2e:real` requires a working isolated `_test` database and runs SQL/browser persistence acceptance. `test:e2e:isolated -- --version 18` attempts a separate fresh local cluster; it never uses the main database.
+
+To recheck the **main local database** with clearly identified synthetic records retained:
+
+```powershell
+node scripts/validate-local-auth.mjs --api http://127.0.0.1:3000/v1 --web http://localhost:8081 --keep-synthetic-data
+```
+
+This explicitly writes `communication-*@example.test` users and financial records, tests 14 checkpoints and never deletes existing records. Unit/UI fixture tests and the real PostgreSQL smoke are reported separately.
+
+## Security and current status
+
+Passwords use scrypt with unique salts. Persisted opaque access/refresh credentials are hashed; refresh rotates and detects replay. Financial queries enforce ownership. Browser refresh cookies are HttpOnly and SameSite=Strict, with Secure in production. Authentication routes enforce Origin validation and a single-process rate limiter. Application database failures use safe responses. Secrets, `.env`, generated outputs, installed dependencies and local runtime data are ignored by Git.
+
+Application Prisma connections use UTC to preserve timestamp instants; existing historical rows were not bulk-rewritten. This does not change the user's display timezone.
+
+The main PostgreSQL 17 workflow was revalidated after the redesign. The configured test service on 5433 still rejects credentials (`28P01`/Prisma `P1000`), and sandbox token restrictions block the alternative isolated cluster. Native exports and browser viewports do not establish physical-device execution. Password recovery/email lifecycle, bank integration, production-wide rate limiting and production deployment remain open. No nonfunctional recovery link is displayed.
+
+[Latest redesign validation](docs/auth-redesign-validation.md) records exact commands and results. [Communication acceptance](docs/validation-2026-11-02.md) is historical evidence. [COMMITS.md](COMMITS.md) records reviewable units: this session's Git writes and GitHub HTTPS are blocked, so pending source changes must not be described as published. GitHub Actions is configured in [.github/workflows/ci.yml](.github/workflows/ci.yml); no remote run is claimed here.
+
+## Author
+
+**VRAS CODE** · [GitHub](https://github.com/vrascode) · [Portfolio](https://vrascode.dev)

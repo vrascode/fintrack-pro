@@ -1,5 +1,266 @@
 ﻿# FinTrack Pro progress / Progresso
 
+## Publication tooling / Publicação automatizada — 2026-11-03
+
+The user prioritized publication of all existing work. Re-read COMMITS.md and the
+instructions, checked branch/remotes/history/diff, fetched and queried GitHub,
+and attempted one explicit staging operation. Git writes and sandbox HTTPS remain
+blocked. Normal PowerShell read success reported by the user was not conflated
+with sandbox access or authenticated push access.
+
+Prepared `scripts/publish-pending-commits.ps1`, a concrete immutable manifest,
+seven exact patches and read-only candidate/secret/path validation helpers.
+All 100 pending paths are assigned to **19 coherent units**. Earlier proposals
+were regrouped around dependency boundaries; browser fixture/CI preparation precedes
+the stricter HTTP client. No application redesign, README rewrite, database
+mutation or count-only change was performed in this publication task.
+
+The publisher verifies the original root, Git directory, branch, both remote URLs,
+identity, synchronization, exact fingerprints and staged file set; rejects alternate
+Git stores and artificial date overrides; runs current quality gates; checks staged
+TypeScript; commits/pushes one unit at a time; verifies the advertised remote hash;
+stops on failure and preserves files/index/commits. JSON/Markdown reports in ignored
+`.local/publication/` record actual outcomes, and explicit report resume handles an
+unconfirmed push before creating another commit. Git hooks are preserved and any
+unexpected candidate tree change blocks publication.
+
+Current validation: root build, lint and typecheck passed; **108 unit/HTTP tests**
+passed; fresh web/Android/iOS exports and **34 E2E** passed; formatting/diff checks
+passed. Five new publisher tests include Windows PowerShell AST parsing. All **19
+intermediate TypeScript candidates** passed in memory from Git HEAD blobs with
+future application source excluded. Read-only reverse checks of the terminal shared
+patches passed. Candidate checks are not a claim of runtime SQL acceptance per tree.
+
+Actual `.ps1 -ReviewOnly` execution was refused by the machine's script-execution
+policy before the script body ran. No execution-policy bypass or ACL change was
+attempted. Thus the entire PowerShell commit/push/resume flow remains unexecuted;
+the script is prepared for a normal terminal with approved script execution.
+
+Actual result: **0 commits, 0 pushes, 0 remotely confirmed commits**. Local HEAD
+and cached origin/main remain `22f7e30ac8324dda07e8aac426b825a29228b131` (`0 0` cached).
+Live remote HEAD and CI are unverified here. The conditional 25-commit goal was not
+fabricated; the concrete nineteen-unit plan covers the legitimate pending work.
+
+See [publishing instructions](docs/publishing.md),
+[current publication evidence/table](docs/publication-preparation.md) and
+[COMMITS.md](COMMITS.md). No PostgreSQL integration or real-user smoke was rerun
+in this task; prior blocked integration and real smoke results remain historical.
+
+## Orange authentication and public README / Autenticação laranja e README
+
+Continued from the communication repair without discarding pending work.
+Rechecked branch `main`, remotes, history, dirty/untracked files and permissions.
+Git index writes remain denied and GitHub HTTPS is unreachable: **0 new commits
+and 0 pushes**. No sandbox, ACL or history workaround was attempted.
+
+Removed the green auth-only theme and reused centralized orange/black/white tokens.
+Added a desktop split layout, scrolling mobile presentation, existing brand asset
+and abstract decoration without personal balances. Preserved real authentication,
+validation, confirmation, demo isolation and language/theme preferences. Shared
+fields/buttons support described errors, keyboard focus, inline password visibility,
+44 px touch targets, visible focus and announced loading. Form transitions respect
+reduced motion. No dependency or authentication contract was changed.
+
+Current checks: build, lint and typecheck passed; `npm.cmd test` passed **103/103**;
+web/Android/iOS exports passed; `npm.cmd run test:e2e` passed **34/34**. The actual
+PostgreSQL 17/Edge smoke passed **14 checkpoints after redesign**, including
+accounts, categories, transactions, refresh, logout, R$ 1,300 balance and two-user
+isolation. Synthetic records were retained; no existing data was deleted.
+Doctor still reports test login 28P01; main readiness and four migrations are confirmed.
+
+Rewrote both READMEs with stack, architecture, features, real/demo boundaries,
+installation, environment, existing scripts, networking, security and limitations.
+Captured four real empty-form screenshots and inspected desktop/mobile images.
+The portfolio URL is linked without claiming verified availability.
+`npm.cmd run format:check` and final diff whitespace checks passed.
+
+See [redesign evidence](docs/auth-redesign-validation.md),
+[plan](docs/auth-redesign-plan.md) and [publication units](COMMITS.md).
+The twelve proposed communication/design boundaries are not executed commits;
+the conditional 25-commit target was not manufactured. Remaining actions are valid
+test-database credentials, permitted Git/HTTPS publication and native-device acceptance.
+
+Login/cadastro e documentação foram atualizados; funcionamento real revalidado.
+Publicação continua bloqueada pelas permissões e rede do ambiente.
+
+## Communication and real persistence / Comunicação e persistência — 2026-11-02
+
+Confirmed the fixed 8081 CORS allowlist and matching authentication Origin guard
+as the Expo dynamic-port failure. Added shared exact-origin policy, development
+loopback ports, strict production list, monorepo public Expo environment loading,
+working root CLI argument forwarding, LAN/emulator URL resolution, testable HTTP
+transport and distinct configuration/network/HTTP/auth feedback. Preserved all
+pre-existing working-tree changes and `.env`.
+
+Real browser acceptance also exposed a three-hour Prisma pg timestamptz shift on
+the São Paulo database timezone. Pinned application pool sessions to UTC; no server
+timezone, historical rows, passwords or HBA were rewritten. Added an isolated
+timezone regression (not yet executed because the test database is blocked).
+
+Validation: build, lint, typecheck and native/web exports passed. Full unit/HTTP
+suite passed **102/102 cases** in the final run; 12 targeted HTTP/auth cases also passed.
+The detailed result is recorded in the
+[validation report](docs/validation-2026-11-02.md). UI/demo E2E passed 24/24 Edge
+desktop/mobile cases with intercepted API fixtures. Real smoke on 3107/8084 and
+then 3000/8081 passed all 14 checkpoints, including direct PostgreSQL persistence,
+registration/login, HttpOnly reload, expired access refresh, logout, account update,
+categories, income/expenses, R$ 1,300 balance and two-user isolation. All synthetic
+records were retained; no personal records were deleted.
+
+`npm.cmd run doctor`: main PostgreSQL 17.11 tables ready; configured test login
+still fails `28P01`. `npm.cmd run db:status`: four migrations, schema up to date.
+`npm.cmd run test:integration`: schema/generation passed, deploy blocked by `P1000`
+on 5433; SQL tests did not run. `npm.cmd run test:e2e:isolated -- --version 18`:
+fresh local initdb succeeded but pg_ctl failed restricted-token creation (87/3),
+so isolated SQL/financial E2E remains pending. Existing services were untouched.
+
+Git: **0 new commits, 0 pushes**. `.git/index.lock` and objects are read-only in
+this session; direct HTTPS GitHub access also failed. HEAD and cached origin/main
+match `22f7e30ac8324dda07e8aac426b825a29228b131`; remote freshness is unverified.
+Reviewable commit boundaries and normal-PowerShell commands are in [COMMITS.md](COMMITS.md).
+No artificial 25-commit history was produced.
+
+Próximas ações: validar a credencial de testes com auditoria interativa somente
+leitura; executar a regressão SQL/aceite isolado em ambiente permitido; revisar e
+publicar cada unidade quando Git e HTTPS estiverem disponíveis. Cadastro, login,
+sessão e finanças do banco principal já passaram na validação real.
+
+## Current checkpoint / Estado atual — 2026-10-31
+
+### Pending-publication attempt / Tentativa de publicar pendências
+
+User explicitly requested committing/pushing pending work. Reviewed the first
+authentication-throttling unit and reran its HTTP tests. Standard `git add --`
+for its four explicit paths failed with exit 128 creating `.git/index.lock`
+(permission denied), before any commit could run. No lock exists, no staged
+changes were left, and HEAD/origin/main still point to
+`22f7e30ac8324dda07e8aac426b825a29228b131`. No new commit/push was created;
+authorization is present but the session's Git write restriction persists.
+
+Review also found duplicate `AuthRateLimitGuard` decorators on refresh. A new
+HTTP regression first reproduced premature 429 responses, then removing the
+duplicate made 30 refresh attempts count once each. `npm.cmd run check` passed
+lint, strict types, builds, 92 tests and formatting after the fix. No installed
+database login/recovery or privileged operation was attempted. All other pending
+work remains preserved. Publication still requires Git metadata write access in
+an authorized execution environment or owner-terminal Git; do not remove ACLs
+or fabricate a remote publication result.
+
+### Administrative recovery preparation / Preparação da recuperação administrativa
+
+User confirmed the PostgreSQL 17 administrative password is forgotten and requested
+approval before any authentication/credential change. No SQL authentication was
+attempted in this recovery-preparation turn; doctor was deliberately not rerun
+against the known-invalid passwords. No privileged change, service restart, HBA
+edit, password change, `.env` edit or database mutation was performed.
+
+`sc.exe qc/queryex` confirmed running services 17/18 with their respective standard
+data directories. `netstat -ano -p tcp` reported 5432 listening under PID 8428 and
+5433 under PID 9104 at inspection time. Service wrapper PIDs were 6744 and 6668;
+those numbers alone do not prove the listener/instance association. CIM/TCP and
+data-directory access remain denied to the restricted identity. Added read-only
+`scripts/inspect-local-blockers.ps1` for elevated service → parent process → PID
+file → listener verification and authentication-method summaries without raw HBA
+options or `.env` access. PowerShell parser validation passed; privileged execution
+is pending. No alternate legitimate administrator session or SSPI mapping has
+been established; none is assumed absent solely because of sandbox restrictions.
+
+Reviewed the existing 17/5432-only recovery helper and its pending tests, plus
+official PostgreSQL 17 HBA, psql, authentication and single-user documentation.
+`node --test tests/postgres-recovery.test.mjs tests/postgres-setup.test.mjs`:
+9/9 passed against local fixtures; no recovery integration/production acceptance
+is claimed. `git diff --check` passed. The concrete approval plan, affected files,
+temporary loopback trust exposure, restoration safeguards, manual admin commands,
+separate 5433 treatment and rollback are in `docs/postgresql-recovery-approval.md`.
+Administrative recovery has NOT been executed and awaits explicit authorization
+after confirming instance mapping.
+
+Git inspection found no `index.lock`, no active Git process and no read-only
+attribute on the index. `.git` ACL has explicit deny-write entries for restricted
+SIDs, and current tool policy grants only metadata read access. This is a sandbox
+permission boundary enforced through Windows ACLs, not a stale lock. No lock,
+ACL or ownership was modified. Solution: normal owner-terminal Git or an explicitly
+authorized execution environment; do not remove sandbox restrictions. No new
+commit/push was possible; all pending work and four previously published commits
+are preserved. PostgreSQL local recovery and complete acceptance remain open.
+
+### PostgreSQL credential follow-up / Inspeção de credenciais
+
+Inspected root `.env` through redacted metadata only: `DATABASE_URL` selects role
+`fintrack`, database `fintrack`, 127.0.0.1:5432; `TEST_DATABASE_URL` selects role
+`fintrack_test`, database `fintrack_test`, 127.0.0.1:5433. Both passwords are present;
+no process override was found. `.env` is ignored. Docker's POSTGRES password keys
+do not establish administrative credentials for the existing Windows services.
+
+Reviewed `scripts/setup-local-postgres.mjs` before using metadata-only `--inspect`.
+Added `--audit`: only catalog SELECTs, no password hashes, mutations or password
+reconciliation; it requires the user to enter the current admin password locally.
+Tests cover missing roles/databases and reject combining audit with reconciliation.
+Doctor now names the role and exact read-only audit command without exposing secrets.
+Six provisioning tests and targeted ESLint passed. Instructions in
+`docs/postgresql-local-credentials.md` explain local password entry and URL encoding.
+Final `npm.cmd run check` passed lint, typecheck, builds, all 91 unit/HTTP tests
+and formatting. This does not replace the blocked real PostgreSQL integration.
+
+`sc.exe qc` verified service data-directory paths for PostgreSQL 17/18. Reading
+configuration with `postgres -C port` was denied by filesystem permissions; no HBA
+was read or changed. Administrative SQL access is unavailable; role existence,
+ownership and permissions are not inferred from 28P01. No application or admin
+password was guessed or changed, and no `.env` value was rewritten without evidence.
+
+`npm.cmd run test:integration` built successfully, validated Prisma and generated
+Client, then failed at migration authentication with P1000 for fintrack_test on 5433. SQL tests and browser persistence were not reached. Latest doctor still
+reports 28P01 for both targets. Git staging again failed on `.git/index.lock`
+(permission denied), so no additional commit or push was created in this follow-up.
+Next action requires valid local application credentials or the current admin
+password entered into the interactive audit/provisioning command by the user.
+
+Nenhuma senha foi revelada ou redefinida. O bloqueio de autenticação continua real;
+não houve validação fictícia de cadastro, login ou persistência nesta continuação.
+
+The personal installation remains blocked by PostgreSQL authentication (28P01 on
+5432 and 5433). API on 3000 and Expo Web on 8081 were started and verified:
+process health 200, readiness/login 503 with correct CORS. A live Edge browser
+confirmed API communication and the distinct database error. No administrator
+password, HBA or existing database was changed. Installed binaries: PostgreSQL
+17.11 and 18.6; isolated SQL acceptance used 17.11.
+
+Delivered source: safe doctor/dev commands, same-site loopback URL correction,
+connection/request bounds, current identity/native refresh, shared request renewal,
+validated hydration, failed-logout retry, authentication throttling, safe database
+errors, scoped lime login theme, password confirmation, persistent language/theme,
+owner-scoped account rename/archive/reactivation, preserved archived totals and
+personal transaction search/history/detail. CI source now includes PostgreSQL 17
+integration under an unprivileged role. Existing recovery edits were preserved.
+
+Validation commands and actual results:
+
+- npm.cmd run check: passed lint, typecheck, API/shared builds, 89 tests, formatting.
+- npm.cmd run db:validate: passed; client 7.10.1 generated during builds.
+- npm.cmd run bundle: final web, Android, iOS exports passed; no device/APK test.
+- npm.cmd run test:e2e: final 14/14 desktop/mobile browser cases passed.
+- npm.cmd run test:e2e:isolated: initially passed under approved execution,
+  four migrations, no-op redeploy, 9 SQL tests and 2 real financial browser cases
+  (registration, login, exact 1300 BRL balance, reload/API restart/logout/login,
+  isolation and idempotency). Repeat after later changes could not start the
+  temporary PostgreSQL under the subsequently restricted execution policy.
+  Expanded renewal/archive/search SQL scenarios remain unverified.
+- npm.cmd run doctor: fails correctly with 28P01 for both configured databases.
+- Live browser: login submitted from 8081 to 3000, real 503 and database feedback.
+- git diff --check: passed. Four scoped commits were pushed through 22f7e30;
+  later git add/commit failed creating .git/index.lock (permission denied).
+- gh run list: network permission denied. Connected combined-status lookup returned
+  no entries; Actions success is not established.
+
+A implementação pessoal NÃO está concluída. Próximo passo: configurar credenciais
+válidas no .env ignorado ou provisionar separadamente os bancos com os comandos
+interativos documentados, executar migrações e repetir a integração completa.
+Depois restaurar escrita Git, revisar as unidades pendentes, criar commits e
+publicar/verificar a CI. Não houve commits artificiais para atingir 20–30.
+
+See [full evidence, commit hashes and remaining gates](docs/validation-2026-10-31.md).
+Older entries below are historical checkpoints, not the current acceptance state.
+
 Updated / Atualizado: 2026-10-27
 
 ## Main synchronization and administrative recovery / Integração e recuperação — 2026-10-30

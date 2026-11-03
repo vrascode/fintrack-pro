@@ -1,6 +1,30 @@
 ﻿# Database / Banco de dados
 
-## Current boundary / Limite atual
+## Current checkpoint / Estado atual — 2026-11-02
+
+PostgreSQL 17.11 on `127.0.0.1:5432/fintrack` is authenticated and all four migrations
+are applied. Registration, login, cookie/session refresh, account updates and
+financial persistence passed on this actual database. Prisma pool connections now
+use UTC without changing server settings or rewriting existing timestamps.
+The configured test target on 5433 still returns `28P01`/Prisma `P1000`.
+See [current evidence](docs/validation-2026-11-02.md) and
+[local development](docs/local-development.md). / O banco principal está pronto;
+somente o destino de testes continua rejeitando autenticação.
+
+## Historical checkpoint / Registro histórico — 2026-10-31
+
+Credential follow-up: configured roles are `fintrack` (5432) and `fintrack_test`
+(5433). The helper now supports `--development --audit` and `--test --audit`:
+read-only role/database/privilege inspection with hidden input of the existing
+administrator password. No administrative credential is currently available to
+the agent; role existence remains unverified. See the [secure local credential
+procedure](docs/postgresql-local-credentials.md) before provisioning or choosing
+application-password reconciliation. / Auditoria sem alterações; não envie senhas
+no chat. As credenciais Docker não comprovam a senha dos serviços Windows.
+
+Current gate: configured 5432/5433 both reject authentication (28P01); do not reset administrative credentials or weaken HBA. Prisma schema/client and four migrations passed on isolated PostgreSQL 17.11, not on the personal database. Use `npm.cmd run doctor`, provision each target separately, then deploy migrations without reset. / Bloqueio atual: credenciais locais rejeitadas; validar cada banco separadamente. See [current evidence](docs/validation-2026-10-31.md).
+
+## Historical boundary / Limite registrado em 2026-10-31
 
 Phase 2 and ledger preparation are in source: PostgreSQL 17 Compose services, Prisma 7
 dependencies, schema/client generation, versioned identity and ledger migrations,

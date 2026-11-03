@@ -1,5 +1,9 @@
 # FinTrack Pro — Roadmap / Roteiro
 
+## Current checkpoint / Estado atual — 2026-10-31
+
+Current milestone remains OPEN: personal PostgreSQL authentication fails on 5432/5433, and the latest account/renewal scenarios require a fresh real SQL run. Four fixes were published; subsequent source changes are uncommitted because Git writes are denied. / Não considerar o fluxo pessoal ou a publicação completa concluídos. See [current acceptance gates](docs/validation-2026-10-31.md).
+
 Scope: FinTrack Pro MASTER DEVELOPMENT PROMPT supplied on 2026-10-25.
 
 Current own-finance milestone (2026-10-30): authenticated account/entry forms,
