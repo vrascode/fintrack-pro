@@ -1,4 +1,4 @@
-import { useState, type PropsWithChildren } from 'react';
+import { useId, useState, type PropsWithChildren, type ReactNode, type Ref } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
   type TextInputProps,
+  type TextInputInstance,
   type TextStyle,
   type ViewStyle,
   useWindowDimensions,
@@ -75,6 +76,8 @@ export function Button({
   variant = 'primary',
   selected,
   compact = false,
+  loading = false,
+  accessibilityLabel,
 }: {
   label: string;
   onPress(): void;
@@ -82,29 +85,50 @@ export function Button({
   variant?: 'primary' | 'secondary' | 'quiet';
   selected?: boolean;
   compact?: boolean;
+  loading?: boolean;
+  accessibilityLabel?: string;
 }) {
   const colors = useTheme();
   const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const primary = variant === 'primary';
   const quiet = variant === 'quiet';
   return (
     <Pressable
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole={selected === undefined ? 'button' : 'radio'}
-      accessibilityState={{ disabled, ...(selected === undefined ? {} : { checked: selected }) }}
-      aria-disabled={disabled}
+      accessibilityState={{
+        disabled: disabled || loading,
+        busy: loading,
+        ...(selected === undefined ? {} : { checked: selected }),
+      }}
+      aria-disabled={disabled || loading}
+      aria-busy={loading}
       {...(selected === undefined ? {} : { 'aria-checked': selected })}
-      disabled={disabled}
+      disabled={disabled || loading}
       onPress={onPress}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
       style={({ pressed }) => ({
-        minHeight: compact ? 42 : 48,
-        minWidth: compact ? 42 : undefined,
+        minHeight: compact ? 44 : 48,
+        minWidth: compact ? 44 : undefined,
         paddingHorizontal: compact ? 14 : 20,
         paddingVertical: compact ? 9 : 12,
         borderRadius: designTokens.radius.md,
-        borderWidth: focused ? 2 : selected ? 1 : 0,
-        borderColor: focused || selected ? colors.accent : 'transparent',
+        borderWidth: 2,
+        borderColor: focused
+          ? primary
+            ? colors.mode === 'dark'
+              ? designTokens.brand.orangeLight
+              : colors.ink
+            : colors.accentText
+          : hovered && primary
+            ? colors.accentStrong
+            : selected
+              ? colors.accent
+              : 'transparent',
         backgroundColor: primary
           ? colors.accent
           : quiet
@@ -112,12 +136,20 @@ export function Button({
             : selected
               ? colors.accentSoft
               : colors.elevated,
-        opacity: disabled ? 0.52 : pressed ? 0.76 : 1,
+        opacity: disabled || loading ? 0.52 : pressed ? 0.76 : 1,
         transform: [{ scale: pressed && !disabled ? 0.985 : 1 }],
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'row',
+        gap: designTokens.spacing.sm,
       })}
     >
+      {loading ? (
+        <ActivityIndicator
+          color={primary ? colors.accentInk : colors.accentText}
+          accessibilityElementsHidden
+        />
+      ) : null}
       <Text
         style={{
           color: primary ? colors.accentInk : selected ? colors.accentText : colors.ink,
@@ -135,42 +167,75 @@ export function Button({
 export function Field({
   label,
   error,
+  hint,
+  trailing,
+  inputRef,
   ...props
-}: TextInputProps & { label: string; error?: string }) {
+}: TextInputProps & {
+  label: string;
+  error?: string;
+  hint?: string;
+  trailing?: ReactNode;
+  inputRef?: Ref<TextInputInstance>;
+}) {
   const colors = useTheme();
   const [focused, setFocused] = useState(false);
+  const id = useId();
   return (
     <View style={{ gap: designTokens.spacing.sm }}>
       <Label>{label}</Label>
-      <TextInput
-        {...props}
-        accessibilityLabel={label}
-        onFocus={(event) => {
-          setFocused(true);
-          props.onFocus?.(event);
-        }}
-        onBlur={(event) => {
-          setFocused(false);
-          props.onBlur?.(event);
-        }}
-        placeholderTextColor={colors.muted}
-        selectionColor={colors.accent}
-        style={[
-          {
-            color: colors.ink,
-            backgroundColor: colors.surface,
-            borderColor: error ? colors.danger : focused ? colors.accent : colors.border,
-            borderWidth: focused ? 2 : 1,
-            borderRadius: designTokens.radius.md,
-            minHeight: 50,
-            padding: 13,
-            fontFamily: designTokens.typography.family,
-          },
-          props.style,
-        ]}
-      />
+      <View style={{ position: 'relative', justifyContent: 'center' }}>
+        <TextInput
+          {...props}
+          ref={inputRef}
+          accessibilityLabel={label}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+          onFocus={(event) => {
+            setFocused(true);
+            props.onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            props.onBlur?.(event);
+          }}
+          placeholderTextColor={colors.muted}
+          selectionColor={colors.accent}
+          style={[
+            {
+              color: colors.ink,
+              backgroundColor: colors.surface,
+              borderColor: error ? colors.danger : focused ? colors.accent : colors.border,
+              borderWidth: focused ? 2 : 1,
+              borderRadius: designTokens.radius.md,
+              minHeight: 50,
+              padding: 13,
+              fontFamily: designTokens.typography.family,
+              fontSize: designTokens.typography.sizes.md,
+              paddingRight: trailing ? 90 : 13,
+            },
+            props.style,
+          ]}
+        />
+        {trailing ? (
+          <View
+            style={{ position: 'absolute', right: 4, top: 3, bottom: 3, justifyContent: 'center' }}
+          >
+            {trailing}
+          </View>
+        ) : null}
+      </View>
+      {hint && !error ? (
+        <Text nativeID={`${id}-hint`} style={{ color: colors.muted, fontSize: 12, lineHeight: 18 }}>
+          {hint}
+        </Text>
+      ) : null}
       {error ? (
-        <Text accessibilityRole="alert" style={{ color: colors.danger, lineHeight: 20 }}>
+        <Text
+          nativeID={`${id}-error`}
+          accessibilityRole="alert"
+          style={{ color: colors.danger, lineHeight: 20 }}
+        >
           ⚠ {error}
         </Text>
       ) : null}

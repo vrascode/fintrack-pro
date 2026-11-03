@@ -4,7 +4,7 @@ test('fictional dashboard and financial pages stay responsive', async ({ page },
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Comece com seus dados' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Suas finanças sob controle.' })).toBeVisible();
   await page.getByRole('button', { name: /Explorar demonstração/ }).click();
   await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible();
   await expect(page.getByText('DEMONSTRAÇÃO · DADOS FICTÍCIOS', { exact: true })).toBeVisible();
