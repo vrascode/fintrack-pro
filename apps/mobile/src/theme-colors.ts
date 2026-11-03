@@ -1,3 +1,9 @@
+export const brandColors = Object.freeze({
+  orange: '#C84A01',
+  orangeInteraction: '#E85D04',
+  orangeLight: '#FF7A2F',
+});
+
 export const palettes = {
   light: {
     background: '#F2EFE9',
@@ -7,8 +13,8 @@ export const palettes = {
     border: '#D9D3C9',
     ink: '#171717',
     muted: '#625F5A',
-    accent: '#C84A01',
-    accentStrong: '#E45A12',
+    accent: brandColors.orange,
+    accentStrong: brandColors.orangeInteraction,
     accentText: '#A83D00',
     accentSoft: '#F2E8E1',
     accentInk: '#FFFFFF',
@@ -21,15 +27,15 @@ export const palettes = {
     shadow: 'rgba(35, 25, 18, 0.08)',
   },
   dark: {
-    background: '#0A0A0A',
-    sidebar: '#101010',
-    surface: '#141414',
+    background: '#09090B',
+    sidebar: '#111114',
+    surface: '#18181B',
     elevated: '#1C1C1C',
-    border: '#292929',
-    ink: '#F5F5F5',
-    muted: '#A3A3A3',
-    accent: '#C84A01',
-    accentStrong: '#E45A12',
+    border: '#27272A',
+    ink: '#FFFFFF',
+    muted: '#A1A1AA',
+    accent: brandColors.orange,
+    accentStrong: brandColors.orangeInteraction,
     accentText: '#FF741F',
     accentSoft: '#382115',
     accentInk: '#FFFFFF',

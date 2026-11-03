@@ -40,13 +40,23 @@ test('solid negative text keeps readable contrast on its theme surfaces', () => 
 test('orange positive labels retain readable contrast in both themes', () => {
   assert.equal(palettes.light.accent, '#C84A01');
   assert.equal(palettes.dark.accent, '#C84A01');
-  assert.equal(palettes.light.accentStrong, '#E45A12');
-  assert.equal(palettes.dark.accentStrong, '#E45A12');
+  assert.equal(palettes.light.accentStrong, '#E85D04');
+  assert.equal(palettes.dark.accentStrong, '#E85D04');
   for (const surface of ['#F2EFE9', '#FAF8F4', '#EAE5DC']) {
     assert.ok(contrast(palettes.light.positiveText, surface) >= 4.5);
   }
   for (const surface of ['#0A0A0A', '#101010', '#141414', '#1C1C1C']) {
     assert.ok(contrast(palettes.dark.positiveText, surface) >= 4.5);
+  }
+});
+
+test('shared auth text and field labels retain AA contrast on actual theme surfaces', () => {
+  for (const palette of [palettes.dark, palettes.light]) {
+    for (const surface of [palette.background, palette.sidebar, palette.surface]) {
+      assert.ok(contrast(palette.ink, surface) >= 4.5);
+      assert.ok(contrast(palette.muted, surface) >= 4.5);
+      assert.ok(contrast(palette.accentText, surface) >= 4.5);
+    }
   }
 });
 

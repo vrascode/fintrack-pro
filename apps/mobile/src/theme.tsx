@@ -1,11 +1,12 @@
 import { Platform, useColorScheme } from 'react-native';
+import { createContext, useContext, type PropsWithChildren } from 'react';
 import { usePreferences } from './preferences';
-import { palettes } from './theme-colors';
+import { brandColors, palettes } from './theme-colors';
 
 export { palettes } from './theme-colors';
 
 export const designTokens = Object.freeze({
-  brand: { orange: '#C84A01', orangeInteraction: '#E45A12' },
+  brand: brandColors,
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 },
   radius: { sm: 10, md: 14, lg: 20, xl: 28, pill: 999 },
   typography: {
@@ -16,12 +17,21 @@ export const designTokens = Object.freeze({
 });
 
 export type ThemeMode = keyof typeof palettes;
-export type ThemeColors = (typeof palettes)[ThemeMode];
+export type ThemeColors = { [K in keyof (typeof palettes)['light']]: string };
+const ThemeContext = createContext<Partial<ThemeColors>>({});
+
+export function ThemeScope({
+  colors,
+  children,
+}: PropsWithChildren<{ colors: Partial<ThemeColors> }>) {
+  return <ThemeContext.Provider value={colors}>{children}</ThemeContext.Provider>;
+}
 
 export function useTheme() {
   const system = useColorScheme();
   const { value } = usePreferences();
   const mode: ThemeMode =
     value.theme === 'system' ? (system === 'dark' ? 'dark' : 'light') : value.theme;
-  return { ...palettes[mode], mode, preference: value.theme };
+  const overrides = useContext(ThemeContext);
+  return { ...palettes[mode], ...overrides, mode, preference: value.theme };
 }
