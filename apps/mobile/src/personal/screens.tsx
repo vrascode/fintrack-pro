@@ -26,6 +26,9 @@ import {
   StatusMessage,
 } from '../components/ui';
 import { usePersonalFinance } from './usePersonalFinance';
+import { summarizePersonalFinance } from './summary';
+import { TransactionEditor } from './TransactionEditor';
+import { filterHistory } from './history';
 
 const today = () => new Date().toISOString().slice(0, 10);
 function useLabels() {
@@ -196,11 +199,16 @@ export function PersonalAccounts() {
                 detail={`${account.type} · ${text('Saldo inicial em', 'Opening balance on')} ${formatDate(account.openingDate)}`}
               />
               <Label>
-                {formatCurrency(
-                  calculateAccountBalance(account, data.transactions, today()),
-                  'BRL',
-                  hidden,
-                )}
+                {account.openingDate > today()
+                  ? text(
+                      'Saldo disponível a partir da abertura',
+                      'Balance available from the opening date',
+                    )
+                  : formatCurrency(
+                      calculateAccountBalance(account, data.transactions, today()),
+                      'BRL',
+                      hidden,
+                    )}
               </Label>
               <AccountActions account={account} busy={busy} update={updateAccount} />
             </Card>
@@ -517,20 +525,14 @@ export function PersonalOverview() {
   const colors = useTheme();
   const signOut = useAuth((state) => state.signOut);
   const authError = useAuth((state) => state.error);
-  const month = today().slice(0, 7);
-  const received =
-    data?.transactions
-      .filter((item) => item.kind === 'income' && item.date.startsWith(month))
-      .reduce((sum, item) => sum + BigInt(item.amountCents), 0n) ?? 0n;
-  const paid =
-    data?.transactions
-      .filter((item) => item.kind === 'expense' && item.date.startsWith(month))
-      .reduce((sum, item) => sum + BigInt(item.amountCents), 0n) ?? 0n;
-  const balance =
-    data?.accounts.reduce(
-      (sum, item) => sum + calculateAccountBalance(item, data.transactions, today()),
-      0n,
-    ) ?? 0n;
+  const summary = summarizePersonalFinance(
+    data?.accounts ?? [],
+    data?.categories ?? [],
+    data?.transactions ?? [],
+    today(),
+  );
+  const { month, balance } = summary;
+  const { income: received, expense: paid } = summary.current;
   const scale = received > paid ? received : paid;
   const money = (value: bigint) => formatCurrency(value, 'BRL', hidden);
   return (
@@ -570,6 +572,14 @@ export function PersonalOverview() {
                 >
                   {money(balance)}
                 </Text>
+                {summary.futureAccounts > 0 ? (
+                  <Label muted>
+                    {text(
+                      'Contas com abertura futura não integram o saldo de hoje.',
+                      'Accounts opening in the future are excluded from today’s balance.',
+                    )}
+                  </Label>
+                ) : null}
               </Card>
               <Card>
                 <SectionHeading title={text('Resultado do mês', 'Monthly result')} detail={month} />
@@ -604,6 +614,43 @@ export function PersonalOverview() {
                     </View>
                   </View>
                 ))}
+              </Card>
+              <Card>
+                <SectionHeading
+                  title={text('Comparação mensal', 'Monthly comparison')}
+                  detail={summary.previousMonth}
+                />
+                <Label muted>
+                  {text(
+                    'Mês atual até hoje comparado ao mês anterior completo.',
+                    'Current month to date compared with the full previous month.',
+                  )}
+                </Label>
+                <Label>
+                  {text('Resultado anterior', 'Previous net')}: {money(summary.previous.net)}
+                </Label>
+                <Label>
+                  {text('Variação do resultado', 'Change in net')}:{' '}
+                  {money(summary.current.net - summary.previous.net)}
+                </Label>
+              </Card>
+              <Card>
+                <SectionHeading
+                  title={text('Gastos por categoria', 'Spending by category')}
+                  detail={month}
+                />
+                {summary.categories.length ? (
+                  summary.categories.map((category) => (
+                    <Label key={category.id}>
+                      {category.name ?? text('Sem categoria', 'Uncategorized')}:{' '}
+                      {money(category.amount)}
+                    </Label>
+                  ))
+                ) : (
+                  <Label muted>
+                    {text('Nenhuma despesa neste mês.', 'No expenses this month.')}
+                  </Label>
+                )}
               </Card>
               <Card>
                 <SectionHeading title={text('Histórico salvo', 'Saved history')} />
@@ -680,7 +727,14 @@ export function PersonalOverview() {
 
 export function PersonalActivity() {
   const { text, formatDate, formatCurrency, hidden } = useLabels();
-  const { data, loading, error, refresh } = usePersonalFinance();
+  const { data, loading, error, refresh, token } = usePersonalFinance();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [kindFilter, setKindFilter] = useState('');
+  const [accountFilter, setAccountFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [ascending, setAscending] = useState(false);
+  const editing = data?.transactions.find((entry) => entry.id === editingId);
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -688,13 +742,15 @@ export function PersonalActivity() {
     (!from || calendarDateSchema.safeParse(from).success) &&
     (!to || calendarDateSchema.safeParse(to).success) &&
     (!from || !to || from <= to);
-  const rows =
-    data?.transactions.filter(
-      (item) =>
-        item.description.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
-        (!from || item.date >= from) &&
-        (!to || item.date <= to),
-    ) ?? [];
+  const rows = filterHistory(data?.transactions ?? [], {
+    search,
+    from,
+    to,
+    kind: kindFilter,
+    accountId: accountFilter,
+    categoryId: categoryFilter,
+    ascending,
+  });
   return (
     <Screen
       title={text('Movimentações salvas', 'Saved transactions')}
@@ -725,7 +781,96 @@ export function PersonalActivity() {
             message={text('Confira o período informado.', 'Check the selected period.')}
           />
         ) : null}
+        <Label>{text('Tipo de movimentação', 'Transaction type')}</Label>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            ['', text('Todos os tipos', 'All types')],
+            ['income', text('Receitas', 'Income')],
+            ['expense', text('Despesas', 'Expenses')],
+            ['transfer', text('Transferências', 'Transfers')],
+          ].map(([value, label]) => (
+            <Button
+              key={value}
+              variant="quiet"
+              label={label!}
+              selected={kindFilter === value}
+              onPress={() => setKindFilter(value!)}
+            />
+          ))}
+        </View>
+        <Label>{text('Filtrar conta', 'Filter account')}</Label>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <Button
+            variant="quiet"
+            label={text('Todas as contas', 'All accounts')}
+            selected={!accountFilter}
+            onPress={() => setAccountFilter('')}
+          />
+          {data?.accounts.map((account) => (
+            <Button
+              key={account.id}
+              variant="quiet"
+              label={account.name}
+              selected={accountFilter === account.id}
+              onPress={() => setAccountFilter(account.id)}
+            />
+          ))}
+        </View>
+        <Label>{text('Filtrar categoria', 'Filter category')}</Label>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <Button
+            variant="quiet"
+            label={text('Todas as categorias', 'All categories')}
+            selected={!categoryFilter}
+            onPress={() => setCategoryFilter('')}
+          />
+          {data?.categories.map((category) => (
+            <Button
+              key={category.id}
+              variant="quiet"
+              label={category.name}
+              selected={categoryFilter === category.id}
+              onPress={() => setCategoryFilter(category.id)}
+            />
+          ))}
+        </View>
+        <Button
+          variant="quiet"
+          label={
+            ascending
+              ? text('Mais antigas primeiro', 'Oldest first')
+              : text('Mais recentes primeiro', 'Newest first')
+          }
+          onPress={() => setAscending(!ascending)}
+        />
       </Card>
+      {saved ? (
+        <StatusMessage
+          tone="success"
+          message={text('Alteração salva no servidor.', 'Change saved on the server.')}
+        />
+      ) : null}
+      {editing && token && data ? (
+        <TransactionEditor
+          key={editing.id}
+          entry={editing}
+          accounts={data.accounts}
+          categories={data.categories}
+          token={token}
+          onCancel={() => setEditingId(null)}
+          onSaved={async () => {
+            setEditingId(null);
+            setSaved(true);
+            await refresh();
+          }}
+        />
+      ) : null}
+      <Button
+        variant="quiet"
+        label={text('Atualizar histórico', 'Refresh history')}
+        disabled={loading || !!editing}
+        onPress={() => void refresh()}
+      />
       {loading ? (
         <Loading />
       ) : error ? (
@@ -746,9 +891,20 @@ export function PersonalActivity() {
                 {formatCurrency(BigInt(item.amountCents), 'BRL', hidden)}
               </Label>
               <Label muted>
-                {data?.categories.find((c) => c.id === item.categoryId)?.name ??
-                  text('Sem categoria', 'Uncategorized')}
+                {item.transferAccountId
+                  ? `${text('Destino', 'Destination')}: ${data?.accounts.find((account) => account.id === item.transferAccountId)?.name ?? ''}`
+                  : (data?.categories.find((c) => c.id === item.categoryId)?.name ??
+                    text('Sem categoria', 'Uncategorized'))}
               </Label>
+              <Button
+                variant="quiet"
+                label={text('Editar ou excluir', 'Edit or remove')}
+                disabled={!!editing || !item.revision}
+                onPress={() => {
+                  setSaved(false);
+                  setEditingId(item.id);
+                }}
+              />
             </Card>
           ))
         ) : (
