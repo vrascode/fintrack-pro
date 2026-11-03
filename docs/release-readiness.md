@@ -3,13 +3,13 @@
 No hosted API, Web deployment or store release was performed. / Nenhum deploy ou
 envio às lojas foi realizado.
 
-| Delivery | Required configuration | Current boundary |
-| --- | --- | --- |
-| GitHub source | Git write access and network access to origin/main | Sandbox cannot stage or fetch |
-| API | Production PostgreSQL, HTTPS host and explicit Web origins | Hosting and credentials not supplied |
-| Web | Real HTTPS API at `/v1` and static host with SPA fallback | Release check rejects missing/local/placeholder endpoints |
-| Android | Expo project, signing credentials and device acceptance | Identifier/assets exist; no signed release validated |
-| iOS | Expo project, Apple signing credentials and device acceptance | Identifier/assets exist; no signed release validated |
+| Delivery      | Required configuration                                        | Current boundary                                          |
+| ------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| GitHub source | Git write access and network access to origin/main            | Sandbox cannot stage or fetch                             |
+| API           | Production PostgreSQL, HTTPS host and explicit Web origins    | Hosting and credentials not supplied                      |
+| Web           | Real HTTPS API at `/v1` and static host with SPA fallback     | Release check rejects missing/local/placeholder endpoints |
+| Android       | Expo project, signing credentials and device acceptance       | Identifier/assets exist; no signed release validated      |
+| iOS           | Expo project, Apple signing credentials and device acceptance | Identifier/assets exist; no signed release validated      |
 
 ## API
 
