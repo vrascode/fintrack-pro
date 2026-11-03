@@ -1,5 +1,11 @@
 ﻿# FinTrack Pro progress / Progresso
 
+## Dashboard audit and redesign / Auditoria e redesign — 2026-11-03
+
+Audited clean `main`, monorepo, API/Prisma models and financial flows. The authenticated dashboard now selects a month, derives cards and six-month visualizations from API records, limits recent entries to five and shows honest empty states. The light palette uses the requested colors; form dates follow the São Paulo business timezone. Account name editing retains the form after API failure, and mobile navigation shows four legible destinations. See [evidence and pending work](docs/DASHBOARD_AUDIT_2026-11-03.md).
+
+Initial checks: `npm.cmd test` 119/119, lint and typecheck passed. Final unit tests 121/121, lint, typecheck and web/Android/iOS export passed. Mocked browser E2E passed 40/40. Subsequent navigation changes passed 10/10 dashboard/foundation checks, then the final dashboard check passed 2/2 including the desktop Cards route. `db:status` found five applied migrations; a separate API process returned HTTP 200 from `/v1/health/ready` on port 3102. `doctor` found the application database ready but isolated test credentials rejected (`28P01`). `npm.cmd run test:integration` failed with `P1000` on that isolated database. Full format check still fails on three pre-existing documentation files; changed files are formatted. Git staging failed at `.git/index.lock` with `Permission denied`: zero commits and pushes. No existing PostgreSQL data was changed. Next: obtain Git write access and isolated-test credentials, then validate real persistence and publish reviewed commits.
+
 ## Publication tooling / Publicação automatizada — 2026-11-03
 
 The user prioritized publication of all existing work. Re-read COMMITS.md and the
