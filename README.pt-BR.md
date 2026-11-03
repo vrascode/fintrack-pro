@@ -1,4 +1,4 @@
-﻿# FinTrack Pro
+# FinTrack Pro
 
 **Aplicação de gestão financeira pessoal com autenticação real, contas, transações e uma visão clara do seu dinheiro.**
 
@@ -179,3 +179,13 @@ Antes de executar o sistema localmente:
 - Configure as variáveis de ambiente necessárias.
 - Verifique a disponibilidade dos serviços utilizados pela aplicação.
 - Consulte a documentação técnica para detalhes de execução e desenvolvimento.
+
+## Verificação de qualidade antes de publicar
+
+O projeto disponibiliza os seguintes comandos:
+
+- `npm run check:quick`: executa ESLint e verifica a formatação com Prettier.
+- `npm run check:tests`: verifica os tipos TypeScript e executa os testes automatizados.
+- `npm run check`: executa lint, verificação de tipos, testes e formatação.
+
+Antes de enviar alterações ao GitHub, execute as verificações adequadas ao escopo da mudança. Para uma validação completa, utilize `npm run check`.
