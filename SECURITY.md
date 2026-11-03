@@ -161,3 +161,17 @@ pessoais ou exportaÃ§Ãµes financeiras nesse escopo. `.env.example` contÃ©m apena
 host/porta locais, e `.npmrc` nÃ£o contÃ©m autenticaÃ§Ã£o. Ambientes locais, caches,
 dependÃªncias e resultados gerados estÃ£o ignorados. A revisÃ£o por padrÃµes e
 inspeÃ§Ã£o manual nÃ£o substitui auditoria de dependÃªncias nem scanner especializado.
+
+## Verificações de segurança para novas funcionalidades
+
+Antes de disponibilizar uma funcionalidade financeira, verificar:
+
+- Se os endpoints protegidos exigem autenticação.
+- Se o usuário pode acessar somente os próprios recursos.
+- Se entradas e identificadores são validados no servidor.
+- Se senhas, tokens e credenciais não aparecem em logs.
+- Se operações financeiras possuem tratamento de erros.
+- Se dados sensíveis não são incluídos em respostas desnecessárias.
+- Se testes cobrem os cenários críticos de autorização.
+
+Esta lista é um checklist de revisão, não uma declaração de que todas as verificações já foram concluídas.
