@@ -44,6 +44,27 @@ async function list<T>(
 }
 
 export const apiClient = {
+  async editTransaction(
+    token: string,
+    id: string,
+    revision: number,
+    input: FinancialTransactionInput,
+  ): Promise<FinancialTransaction> {
+    return financialTransactionSchema.parse(
+      await request(`/transactions/${encodeURIComponent(id)}`, {
+        token,
+        method: 'PATCH',
+        body: { revision, transaction: financialTransactionInputSchema.parse(input) },
+      }),
+    );
+  },
+  removeTransaction(token: string, id: string, revision: number): Promise<{ success: true }> {
+    return request(`/transactions/${encodeURIComponent(id)}`, {
+      token,
+      method: 'DELETE',
+      body: { revision },
+    });
+  },
   async refresh(session: ClientSession): Promise<ClientSession> {
     return clientSessionSchema.parse(
       await request('/auth/refresh', {
