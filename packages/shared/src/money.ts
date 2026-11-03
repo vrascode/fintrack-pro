@@ -4,16 +4,21 @@ export const MIN_MINOR = -9223372036854775808n;
 export const MAX_MINOR = 9223372036854775807n;
 export const minorUnitsSchema = z
   .string()
-  .max(20)
-  .regex(/^(0|-?[1-9]\d*)$/)
-  .refine((value) => {
-    try {
-      const amount = BigInt(value);
-      return amount >= MIN_MINOR && amount <= MAX_MINOR;
-    } catch {
-      return false;
-    }
-  }, 'Amount exceeds signed 64-bit storage');
+  .refine((value) => value.length <= 20 && /^(0|-?[1-9]\d*)$/.test(value), {
+    message: 'Expected canonical integer cents',
+    abort: true,
+  })
+  .refine(
+    (value) => {
+      try {
+        const amount = BigInt(value);
+        return amount >= MIN_MINOR && amount <= MAX_MINOR;
+      } catch {
+        return false;
+      }
+    },
+    { message: 'Amount exceeds signed 64-bit storage', abort: true },
+  );
 
 export function minorUnits(value: string): bigint {
   return BigInt(minorUnitsSchema.parse(value));

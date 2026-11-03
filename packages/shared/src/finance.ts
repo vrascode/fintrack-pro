@@ -4,6 +4,7 @@ import { addMoney, minorUnitsSchema, multiplyRatio, serializeMoney } from './mon
 
 export const financialTransactionSchema = z
   .object({
+    revision: z.number().int().positive().optional(),
     id: z.string().min(1).max(100),
     kind: z.enum(['income', 'expense', 'transfer']),
     amountCents: minorUnitsSchema,
