@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('new users see personal registration first and demo only as a secondary path', async ({
   page,

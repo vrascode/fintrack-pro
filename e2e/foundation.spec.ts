@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('fictional dashboard and financial pages stay responsive', async ({ page }, testInfo) => {
   const errors: string[] = [];
