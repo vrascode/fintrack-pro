@@ -9,6 +9,7 @@ import { AccountsModule } from './accounts/accounts.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
 import { webOrigins } from './identity/web-session.js';
+import { DatabaseErrorFilter } from './database/database-error.filter.js';
 
 @Controller('health')
 class HealthController {
@@ -45,6 +46,7 @@ export async function createApp(logger: false | undefined = undefined) {
     logger: logger === false ? false : ['error', 'warn', 'log'],
   });
   app.setGlobalPrefix('v1');
+  app.useGlobalFilters(new DatabaseErrorFilter());
   app.enableCors({ origin: webOrigins(), credentials: true });
   app.enableShutdownHooks();
   return app;
