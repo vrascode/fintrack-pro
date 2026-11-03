@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import {
   clientSessionSchema,
   financialAccountInputSchema,
@@ -19,11 +20,18 @@ import {
   type Registration,
 } from '@fintrack/shared';
 import { resolveApiBaseUrl } from './url';
+import { ApiClientError, createApiTransport } from './transport';
 
-let recoverSession: (() => Promise<string | null>) | undefined;
-export function setSessionRecovery(handler: () => Promise<string | null>) {
-  recoverSession = handler;
-}
+export { ApiClientError } from './transport';
+export const { request, setSessionRecovery } = createApiTransport(() =>
+  resolveApiBaseUrl(
+    process.env.EXPO_PUBLIC_API_URL,
+    Platform.OS,
+    __DEV__,
+    typeof window !== 'undefined' ? window.location.hostname : undefined,
+    Constants.expoConfig?.hostUri,
+  ),
+);
 
 async function list<T>(
   path: string,
@@ -33,59 +41,6 @@ async function list<T>(
   const payload = await request<unknown>(path, { token });
   if (!Array.isArray(payload)) throw new ApiClientError(502, 'The API returned an invalid list.');
   return payload.map((value: unknown) => schema.parse(value));
-}
-
-export class ApiClientError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'ApiClientError';
-  }
-}
-
-async function request<T>(
-  path: string,
-  options: { token?: string; method?: string; body?: unknown; idempotencyKey?: string } = {},
-  retried = false,
-) {
-  let response: Response;
-  try {
-    const baseUrl = resolveApiBaseUrl(
-      process.env.EXPO_PUBLIC_API_URL,
-      Platform.OS,
-      __DEV__,
-      typeof window !== 'undefined' ? window.location.hostname : undefined,
-    );
-    response = await fetch(`${baseUrl}${path}`, {
-      method: options.method ?? 'GET',
-      credentials: 'include',
-      signal: AbortSignal.timeout(15000),
-      headers: {
-        Accept: 'application/json',
-        ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
-        ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-        ...(options.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : {}),
-      },
-      ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-    });
-  } catch {
-    throw new ApiClientError(0, 'Could not connect to the FinTrack API.');
-  }
-  const payload: unknown = await response.json().catch(() => null);
-  if (response.status === 401 && options.token && !retried && recoverSession) {
-    const token = await recoverSession();
-    if (token) return request<T>(path, { ...options, token }, true);
-  }
-  if (!response.ok) {
-    const message =
-      typeof payload === 'object' && payload !== null && 'message' in payload
-        ? String(payload.message)
-        : 'The request could not be completed.';
-    throw new ApiClientError(response.status, message);
-  }
-  return payload as T;
 }
 
 export const apiClient = {
@@ -125,6 +80,9 @@ export const apiClient = {
   },
   async accounts(token: string): Promise<FinancialAccount[]> {
     return list('/accounts', token, financialAccountSchema);
+  },
+  updateAccount(token: string, id: string, input: { name?: string; archived?: boolean }) {
+    return request(`/accounts/${encodeURIComponent(id)}`, { token, method: 'PATCH', body: input });
   },
   async createAccount(token: string, input: FinancialAccountInput): Promise<FinancialAccount> {
     const body = financialAccountInputSchema.parse(input);

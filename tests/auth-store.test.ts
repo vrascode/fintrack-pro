@@ -204,3 +204,35 @@ test('expired stored credentials never authenticate without server renewal', asy
   assert.equal(fixture.store.getState().status, 'anonymous');
   assert.equal(fixture.saved, null);
 });
+
+test('failed remote logout retains the session for an explicit revocation retry', async () => {
+  let saved: string | null = JSON.stringify(credentials);
+  let offline = true;
+  const store = createAuthStore(
+    {
+      get: async () => saved,
+      set: async (value) => {
+        saved = value;
+      },
+      clear: async () => {
+        saved = null;
+      },
+    },
+    {
+      login: async () => credentials,
+      register: async () => {},
+      logout: async () => {
+        if (offline) throw new Error('offline');
+      },
+    },
+  );
+  await store.getState().hydrate();
+  await store.getState().signOut();
+  assert.equal(store.getState().status, 'authenticated');
+  assert.equal(store.getState().error, 'network');
+  assert.ok(saved);
+  offline = false;
+  await store.getState().signOut();
+  assert.equal(store.getState().status, 'anonymous');
+  assert.equal(saved, null);
+});

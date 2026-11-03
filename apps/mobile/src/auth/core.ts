@@ -18,7 +18,18 @@ export interface AuthApi {
 export interface AuthState {
   status: 'loading' | 'anonymous' | 'authenticated';
   session: ClientSession | null;
-  error: 'read' | 'invalid' | 'network' | 'credentials' | 'exists' | null;
+  error:
+    | 'read'
+    | 'invalid'
+    | 'network'
+    | 'credentials'
+    | 'exists'
+    | 'unavailable'
+    | 'rate'
+    | 'configuration'
+    | 'origin'
+    | 'server'
+    | null;
   hydrate(): Promise<void>;
   renew(): Promise<string | null>;
   signIn(input: Login): Promise<boolean>;
@@ -27,11 +38,18 @@ export interface AuthState {
 }
 
 function loginError(error: unknown): AuthState['error'] {
-  if (typeof error !== 'object' || error === null || !('status' in error)) return 'network';
+  if (typeof error === 'object' && error !== null && 'name' in error && error.name === 'ZodError')
+    return 'invalid';
+  if (typeof error !== 'object' || error === null || !('status' in error)) return 'server';
+  if (error.status === -1) return 'configuration';
+  if (error.status === 0) return 'network';
   if (error.status === 401) return 'credentials';
   if (error.status === 409) return 'exists';
   if (error.status === 400) return 'invalid';
-  return 'network';
+  if (error.status === 403) return 'origin';
+  if (error.status === 503) return 'unavailable';
+  if (error.status === 429) return 'rate';
+  return 'server';
 }
 
 export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi<AuthState> {
@@ -144,7 +162,8 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
         try {
           await api.logout(session.accessToken);
         } catch {
-          error = 'network';
+          set({ error: 'network' });
+          return;
         }
       }
       try {

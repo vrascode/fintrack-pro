@@ -3,13 +3,31 @@ export function resolveApiBaseUrl(
   platform: string,
   development: boolean,
   webHostname?: string,
+  nativeHostUri?: string | null,
 ): string {
+  let developmentHost: string | undefined;
+  if (development && platform !== 'web' && nativeHostUri) {
+    try {
+      const host = new URL(`http://${nativeHostUri}`).hostname;
+      // Expo LAN connections reveal the computer address. Tunnels require an explicit API URL.
+      if (
+        /^\d+\.\d+\.\d+\.\d+$/.test(host) &&
+        host.split('.').every((part) => Number(part) <= 255) &&
+        /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host)
+      )
+        developmentHost = host;
+    } catch {
+      // Fall back to simulator defaults if Expo does not expose a LAN host.
+    }
+  }
   const value =
     configured?.trim() ||
     (development
-      ? platform === 'android'
-        ? 'http://10.0.2.2:3000/v1'
-        : `http://${platform === 'web' && webHostname === 'localhost' ? 'localhost' : '127.0.0.1'}:3000/v1`
+      ? developmentHost
+        ? `http://${developmentHost}:3000/v1`
+        : platform === 'android'
+          ? 'http://10.0.2.2:3000/v1'
+          : `http://${platform === 'web' && webHostname ? webHostname : '127.0.0.1'}:3000/v1`
       : '');
   if (!value) throw new Error('EXPO_PUBLIC_API_URL must point to the deployed HTTPS API.');
   let url: URL;
@@ -35,9 +53,16 @@ export function resolveApiBaseUrl(
     platform === 'web' &&
     development &&
     webHostname &&
-    ['localhost', '127.0.0.1'].includes(webHostname) &&
-    ['localhost', '127.0.0.1'].includes(url.hostname)
+    ['localhost', '127.0.0.1', '[::1]'].includes(webHostname) &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
   )
     url.hostname = webHostname;
+  if (
+    platform !== 'web' &&
+    development &&
+    ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
+  ) {
+    url.hostname = developmentHost ?? (platform === 'android' ? '10.0.2.2' : url.hostname);
+  }
   return `${url.origin}${url.pathname.replace(/\/$/, '')}`;
 }
