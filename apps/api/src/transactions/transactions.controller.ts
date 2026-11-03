@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AccessTokenGuard, type AuthenticatedRequest } from '../identity/access-token.guard.js';
 import { TransactionsService } from './transactions.service.js';
 
@@ -19,5 +19,10 @@ export class TransactionsController {
     @Body() body: unknown,
   ) {
     return this.transactions.create(request.userId!, idempotencyKey, body);
+  }
+
+  @Get(':id')
+  detail(@Req() request: AuthenticatedRequest, @Param('id') id: string) {
+    return this.transactions.detail(request.userId!, id);
   }
 }

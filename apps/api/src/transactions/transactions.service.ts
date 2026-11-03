@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   calendarDateSchema,
   financialTransactionInputSchema,
@@ -14,6 +19,7 @@ const querySchema = z
     kind: z.enum(['income', 'expense', 'transfer']).optional(),
     accountId: z.string().uuid().optional(),
     categoryId: z.string().uuid().optional(),
+    search: z.string().trim().min(1).max(160).optional(),
     from: calendarDateSchema.optional(),
     to: calendarDateSchema.optional(),
     limit: z
@@ -85,10 +91,11 @@ export class TransactionsService {
   async list(userId: string, query: unknown): Promise<FinancialTransaction[]> {
     const parsed = querySchema.safeParse(query);
     if (!parsed.success) throw new BadRequestException(parsed.error.issues);
-    const { from, to, limit, offset, kind, accountId, categoryId } = parsed.data;
+    const { from, to, limit, offset, kind, accountId, categoryId, search } = parsed.data;
     const rows = await this.prisma.db.transaction.findMany({
       where: {
         userId,
+        ...(search ? { description: { contains: search, mode: 'insensitive' as const } } : {}),
         ...(kind ? { kind: kind.toUpperCase() as keyof typeof transactionKinds } : {}),
         ...(accountId ? { OR: [{ accountId }, { transferAccountId: accountId }] } : {}),
         ...(categoryId ? { categoryId } : {}),
@@ -116,6 +123,13 @@ export class TransactionsService {
       },
     });
     return rows.map(mapTransaction);
+  }
+
+  async detail(userId: string, id: string): Promise<FinancialTransaction> {
+    if (!z.uuid().safeParse(id).success) throw new BadRequestException('Invalid transaction ID.');
+    const row = await this.prisma.db.transaction.findFirst({ where: { id, userId } });
+    if (!row) throw new NotFoundException('Transaction not found.');
+    return mapTransaction(row);
   }
 
   async create(userId: string, idempotencyKey: string | undefined, rawInput: unknown) {

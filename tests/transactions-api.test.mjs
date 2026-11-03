@@ -121,3 +121,28 @@ test('transaction validation blocks invalid transfers and queries before databas
   await assert.rejects(service.list(userId, { limit: '101' }), { status: 400 });
   assert.equal(writes, 0);
 });
+
+test('transaction search and detail stay scoped to the authenticated owner', async () => {
+  let query;
+  const service = new TransactionsService({
+    db: {
+      transaction: {
+        findMany: async (input) => {
+          query = input;
+          return [];
+        },
+        findFirst: async (input) => {
+          query = input;
+          return null;
+        },
+      },
+    },
+  });
+  await service.list(userId, { search: ' Lunch ', from: '2026-10-01', to: '2026-10-31' });
+  assert.equal(query.where.userId, userId);
+  assert.deepEqual(query.where.description, { contains: 'Lunch', mode: 'insensitive' });
+  await assert.rejects(service.detail(userId, accountId), { status: 404 });
+  assert.deepEqual(query.where, { id: accountId, userId });
+  await assert.rejects(service.detail(userId, '../other'), { status: 400 });
+  await assert.rejects(service.list(userId, { search: '' }), { status: 400 });
+});
