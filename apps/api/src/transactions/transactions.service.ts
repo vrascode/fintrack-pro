@@ -46,8 +46,9 @@ function isUniqueConstraint(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002';
 }
 
-function mapTransaction(transaction: {
+export function mapTransaction(transaction: {
   id: string;
+  revision?: number;
   kind: keyof typeof transactionKinds;
   amountCents: bigint;
   occurredOn: Date;
@@ -58,6 +59,7 @@ function mapTransaction(transaction: {
 }): FinancialTransaction {
   return {
     id: transaction.id,
+    ...(transaction.revision !== undefined ? { revision: transaction.revision } : {}),
     kind: transactionKinds[transaction.kind],
     amountCents: serializeMoney(transaction.amountCents),
     date: transaction.occurredOn.toISOString().slice(0, 10),
@@ -95,6 +97,7 @@ export class TransactionsService {
     const rows = await this.prisma.db.transaction.findMany({
       where: {
         userId,
+        voidedAt: null,
         ...(search ? { description: { contains: search, mode: 'insensitive' as const } } : {}),
         ...(kind ? { kind: kind.toUpperCase() as keyof typeof transactionKinds } : {}),
         ...(accountId ? { OR: [{ accountId }, { transferAccountId: accountId }] } : {}),
@@ -113,6 +116,7 @@ export class TransactionsService {
       ...(offset ? { skip: offset } : {}),
       select: {
         id: true,
+        revision: true,
         kind: true,
         amountCents: true,
         occurredOn: true,
@@ -127,7 +131,9 @@ export class TransactionsService {
 
   async detail(userId: string, id: string): Promise<FinancialTransaction> {
     if (!z.uuid().safeParse(id).success) throw new BadRequestException('Invalid transaction ID.');
-    const row = await this.prisma.db.transaction.findFirst({ where: { id, userId } });
+    const row = await this.prisma.db.transaction.findFirst({
+      where: { id, userId, voidedAt: null },
+    });
     if (!row) throw new NotFoundException('Transaction not found.');
     return mapTransaction(row);
   }
@@ -150,6 +156,8 @@ export class TransactionsService {
       where: { userId_idempotencyKey: { userId, idempotencyKey } },
       select: {
         id: true,
+        revision: true,
+        voidedAt: true,
         kind: true,
         amountCents: true,
         occurredOn: true,
@@ -166,10 +174,17 @@ export class TransactionsService {
     ] as string[];
     const ownedAccounts = await this.prisma.db.account.findMany({
       where: { userId, id: { in: accountIds }, archivedAt: null },
-      select: { id: true },
+      select: { id: true, openingBalanceOn: true },
     });
     if (ownedAccounts.length !== accountIds.length) {
       throw new BadRequestException('Account is unavailable.');
+    }
+    if (
+      ownedAccounts.some(
+        (account) => account.openingBalanceOn.toISOString().slice(0, 10) > parsed.data.date,
+      )
+    ) {
+      throw new BadRequestException('Transaction date precedes an account opening date.');
     }
     if (parsed.data.categoryId) {
       const category = await this.prisma.db.category.findFirst({
@@ -199,6 +214,7 @@ export class TransactionsService {
         },
         select: {
           id: true,
+          revision: true,
           kind: true,
           amountCents: true,
           occurredOn: true,
@@ -215,6 +231,8 @@ export class TransactionsService {
         where: { userId_idempotencyKey: { userId, idempotencyKey } },
         select: {
           id: true,
+          revision: true,
+          voidedAt: true,
           kind: true,
           amountCents: true,
           occurredOn: true,
@@ -230,10 +248,10 @@ export class TransactionsService {
   }
 
   private replay(
-    existing: Parameters<typeof mapTransaction>[0],
+    existing: Parameters<typeof mapTransaction>[0] & { voidedAt?: Date | null },
     input: ReturnType<typeof financialTransactionInputSchema.parse>,
   ) {
-    if (!sameRequest(existing, input)) {
+    if (existing.voidedAt || (existing.revision ?? 1) > 1 || !sameRequest(existing, input)) {
       throw new ConflictException('Idempotency-Key was already used with different data.');
     }
     return mapTransaction(existing);

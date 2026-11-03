@@ -69,7 +69,11 @@ test('transaction writes are owner-scoped, exact-cent, and idempotent', async ()
         return [row];
       },
     },
-    account: { findMany: async ({ where }) => [{ id: where.id.in[0] }] },
+    account: {
+      findMany: async ({ where }) => [
+        { id: where.id.in[0], openingBalanceOn: new Date('2026-01-01') },
+      ],
+    },
     category: { findFirst: async ({ where }) => ({ id: where.id, kind: where.kind }) },
   };
   const service = new TransactionsService({ db });
@@ -122,6 +126,47 @@ test('transaction validation blocks invalid transfers and queries before databas
   assert.equal(writes, 0);
 });
 
+test('transactions cannot precede the opening date of either account', async () => {
+  let writes = 0;
+  const destinationId = '00000000-0000-4000-8000-000000000005';
+  const service = new TransactionsService({
+    db: {
+      transaction: {
+        findUnique: async () => null,
+        create: async () => {
+          writes++;
+        },
+      },
+      account: {
+        findMany: async ({ where }) =>
+          where.id.in.map((id) => ({
+            id,
+            openingBalanceOn: new Date(id === destinationId ? '2026-10-20' : '2026-10-01'),
+          })),
+      },
+    },
+  });
+  await assert.rejects(
+    service.create(userId, 'early-income', {
+      ...expense,
+      kind: 'income',
+      categoryId: undefined,
+      date: '2026-09-30',
+    }),
+    { status: 400 },
+  );
+  await assert.rejects(
+    service.create(userId, 'early-transfer', {
+      ...expense,
+      kind: 'transfer',
+      categoryId: undefined,
+      transferAccountId: destinationId,
+    }),
+    { status: 400 },
+  );
+  assert.equal(writes, 0);
+});
+
 test('transaction search and detail stay scoped to the authenticated owner', async () => {
   let query;
   const service = new TransactionsService({
@@ -142,7 +187,7 @@ test('transaction search and detail stay scoped to the authenticated owner', asy
   assert.equal(query.where.userId, userId);
   assert.deepEqual(query.where.description, { contains: 'Lunch', mode: 'insensitive' });
   await assert.rejects(service.detail(userId, accountId), { status: 404 });
-  assert.deepEqual(query.where, { id: accountId, userId });
+  assert.deepEqual(query.where, { id: accountId, userId, voidedAt: null });
   await assert.rejects(service.detail(userId, '../other'), { status: 400 });
   await assert.rejects(service.list(userId, { search: '' }), { status: 400 });
 });
