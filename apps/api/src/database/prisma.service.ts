@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, ServiceUnavailableException } from '@nestjs/common';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { createDatabaseAdapter } from './adapter.js';
 import { PrismaClient } from '../generated/prisma/client.js';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class PrismaService implements OnModuleDestroy {
     const connectionString = process.env.DATABASE_URL;
     this.client = connectionString
       ? new PrismaClient({
-          adapter: new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 }),
+          adapter: createDatabaseAdapter(connectionString),
         })
       : null;
   }

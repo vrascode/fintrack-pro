@@ -1,17 +1,15 @@
 // This suite requires real PostgreSQL and the generated Prisma client.
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import { validateTestDatabaseUrl } from '../../scripts/database.mjs';
+import { createDatabaseAdapter } from '../../apps/api/dist/database/adapter.js';
 
 const connectionString = validateTestDatabaseUrl(process.env.TEST_DATABASE_URL);
-const requireApi = createRequire(new URL('../../apps/api/package.json', import.meta.url));
-const { PrismaPg } = requireApi('@prisma/adapter-pg');
 const { PrismaClient } = await import('../../apps/api/src/generated/prisma/client.ts');
 const client = () =>
   new PrismaClient({
-    adapter: new PrismaPg({ connectionString, connectionTimeoutMillis: 5000 }),
+    adapter: createDatabaseAdapter(connectionString),
     log: [],
   });
 
