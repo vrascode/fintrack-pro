@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { Redirect, router } from 'expo-router';
 import {
   calculateAccountBalance,
+  calendarDateSchema,
   financialAccountInputSchema,
   financialTransactionInputSchema,
   type FinancialAccount,
@@ -37,6 +38,62 @@ function useLabels() {
   };
 }
 
+function AccountActions({
+  account,
+  busy,
+  update,
+}: {
+  account: FinancialAccount;
+  busy: boolean;
+  update: (id: string, input: { name?: string; archived?: boolean }) => Promise<void>;
+}) {
+  const { text } = useLabels();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(account.name);
+  return (
+    <View style={{ gap: 8 }}>
+      {account.archived ? (
+        <Label muted>
+          {text('Arquivada · histórico preservado', 'Archived · history preserved')}
+        </Label>
+      ) : null}
+      {editing ? (
+        <>
+          <Field
+            label={text('Novo nome da conta', 'New account name')}
+            value={name}
+            onChangeText={setName}
+            maxLength={80}
+            editable={!busy}
+          />
+          <Button
+            label={text('Salvar nome', 'Save name')}
+            disabled={busy || !name.trim()}
+            onPress={() => void update(account.id, { name }).then(() => setEditing(false))}
+          />
+        </>
+      ) : (
+        <Button
+          variant="quiet"
+          label={text('Editar nome', 'Edit name')}
+          disabled={busy}
+          onPress={() => setEditing(true)}
+        />
+      )}
+      <Button
+        variant="quiet"
+        disabled={busy}
+        label={
+          account.archived
+            ? text('Reativar conta', 'Reactivate account')
+            : text('Arquivar conta', 'Archive account')
+        }
+        onPress={() => void update(account.id, { archived: !account.archived })}
+      />
+    </View>
+  );
+}
+
 export function PersonalAccounts() {
   const { text, language, formatCurrency, formatDate, hidden } = useLabels();
   const { data, error, loading, refresh, token } = usePersonalFinance();
@@ -48,6 +105,24 @@ export function PersonalAccounts() {
   const sending = useRef(false);
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
+  async function updateAccount(id: string, input: { name?: string; archived?: boolean }) {
+    if (!token || sending.current) return;
+    sending.current = true;
+    setBusy(true);
+    setMessage('');
+    try {
+      await apiClient.updateAccount(token, id, input);
+      setFailed(false);
+      setMessage(text('Conta atualizada.', 'Account updated.'));
+      await refresh();
+    } catch {
+      setFailed(true);
+      setMessage(text('Não foi possível atualizar a conta.', 'Could not update the account.'));
+    } finally {
+      sending.current = false;
+      setBusy(false);
+    }
+  }
   async function save() {
     if (!token || sending.current) return;
     sending.current = true;
@@ -127,6 +202,7 @@ export function PersonalAccounts() {
                   hidden,
                 )}
               </Label>
+              <AccountActions account={account} busy={busy} update={updateAccount} />
             </Card>
           ))}
         </>
@@ -191,6 +267,7 @@ export function PersonalAccounts() {
 export function PersonalTransaction() {
   const { text, language } = useLabels();
   const { data, error, loading, refresh, token } = usePersonalFinance();
+  const activeAccounts = data?.accounts.filter((item) => !item.archived) ?? [];
   const [kind, setKind] = useState<'income' | 'expense' | 'transfer'>('expense');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -215,7 +292,7 @@ export function PersonalTransaction() {
         description,
         amountCents: parseLocalizedCents(amount, language).toString(),
         date,
-        accountId: account || data.accounts[0]?.id,
+        accountId: account || activeAccounts[0]?.id,
         ...(kind === 'transfer'
           ? { transferAccountId: target }
           : category
@@ -293,7 +370,7 @@ export function PersonalTransaction() {
           )}
           retry={() => void refresh()}
         />
-      ) : !data?.accounts.length ? (
+      ) : !data || !activeAccounts.length ? (
         <Card>
           <Label>
             {text(
@@ -350,10 +427,10 @@ export function PersonalTransaction() {
             editable={!busy}
           />
           <Label>{text('Conta de origem / recebimento', 'Source / receiving account')}</Label>
-          {data.accounts.map((item) => (
+          {activeAccounts.map((item) => (
             <Button
               key={item.id}
-              selected={(account || data.accounts[0]?.id) === item.id}
+              selected={(account || activeAccounts[0]?.id) === item.id}
               variant="secondary"
               label={item.name}
               disabled={busy}
@@ -363,8 +440,8 @@ export function PersonalTransaction() {
           {kind === 'transfer' ? (
             <>
               <Label>{text('Conta de destino', 'Destination account')}</Label>
-              {data.accounts
-                .filter((item) => item.id !== (account || data.accounts[0]?.id))
+              {activeAccounts
+                .filter((item) => item.id !== (account || activeAccounts[0]?.id))
                 .map((item) => (
                   <Button
                     key={item.id}
@@ -439,6 +516,7 @@ export function PersonalOverview() {
   const { data, error, loading, refresh } = usePersonalFinance();
   const colors = useTheme();
   const signOut = useAuth((state) => state.signOut);
+  const authError = useAuth((state) => state.error);
   const month = today().slice(0, 7);
   const received =
     data?.transactions
@@ -529,6 +607,11 @@ export function PersonalOverview() {
               </Card>
               <Card>
                 <SectionHeading title={text('Histórico salvo', 'Saved history')} />
+                <Button
+                  variant="quiet"
+                  label={text('Buscar e filtrar histórico', 'Search and filter history')}
+                  onPress={() => router.push('/activity')}
+                />
                 {data.transactions.length ? (
                   data.transactions.map((item) => (
                     <View
@@ -582,6 +665,98 @@ export function PersonalOverview() {
           onPress={() => void signOut()}
         />
       </View>
+      {authError === 'network' ? (
+        <StatusMessage
+          tone="error"
+          message={text(
+            'Não foi possível revogar a sessão. Verifique a conexão e tente sair novamente.',
+            'Could not revoke the session. Check your connection and try signing out again.',
+          )}
+        />
+      ) : null}
+    </Screen>
+  );
+}
+
+export function PersonalActivity() {
+  const { text, formatDate, formatCurrency, hidden } = useLabels();
+  const { data, loading, error, refresh } = usePersonalFinance();
+  const [search, setSearch] = useState('');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const valid =
+    (!from || calendarDateSchema.safeParse(from).success) &&
+    (!to || calendarDateSchema.safeParse(to).success) &&
+    (!from || !to || from <= to);
+  const rows =
+    data?.transactions.filter(
+      (item) =>
+        item.description.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
+        (!from || item.date >= from) &&
+        (!to || item.date <= to),
+    ) ?? [];
+  return (
+    <Screen
+      title={text('Movimentações salvas', 'Saved transactions')}
+      subtitle={text(
+        'Consulte seu histórico por descrição e período.',
+        'Search your history by description and period.',
+      )}
+    >
+      <Card>
+        <Field
+          label={text('Buscar movimentações', 'Search transactions')}
+          value={search}
+          onChangeText={setSearch}
+        />
+        <Field
+          label={text('De (AAAA-MM-DD)', 'From (YYYY-MM-DD)')}
+          value={from}
+          onChangeText={setFrom}
+        />
+        <Field
+          label={text('Até (AAAA-MM-DD)', 'To (YYYY-MM-DD)')}
+          value={to}
+          onChangeText={setTo}
+        />
+        {!valid ? (
+          <StatusMessage
+            tone="error"
+            message={text('Confira o período informado.', 'Check the selected period.')}
+          />
+        ) : null}
+      </Card>
+      {loading ? (
+        <Loading />
+      ) : error ? (
+        <ErrorState
+          message={text('Não foi possível carregar o histórico.', 'Could not load history.')}
+          retry={() => void refresh()}
+        />
+      ) : valid ? (
+        rows.length ? (
+          rows.map((item) => (
+            <Card key={item.id}>
+              <SectionHeading
+                title={item.description}
+                detail={`${formatDate(item.date)} · ${data?.accounts.find((a) => a.id === item.accountId)?.name ?? ''}`}
+              />
+              <Label>
+                {item.kind === 'income' ? '+' : item.kind === 'expense' ? '−' : '↔'}{' '}
+                {formatCurrency(BigInt(item.amountCents), 'BRL', hidden)}
+              </Label>
+              <Label muted>
+                {data?.categories.find((c) => c.id === item.categoryId)?.name ??
+                  text('Sem categoria', 'Uncategorized')}
+              </Label>
+            </Card>
+          ))
+        ) : (
+          <Label muted>
+            {text('Nenhuma movimentação neste período.', 'No transactions in this period.')}
+          </Label>
+        )
+      ) : null}
     </Screen>
   );
 }

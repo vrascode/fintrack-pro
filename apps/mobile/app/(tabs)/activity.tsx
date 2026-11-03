@@ -7,6 +7,7 @@ import { demoLabel } from '../../src/demo/labels';
 import { useI18n } from '../../src/i18n';
 import { usePreferences } from '../../src/preferences';
 import { designTokens, useTheme } from '../../src/theme';
+import { PersonalActivity } from '../../src/personal/screens';
 
 type Filter = 'all' | 'income' | 'expense' | 'transfer' | 'planned';
 
@@ -66,6 +67,7 @@ export default function Activity() {
     }
   };
 
+  if (mode !== 'demo') return <PersonalActivity />;
   return (
     <Screen
       title={text('Movimentações', 'Activity')}

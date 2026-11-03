@@ -68,7 +68,20 @@ test('personal finance persists through reload, API restart and login with real 
     await page.goto('/login');
     await page.getByLabel('E-mail', { exact: true }).fill(email);
     await page.getByLabel('Senha', { exact: true }).fill(password);
-    await page.getByRole('button', { name: 'Criar minha conta', exact: true }).click();
+    await page.getByLabel('Confirmar senha', { exact: true }).fill(password);
+    const [registration, login] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url() === `${api}/auth/register` && response.request().method() === 'POST',
+      ),
+      page.waitForResponse(
+        (response) =>
+          response.url() === `${api}/auth/login` && response.request().method() === 'POST',
+      ),
+      page.getByRole('button', { name: 'Criar minha conta', exact: true }).click(),
+    ]);
+    expect(registration.status()).toBe(201);
+    expect(login.status()).toBe(200);
     await expect(
       page.getByRole('heading', { name: 'Cadastre sua primeira conta', exact: true }),
     ).toBeVisible();
@@ -118,13 +131,54 @@ test('personal finance persists through reload, API restart and login with real 
     const stored = await db.query('SELECT "passwordHash" FROM "User" WHERE email = $1', [email]);
     expect(stored.rows[0].passwordHash.startsWith('scrypt$')).toBe(true);
 
+    // Expire the access grant only: the HttpOnly refresh credential must renew
+    // concurrent account/category/history reads without asking for a password.
+    await db.query(
+      'UPDATE "Session" SET "accessExpiresAt" = now() - interval \'1 second\' WHERE "userId" = (SELECT id FROM "User" WHERE email = $1)',
+      [email],
+    );
+    await page.getByRole('button', { name: 'Minhas contas', exact: true }).click();
+    await page.getByRole('button', { name: 'Editar nome', exact: true }).click();
+    await page.getByLabel('Novo nome da conta', { exact: true }).fill('Conta renomeada E2E');
+    await page.getByRole('button', { name: 'Salvar nome', exact: true }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Conta renomeada E2E', exact: true }),
+    ).toBeVisible();
+    await page.getByRole('button', { name: 'Arquivar conta', exact: true }).click();
+    await expect(page.getByText('Arquivada · histórico preservado', { exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Abrir dashboard', exact: true }).click();
+    await expect(page.getByLabel('Saldo disponível', { exact: true })).toContainText('1.300,00');
+    await page.getByRole('button', { name: 'Buscar e filtrar histórico', exact: true }).click();
+    await page.getByLabel('Buscar movimentações', { exact: true }).fill('Pagamento E2E');
+    // The navigator retains earlier screens in the DOM. Query accessible
+    // history headings so the hidden dashboard does not count as a result.
+    await expect(page.getByRole('heading', { name: 'Recebimento E2E', exact: true })).toHaveCount(
+      0,
+    );
+    await expect(page.getByRole('heading', { name: 'Pagamento E2E', exact: true })).toBeVisible();
+    await page.goto('/');
+    // Finish restoring the rotated cookie before starting another navigation.
+    await expect(page.getByLabel('Saldo disponível', { exact: true })).toContainText('1.300,00');
+
     await page.reload();
     await expect(page.getByLabel('Saldo disponível', { exact: true })).toContainText('1.300,00');
     await stopApi();
     await startApi();
     await page.reload();
     await expect(page.getByLabel('Saldo disponível', { exact: true })).toContainText('1.300,00');
-    await page.getByRole('button', { name: 'Sair da conta', exact: true }).click();
+    const [logout] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url() === `${api}/auth/logout` && response.request().method() === 'POST',
+      ),
+      page.getByRole('button', { name: 'Sair da conta', exact: true }).click(),
+    ]);
+    expect(logout.status()).toBe(200);
+    const activeSessions = await db.query(
+      'SELECT count(*)::int AS count FROM "Session" WHERE "userId" = (SELECT id FROM "User" WHERE email = $1) AND "revokedAt" IS NULL',
+      [email],
+    );
+    expect(activeSessions.rows[0].count).toBe(0);
     await expect(
       page.getByRole('button', { name: 'Criar minha conta', exact: true }),
     ).toBeVisible();
