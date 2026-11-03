@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { z } from 'zod';
 import {
   financialAccountInputSchema,
   serializeMoney,
@@ -20,6 +21,7 @@ function mapAccount(account: {
   openingBalanceCents: bigint;
   openingBalanceOn: Date;
   includeInPlanning: boolean;
+  archivedAt?: Date | null;
 }): FinancialAccount {
   return {
     id: account.id,
@@ -28,6 +30,7 @@ function mapAccount(account: {
     openingBalanceCents: serializeMoney(account.openingBalanceCents),
     openingDate: account.openingBalanceOn.toISOString().slice(0, 10),
     includeInPlan: account.includeInPlanning,
+    ...(account.archivedAt ? { archived: true } : {}),
   };
 }
 
@@ -37,7 +40,7 @@ export class AccountsService {
 
   async list(userId: string): Promise<FinancialAccount[]> {
     const accounts = await this.prisma.db.account.findMany({
-      where: { userId, archivedAt: null },
+      where: { userId },
       orderBy: { createdAt: 'asc' },
       select: {
         id: true,
@@ -46,9 +49,33 @@ export class AccountsService {
         openingBalanceCents: true,
         openingBalanceOn: true,
         includeInPlanning: true,
+        archivedAt: true,
       },
     });
     return accounts.map(mapAccount);
+  }
+
+  async update(userId: string, id: string, input: unknown) {
+    const parsed = financialAccountInputSchema
+      .pick({ name: true, type: true, includeInPlan: true })
+      .partial()
+      .extend({ archived: z.boolean().optional() })
+      .strict()
+      .safeParse(input);
+    if (!z.uuid().safeParse(id).success || !parsed.success || !Object.keys(parsed.data).length)
+      throw new BadRequestException('Invalid account update.');
+    const { name, type, includeInPlan, archived } = parsed.data;
+    const result = await this.prisma.db.account.updateMany({
+      where: { id, userId },
+      data: {
+        ...(name !== undefined ? { name } : {}),
+        ...(type ? { type: type.toUpperCase() as keyof typeof accountTypes } : {}),
+        ...(includeInPlan !== undefined ? { includeInPlanning: includeInPlan } : {}),
+        ...(archived !== undefined ? { archivedAt: archived ? new Date() : null } : {}),
+      },
+    });
+    if (!result.count) throw new NotFoundException('Account not found.');
+    return { success: true };
   }
 
   async create(userId: string, input: unknown): Promise<FinancialAccount> {

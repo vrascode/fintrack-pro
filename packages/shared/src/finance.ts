@@ -108,6 +108,7 @@ export type FinancialTransactionInput = z.infer<typeof financialTransactionInput
 
 export const financialAccountSchema = z
   .object({
+    archived: z.boolean().optional(),
     id: z.string().min(1).max(100),
     name: z.string().trim().min(1).max(80),
     type: z.enum(['checking', 'savings', 'wallet', 'cash']),
@@ -117,7 +118,10 @@ export const financialAccountSchema = z
   })
   .strict();
 export type FinancialAccount = z.infer<typeof financialAccountSchema>;
-export const financialAccountInputSchema = financialAccountSchema.omit({ id: true });
+export const financialAccountInputSchema = financialAccountSchema.omit({
+  id: true,
+  archived: true,
+});
 export type FinancialAccountInput = z.infer<typeof financialAccountInputSchema>;
 
 export const financialCategorySchema = z
