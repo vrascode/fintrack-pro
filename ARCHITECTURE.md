@@ -1,13 +1,13 @@
 # Architecture / Arquitetura
 
-## Current checkpoint / Estado atual — 2026-10-31
+## Current checkpoint / Estado atual â€” 2026-10-31
 
-Current source reuses the existing Prisma identity/ledger modules. Auth refresh/me, client renewal, owner-scoped account metadata/archive and real personal activity extend the same architecture. Archived balances/history remain in totals; new entries select active accounts only. Login uses a scoped palette over the existing preference/theme system. / Sem segunda implementação de autenticação ou preferências. See [current evidence](docs/validation-2026-10-31.md).
+Current source reuses the existing Prisma identity/ledger modules. Auth refresh/me, client renewal, owner-scoped account metadata/archive and real personal activity extend the same architecture. Archived balances/history remain in totals; new entries select active accounts only. Login uses a scoped palette over the existing preference/theme system. / Sem segunda implementaÃ§Ã£o de autenticaÃ§Ã£o ou preferÃªncias. See [current evidence](docs/validation-2026-10-31.md).
 
 The source connects Prisma-backed identity/accounts/categories/transactions with
 personal Expo screens. Real SQL and desktop/mobile browser acceptance passed on
 isolated PostgreSQL 17 (55432); local service 5432 provisioning remains pending.
-/ Integração validada em PostgreSQL isolado; configuração da instância pessoal pendente.
+/ IntegraÃ§Ã£o validada em PostgreSQL isolado; configuraÃ§Ã£o da instÃ¢ncia pessoal pendente.
 
 `apps/mobile/src/personal/` loads only the authenticated user's API records, clears
 screen data on session/focus changes and distinguishes query failures from empty
@@ -29,10 +29,10 @@ fintrack-pro/
   packages/shared/   Validated contracts, exact money and calendar primitives
   packages/config/   Shared TypeScript and lint settings
   docs/en-US/        English operating guide
-  docs/pt-BR/        Guia operacional em português
-  docs/adr/          Architectural decisions / decisões
+  docs/pt-BR/        Guia operacional em portuguÃªs
+  docs/adr/          Architectural decisions / decisÃµes
   infra/            Local infrastructure and future deployment
-  scripts/          Reproducible checks / verificações
+  scripts/          Reproducible checks / verificaÃ§Ãµes
 ```
 
 ```mermaid
@@ -71,7 +71,7 @@ budget bars and six-month posted cash flow from this fixture. Search and CSV
 operate on the filtered demo transactions; CSV text is quoted and prefixed when
 it could be interpreted as a spreadsheet formula. Virtual envelope movements
 do not affect bank-account balances or net worth. The savings simulator is
-transient and does not create records. A persistent “fictional data” label marks
+transient and does not create records. A persistent â€œfictional dataâ€ label marks
 these screens. Authenticated account/entry/dashboard routes instead render personal
 API records and surface query errors; they do not fall back to the fixture.
 
@@ -86,11 +86,11 @@ require a new build and reinstall. `apps/mobile/eas.json` defines an internal
 APK profile; an Expo account/project link and actual EAS build are still needed
 before an installable APK exists.
 
-## Decisions / Decisões
+## Decisions / DecisÃµes
 
 - Modular monolith keeps transactions in one service; future identity, ledger,
   cards, planning, reports and AI modules have explicit boundaries.
-  / Monólito modular preserva atomicidade e limites entre módulos.
+  / MonÃ³lito modular preserva atomicidade e limites entre mÃ³dulos.
 - npm workspaces: one lockfile, strict TypeScript, default Expo Metro support.
 - Planned: TanStack Query for server state and React Hook Form for forms.
   Implemented: Zustand for local preferences/demo state and Zod contracts.
@@ -111,7 +111,7 @@ before an installable APK exists.
 - Future AI: opt-in, minimized/aggregate payloads, cost limits and explicit
   assumptions; no financial-write credentials or tools.
 
-## Phase 2 implementation / Implementação da fase 2
+## Phase 2 implementation / ImplementaÃ§Ã£o da fase 2
 
 Identity contracts and server-only password/token/session transitions are implemented
 and unit-tested. `PasswordHasher` uses bounded asynchronous scrypt. Opaque access and
@@ -128,10 +128,10 @@ Authenticated account/entry routes and shared mobile/web forms passed the real
 browser acceptance scenario in desktop and mobile viewports. Native-device session
 behavior and broader ledger editing/payment workflows still need validation/work.
 
-Contratos e funções de senha, tokens e transições de sessão estão implementados e
-testados. Repositórios transacionais Prisma e rotas reais de identidade/finanças
-foram validados no PostgreSQL isolado, inclusive reload, reinício da API e novo login.
-Isso não recupera automaticamente as credenciais da instância pessoal em 5432.
+Contratos e funÃ§Ãµes de senha, tokens e transiÃ§Ãµes de sessÃ£o estÃ£o implementados e
+testados. RepositÃ³rios transacionais Prisma e rotas reais de identidade/finanÃ§as
+foram validados no PostgreSQL isolado, inclusive reload, reinÃ­cio da API e novo login.
+Isso nÃ£o recupera automaticamente as credenciais da instÃ¢ncia pessoal em 5432.
 
 ## Boundaries / Limites
 
@@ -141,9 +141,26 @@ not database readiness. The accepted scope is registration/login, account creati
 posted entries and dashboard persistence; complete editing, billing and planning
 lifecycles are still pending. Web uses the same React Native UI.
 
-Navegação e preferências funcionam localmente. Telas vazias não inventam saldos.
-Saúde da API não significa prontidão do banco. O fluxo básico foi validado com banco
-real isolado; configuração pessoal, ciclo financeiro completo e release continuam pendentes.
+NavegaÃ§Ã£o e preferÃªncias funcionam localmente. Telas vazias nÃ£o inventam saldos.
+SaÃºde da API nÃ£o significa prontidÃ£o do banco. O fluxo bÃ¡sico foi validado com banco
+real isolado; configuraÃ§Ã£o pessoal, ciclo financeiro completo e release continuam pendentes.
 
 See [roadmap](ROADMAP.md), [database](DATABASE.md), [security](SECURITY.md) and
 [ADR](docs/adr/0001-foundation.md).
+
+## Separação de responsabilidades
+
+O FinTrack Pro organiza suas responsabilidades em diferentes camadas:
+
+- **Interface:** apresenta informações financeiras e permite a interação do usuário.
+- **API:** recebe solicitações, valida entradas e aplica regras de negócio.
+- **Persistência:** armazena os dados financeiros e mantém a integridade das informações.
+- **Autenticação:** identifica o usuário e controla o acesso aos recursos protegidos.
+
+### Princípios de arquitetura
+
+- Manter as regras financeiras centralizadas e testáveis.
+- Evitar duplicação de lógica entre interface e API.
+- Garantir que cada usuário acesse somente os próprios dados.
+- Separar configurações de desenvolvimento e produção.
+- Priorizar manutenção, segurança e evolução gradual do sistema.
