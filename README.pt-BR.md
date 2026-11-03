@@ -168,7 +168,6 @@ O FinTrack Pro é uma aplicação de finanças pessoais desenvolvida para facili
 
 O projeto busca oferecer uma experiência moderna, intuitiva e acessível, com foco em organização financeira, segurança e evolução contínua.
 
-
 ## Desenvolvimento local
 
 O FinTrack Pro possui uma estrutura de projeto com interface, API e recursos de persistência de dados.
@@ -180,4 +179,3 @@ Antes de executar o sistema localmente:
 - Configure as variáveis de ambiente necessárias.
 - Verifique a disponibilidade dos serviços utilizados pela aplicação.
 - Consulte a documentação técnica para detalhes de execução e desenvolvimento.
-
