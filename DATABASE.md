@@ -1,5 +1,9 @@
 ﻿# Database / Banco de dados
 
+## Transaction changes checkpoint - 2026-11-03
+
+The fifth migration, `20261103110000_transaction_changes`, was applied to the development database. It adds revision numbers, logical removal timestamps and a TransactionChange audit table without deleting ledger records. Edits and removals write the previous state and mutation atomically; removed records retain idempotency keys. Test authentication on 5433 still fails with 28P01; the development role has neither CREATEDB nor superuser privilege. The new SQL concurrency test remains pending real isolated execution.
+
 ## Current checkpoint / Estado atual — 2026-11-02
 
 PostgreSQL 17.11 on `127.0.0.1:5432/fintrack` is authenticated and all four migrations

@@ -1,5 +1,9 @@
 # FinTrack Pro — Roadmap / Roteiro
 
+## Current implementation checkpoint - 2026-11-03
+
+Implemented locally: revision-controlled transaction editing, confirmed logical removal, audit snapshots, account/category/type history filters, previous-month overview, and release URL checks. Development PostgreSQL is connected with five migrations. Real isolated SQL acceptance, persisted budgets/goals/recurrence, production hosting, native signing/device acceptance and GitHub publication remain open. No complete product or production release is claimed.
+
 ## Current checkpoint / Estado atual — 2026-10-31
 
 Current milestone remains OPEN: personal PostgreSQL authentication fails on 5432/5433, and the latest account/renewal scenarios require a fresh real SQL run. Four fixes were published; subsequent source changes are uncommitted because Git writes are denied. / Não considerar o fluxo pessoal ou a publicação completa concluídos. See [current acceptance gates](docs/validation-2026-10-31.md).

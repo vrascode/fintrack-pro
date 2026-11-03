@@ -1,5 +1,9 @@
 # Architecture / Arquitetura
 
+## Transaction changes - 2026-11-03
+
+Authenticated PATCH/DELETE routes use owner-scoped lookups and optimistic revision checks. A Prisma transaction commits each mutation with its previous-state snapshot in TransactionChange. DELETE sets voidedAt; active list/detail endpoints hide removed entries. The original idempotency key remains reserved. Client filters survive edits; removal requires confirmation.
+
 ## Current checkpoint / Estado atual â€” 2026-10-31
 
 Current source reuses the existing Prisma identity/ledger modules. Auth refresh/me, client renewal, owner-scoped account metadata/archive and real personal activity extend the same architecture. Archived balances/history remain in totals; new entries select active accounts only. Login uses a scoped palette over the existing preference/theme system. / Sem segunda implementaÃ§Ã£o de autenticaÃ§Ã£o ou preferÃªncias. See [current evidence](docs/validation-2026-10-31.md).

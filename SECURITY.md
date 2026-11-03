@@ -1,5 +1,9 @@
 # Security / Segurança
 
+## Financial mutations checkpoint - 2026-11-03
+
+Edits and logical removals require the authenticated owner and the current revision. Previous financial state is retained in database audit records, never logged. Malformed integer-cent inputs now stop validation before BigInt conversion. Unit/browser tests cover these flows; real SQL concurrency acceptance remains blocked by test credentials. No new dependency audit, production certification or native-device security acceptance is claimed.
+
 ## Current checkpoint / Estado atual — 2026-10-31
 
 Current source adds bounded single-process authentication throttling, safe infrastructure errors, native refresh, shared client renewal and logout failure feedback. Browser refresh remains HttpOnly; native credentials remain SecureStore-only. Production proxy/distributed limits, TLS, dependency audit and device validation remain open. / Novas proteções não equivalem a aceite de produção. See [security changes and validation limits](docs/validation-2026-10-31.md). Historical audit statements below describe their recorded dates.
