@@ -1,0 +1,94 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -1,44 +1,46 @@
+-name: CI
+-
+-on:
+-  push:
+-    branches: [main]
+-  pull_request:
+-    branches: [main]
+-
+-permissions:
+-  contents: read
+-
+-jobs:
+-  quality:
+-    name: Quality checks and browser tests
+-    runs-on: windows-2025
+-    timeout-minutes: 30
+-    env:
+-      EXPO_OFFLINE: '1'
+-      EXPO_NO_TELEMETRY: '1'
+-    steps:
+-      - name: Check out repository
+-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+-
+-      - name: Set up Node.js
+-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+-        with:
+-          node-version: '24'
+-          cache: npm
+-          cache-dependency-path: package-lock.json
+-
+-      - name: Install locked dependencies
+-        run: npm ci
+-
+-      - name: Run lint, types, build, tests, and formatting
+-        run: npm run check
+-
+-      - name: Build Android, iOS, and web bundles
+-        run: npm run bundle
+-
+-      - name: Prepare E2E screenshot directory
+-        run: New-Item -ItemType Directory -Path .cache -Force | Out-Null
+-
+-      - name: Run desktop and mobile browser tests
+-        run: npm run test:e2e
++name: CI
++
++on:
++  push:
++    branches: [main]
++  pull_request:
++    branches: [main]
++
++permissions:
++  contents: read
++
++jobs:
++  quality:
++    name: Quality checks and browser tests
++    runs-on: windows-2025
++    timeout-minutes: 30
++    env:
++      EXPO_OFFLINE: '1'
++      EXPO_NO_TELEMETRY: '1'
++    steps:
++      - name: Check out repository
++        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
++
++      - name: Set up Node.js
++        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
++        with:
++          node-version: '24'
++          cache: npm
++          cache-dependency-path: package-lock.json
++
++      - name: Install locked dependencies
++        run: npm ci
++
++      - name: Run lint, types, build, tests, and formatting
++        run: npm run check
++
++      - name: Build Android, iOS, and web bundles
++        run: npm run bundle
++        env:
++          EXPO_PUBLIC_API_URL: https://api.example.test/v1 # Browser tests intercept requests; never uses a real account.
++
++      - name: Prepare E2E screenshot directory
++        run: New-Item -ItemType Directory -Path .cache -Force | Out-Null
++
++      - name: Run desktop and mobile browser tests
++        run: npm run test:e2e

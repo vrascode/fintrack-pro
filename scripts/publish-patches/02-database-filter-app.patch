@@ -1,0 +1,108 @@
+diff --git a/apps/api/src/app.ts b/apps/api/src/app.ts
+--- a/apps/api/src/app.ts
++++ b/apps/api/src/app.ts
+@@ -1,51 +1,53 @@
+-import 'reflect-metadata';
+-import { Controller, Get, Header, Module, ServiceUnavailableException } from '@nestjs/common';
+-import { NestFactory } from '@nestjs/core';
+-import { healthSchema, type Health } from '@fintrack/shared';
+-import { PrismaModule } from './database/prisma.module.js';
+-import { PrismaService } from './database/prisma.service.js';
+-import { AuthModule } from './identity/auth.module.js';
+-import { AccountsModule } from './accounts/accounts.module.js';
+-import { CategoriesModule } from './categories/categories.module.js';
+-import { TransactionsModule } from './transactions/transactions.module.js';
+-import { webOrigins } from './identity/web-session.js';
+-
+-@Controller('health')
+-class HealthController {
+-  constructor(private readonly prisma: PrismaService) {}
+-
+-  @Get()
+-  @Header('Cache-Control', 'no-store')
+-  getHealth(): Health {
+-    return healthSchema.parse({ service: 'fintrack-api', status: 'ok', scope: 'process' });
+-  }
+-
+-  @Get('ready')
+-  @Header('Cache-Control', 'no-store')
+-  async getReadiness() {
+-    const ready = await this.prisma.isDatabaseReady();
+-    if (!ready)
+-      throw new ServiceUnavailableException({
+-        service: 'fintrack-api',
+-        status: 'unavailable',
+-        scope: 'database',
+-      });
+-    return { service: 'fintrack-api', status: 'ok', scope: 'database' };
+-  }
+-}
+-
+-@Module({
+-  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule, TransactionsModule],
+-  controllers: [HealthController],
+-})
+-class AppModule {}
+-
+-export async function createApp(logger: false | undefined = undefined) {
+-  const app = await NestFactory.create(AppModule, {
+-    logger: logger === false ? false : ['error', 'warn', 'log'],
+-  });
+-  app.setGlobalPrefix('v1');
+-  app.enableCors({ origin: webOrigins(), credentials: true });
+-  app.enableShutdownHooks();
+-  return app;
+-}
++import 'reflect-metadata';
++import { Controller, Get, Header, Module, ServiceUnavailableException } from '@nestjs/common';
++import { NestFactory } from '@nestjs/core';
++import { healthSchema, type Health } from '@fintrack/shared';
++import { PrismaModule } from './database/prisma.module.js';
++import { PrismaService } from './database/prisma.service.js';
++import { AuthModule } from './identity/auth.module.js';
++import { AccountsModule } from './accounts/accounts.module.js';
++import { CategoriesModule } from './categories/categories.module.js';
++import { TransactionsModule } from './transactions/transactions.module.js';
++import { webOrigins } from './identity/web-session.js';
++import { DatabaseErrorFilter } from './database/database-error.filter.js';
++
++@Controller('health')
++class HealthController {
++  constructor(private readonly prisma: PrismaService) {}
++
++  @Get()
++  @Header('Cache-Control', 'no-store')
++  getHealth(): Health {
++    return healthSchema.parse({ service: 'fintrack-api', status: 'ok', scope: 'process' });
++  }
++
++  @Get('ready')
++  @Header('Cache-Control', 'no-store')
++  async getReadiness() {
++    const ready = await this.prisma.isDatabaseReady();
++    if (!ready)
++      throw new ServiceUnavailableException({
++        service: 'fintrack-api',
++        status: 'unavailable',
++        scope: 'database',
++      });
++    return { service: 'fintrack-api', status: 'ok', scope: 'database' };
++  }
++}
++
++@Module({
++  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule, TransactionsModule],
++  controllers: [HealthController],
++})
++class AppModule {}
++
++export async function createApp(logger: false | undefined = undefined) {
++  const app = await NestFactory.create(AppModule, {
++    logger: logger === false ? false : ['error', 'warn', 'log'],
++  });
++  app.setGlobalPrefix('v1');
++  app.useGlobalFilters(new DatabaseErrorFilter());
++  app.enableCors({ origin: webOrigins(), credentials: true });
++  app.enableShutdownHooks();
++  return app;
++}

@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "base": "22f7e30ac8324dda07e8aac426b825a29228b131",
+  "branch": "main",
+  "remote": "https://github.com/vrascode/fintrack-pro.git",
+  "units": [
+    {
+      "id": "01-auth-limit",
+      "message": "fix(auth): limitar tentativas antes de consultar credenciais",
+      "files": [
+        "apps/api/src/identity/auth-rate-limit.guard.ts",
+        "apps/api/src/identity/auth.controller.ts",
+        "apps/api/src/identity/auth.module.ts",
+        "tests/auth-endpoints.test.mjs"
+      ],
+      "patches": [],
+      "tests": ["auth"],
+      "dependsOn": []
+    },
+    {
+      "id": "02-database-errors",
+      "message": "fix(api): responder falhas de banco sem expor dados sensíveis",
+      "files": ["apps/api/src/database/database-error.filter.ts", "tests/database-error.test.mjs"],
+      "patches": [
+        {
+          "path": "apps/api/src/app.ts",
+          "file": "scripts/publish-patches/02-database-filter-app.patch",
+          "before": "27c4cd980d3c0d3eda81bb430ed2912a7673911eea4a2bf83a86e2a4fcb7a82b",
+          "after": "2be76403dbfa1fe96161e5bce1fc6f60e532c64c2be98c4ebb07e534c2a65cd3"
+        }
+      ],
+      "tests": ["database"],
+      "dependsOn": []
+    },
+    {
+      "id": "03-cors",
+      "message": "fix(api): compartilhar política segura de origem com autenticação",
+      "files": [
+        "apps/api/src/config/cors.ts",
+        "apps/api/src/identity/web-session.ts",
+        "tests/cors.test.mjs"
+      ],
+      "patches": [
+        {
+          "path": "apps/api/src/app.ts",
+          "file": "scripts/publish-patches/03-cors-app.patch",
+          "before": "2be76403dbfa1fe96161e5bce1fc6f60e532c64c2be98c4ebb07e534c2a65cd3",
+          "after": "de578002b72cafd311f534a0a4a2890693f6a3f5ea4b523042dec9622f093e4f"
+        }
+      ],
+      "tests": ["cors"],
+      "dependsOn": ["02-database-errors"]
+    },
+    {
+      "id": "04-database-utc",
+      "message": "fix(database): preservar instantes de sessão em conexões UTC",
+      "files": [
+        "apps/api/src/database/adapter.ts",
+        "apps/api/src/database/prisma.service.ts",
+        "scripts/database.mjs",
+        "tests/integration/identity.test.mjs",
+        "tests/integration/ledger.test.mjs",
+        "tests/integration/database-timezone.test.mjs"
+      ],
+      "patches": [],
+      "tests": ["auth", "cors"],
+      "dependsOn": []
+    },
+    {
+      "id": "05-accounts",
+      "message": "feat(accounts): atualizar metadados e preservar contas arquivadas",
+      "files": [
+        "packages/shared/src/finance.ts",
+        "apps/api/src/accounts/accounts.controller.ts",
+        "apps/api/src/accounts/accounts.service.ts",
+        "tests/accounts-api.test.mjs"
+      ],
+      "patches": [],
+      "tests": ["accounts"],
+      "dependsOn": []
+    },
+    {
+      "id": "06-transactions",
+      "message": "feat(transactions): consultar histórico e detalhes com isolamento",
+      "files": [
+        "apps/api/src/transactions/transactions.controller.ts",
+        "apps/api/src/transactions/transactions.service.ts",
+        "tests/transactions-api.test.mjs"
+      ],
+      "patches": [],
+      "tests": ["transactions"],
+      "dependsOn": []
+    },
+    {
+      "id": "07-postgres-tools",
+      "message": "fix(database): proteger auditoria recuperação e aceite PostgreSQL local",
+      "files": [
+        "scripts/recover-postgres-admin.mjs",
+        "scripts/setup-local-postgres.mjs",
+        "scripts/test-isolated-postgres.mjs",
+        "tests/postgres-recovery.test.mjs",
+        "tests/postgres-setup.test.mjs",
+        "tests/integration/postgres-recovery.test.mjs",
+        "docs/postgresql-recovery-approval.md",
+        "docs/postgresql-local-credentials.md"
+      ],
+      "patches": [
+        {
+          "path": "package.json",
+          "file": "scripts/publish-patches/07-postgres-package.patch",
+          "before": "73b38a55067932eb1ee1f4217e54c28f38e5f2614c5b087219d1d40ebe46f5b3",
+          "after": "06457aefefb586dac21624134f75d93f2c48e1bf5c2366f43c4e1098446fe8d1"
+        }
+      ],
+      "tests": ["postgres"],
+      "dependsOn": []
+    },
+    {
+      "id": "08-expo",
+      "message": "fix(expo): carregar URL pública do monorepo e preservar argumentos",
+      "files": ["scripts/expo.mjs", "apps/mobile/package.json", "tests/expo-environment.test.mjs"],
+      "patches": [
+        {
+          "path": "package.json",
+          "file": "scripts/publish-patches/08-expo-package.patch",
+          "before": "06457aefefb586dac21624134f75d93f2c48e1bf5c2366f43c4e1098446fe8d1",
+          "after": "251edecc74d1b74b27098f861088c5a1782d79c1c75fb8d640b7438f4645b29a"
+        }
+      ],
+      "tests": ["environment"],
+      "dependsOn": ["07-postgres-tools"]
+    },
+    {
+      "id": "09-browser-fixtures",
+      "message": "test(web): isolar requisições e configurar URL de teste na CI",
+      "files": ["e2e/fixtures.ts"],
+      "patches": [
+        {
+          "path": "e2e/foundation.spec.ts",
+          "file": "scripts/publish-patches/09-foundation-fixture.patch",
+          "before": "469db3f15962c506a1fc984d40b8e729b8ef06581119eaa45a6ddad6df95b701",
+          "after": "ac20bf893bd4c22761c386308fa7685ef5d0a3447d7fe5457b1ffcfee8a5afca"
+        },
+        {
+          "path": "e2e/onboarding.spec.ts",
+          "file": "scripts/publish-patches/09-onboarding-fixture.patch",
+          "before": "4a87b18eb52b0574915a599890431a17a1555b2386df7cb56574983c3552f6a4",
+          "after": "b2bd0b29867592b64bc459b8e7b6969e9e697eb704bacf089c1f1203ab7fa950"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "file": "scripts/publish-patches/09-browser-ci-fixture.patch",
+          "before": "022f3867e448f29f093b0f5b9ee782bbfac5a10aaea61b88629f7d253c0751b0",
+          "after": "a65bd0eff517e5165a9bff5d7ec3898567c435d1dc719962b172fe726a51b90e"
+        }
+      ],
+      "tests": ["browser"],
+      "dependsOn": ["08-expo"]
+    },
+    {
+      "id": "10-development",
+      "message": "fix(dev): iniciar Expo no workspace e diagnosticar destinos locais",
+      "files": ["scripts/dev.mjs", "scripts/doctor.mjs", "scripts/inspect-local-blockers.ps1"],
+      "patches": [],
+      "tests": ["environment", "postgres"],
+      "dependsOn": ["08-expo"]
+    },
+    {
+      "id": "11-http-session",
+      "message": "fix(mobile): preservar sessão e distinguir falhas HTTP e de conexão",
+      "files": [
+        "apps/mobile/src/api/client.ts",
+        "apps/mobile/src/api/url.ts",
+        "apps/mobile/src/api/transport.ts",
+        "apps/mobile/src/auth/core.ts",
+        "apps/mobile/src/auth/index.ts",
+        "tests/api-url.test.ts",
+        "tests/auth-store.test.ts",
+        "tests/http-client.test.ts"
+      ],
+      "patches": [],
+      "tests": ["transport", "environment"],
+      "dependsOn": ["05-accounts", "08-expo", "09-browser-fixtures"]
+    },
+    {
+      "id": "12-theme",
+      "message": "style(theme): alinhar identidade laranja e superfícies escuras",
+      "files": [
+        "apps/mobile/src/theme.ts",
+        "apps/mobile/src/theme.tsx",
+        "apps/mobile/src/theme-colors.ts",
+        "tests/theme-colors.test.ts"
+      ],
+      "patches": [],
+      "tests": ["theme"],
+      "dependsOn": []
+    },
+    {
+      "id": "13-auth-ui",
+      "message": "feat(auth): apresentar login e cadastro responsivos e acessíveis",
+      "files": [
+        "apps/mobile/src/components/ui.tsx",
+        "apps/mobile/src/auth/layout.tsx",
+        "apps/mobile/src/auth/PasswordField.tsx",
+        "apps/mobile/src/auth/useReducedMotion.ts",
+        "apps/mobile/app/login.tsx",
+        "e2e/auth-design.spec.ts",
+        "e2e/foundation.spec.ts",
+        "e2e/onboarding.spec.ts"
+      ],
+      "patches": [],
+      "tests": ["browser"],
+      "dependsOn": ["11-http-session", "12-theme"]
+    },
+    {
+      "id": "14-personal-finance",
+      "message": "feat(finance): editar contas e consultar movimentações persistidas",
+      "files": [
+        "apps/mobile/src/personal/screens.tsx",
+        "apps/mobile/app/(tabs)/activity.tsx",
+        "e2e/real/financial.spec.ts"
+      ],
+      "patches": [],
+      "tests": ["accounts", "transactions", "transport"],
+      "dependsOn": ["05-accounts", "06-transactions", "11-http-session", "13-auth-ui"]
+    },
+    {
+      "id": "15-ci",
+      "message": "ci: validar integração PostgreSQL e interface com ambiente isolado",
+      "files": [".github/workflows/ci.yml", "scripts/ci-postgres.mjs", "tsconfig.json"],
+      "patches": [],
+      "tests": ["lint", "types"],
+      "dependsOn": ["04-database-utc", "13-auth-ui"]
+    },
+    {
+      "id": "16-real-smoke",
+      "message": "test(auth): verificar autenticação e finanças reais sem apagar registros",
+      "files": ["scripts/validate-local-auth.mjs"],
+      "patches": [],
+      "tests": ["auth", "accounts", "transactions"],
+      "dependsOn": ["14-personal-finance"]
+    },
+    {
+      "id": "17-screenshots",
+      "message": "docs(auth): capturar telas reais de login e cadastro",
+      "files": [
+        "scripts/capture-auth-screenshots.mjs",
+        "docs/screenshots/auth-login-desktop.png",
+        "docs/screenshots/auth-login-mobile.png",
+        "docs/screenshots/auth-register-desktop.png",
+        "docs/screenshots/auth-register-mobile.png"
+      ],
+      "patches": [],
+      "tests": ["lint"],
+      "dependsOn": ["13-auth-ui"]
+    },
+    {
+      "id": "18-documentation",
+      "message": "docs(project): registrar produto execução e validação em dois idiomas",
+      "files": [
+        ".env.example",
+        "README.md",
+        "README.pt-BR.md",
+        "ARCHITECTURE.md",
+        "DATABASE.md",
+        "ROADMAP.md",
+        "SECURITY.md",
+        "PORTFOLIO_PROGRESS.md",
+        "COMMITS.md",
+        "docs/auth-redesign-plan.md",
+        "docs/auth-redesign-validation.md",
+        "docs/communication-repair-plan.md",
+        "docs/local-development.md",
+        "docs/validation-2026-10-31.md",
+        "docs/validation-2026-11-02.md"
+      ],
+      "patches": [],
+      "tests": ["format"],
+      "dependsOn": ["16-real-smoke", "17-screenshots"]
+    },
+    {
+      "id": "19-publication",
+      "message": "feat(dev): publicar unidades verificadas com push e relatório individual",
+      "files": [
+        "scripts/publish-pending-commits.ps1",
+        "scripts/publish-pending-check.mjs",
+        "scripts/prepare-pending-plan.mjs",
+        "scripts/publish-pending-plan.json",
+        "scripts/publish-patches/02-database-filter-app.patch",
+        "scripts/publish-patches/03-cors-app.patch",
+        "scripts/publish-patches/07-postgres-package.patch",
+        "scripts/publish-patches/08-expo-package.patch",
+        "scripts/publish-patches/09-foundation-fixture.patch",
+        "scripts/publish-patches/09-onboarding-fixture.patch",
+        "scripts/publish-patches/09-browser-ci-fixture.patch",
+        "tests/publish-pending.test.mjs",
+        "docs/publishing.md",
+        "docs/publication-preparation.md"
+      ],
+      "patches": [],
+      "tests": ["publisher", "format"],
+      "dependsOn": ["18-documentation"]
+    }
+  ],
+  "fingerprints": {
+    ".env.example": "4c925571ddc42c327908ba3a398e1ce5773805347e73f7c69171993180ab84b4",
+    ".github/workflows/ci.yml": "71f562ec4907f36090a9f2d9a7e39936fe77022d020a60ead1a0b988458918ac",
+    "ARCHITECTURE.md": "eeda9339b0296264ae7d8f1df3dfc75b36465019039a455628ea91a06bef7c54",
+    "COMMITS.md": "691ac529772a10e458eb626920635081b33ad54bf4a6875b02122a9671c6d162",
+    "DATABASE.md": "d38cb4ead1e78432152e1877db81f907750eadab80512718385fb3c56a8b2f62",
+    "PORTFOLIO_PROGRESS.md": "8e6bab3f309ccf843de24cf837e43c5113bd75234d26d88d38121c1013d2531c",
+    "README.md": "1925bfa0326a67f6b8642bf0529fbcec47cb74ddd623ec05e9502554959e278c",
+    "README.pt-BR.md": "3acaf3506b2c010285c4eb509f7fc398185c17b60cad7eeada6b3cd227e460ce",
+    "ROADMAP.md": "eeeeb02f26709b70fd89d62f24d19c85a1412b8e086cadd38aa62002ae6ffc75",
+    "SECURITY.md": "6a871d6bb3f3d6cf598713b55f6a2b24a4f1d0b7c74549a7b4e642865658c629",
+    "apps/api/src/accounts/accounts.controller.ts": "0825030ff5e251f3808571e03d7719cf02382efdd72af4f67b6777d851563d99",
+    "apps/api/src/accounts/accounts.service.ts": "c72ebe967787bf753eab68e7ce7e3e6feed10034e17f941163a5507d27abc980",
+    "apps/api/src/app.ts": "de578002b72cafd311f534a0a4a2890693f6a3f5ea4b523042dec9622f093e4f",
+    "apps/api/src/config/cors.ts": "fcb359daf05260de78ce5c83285e0e8743f1fbf3b7961fba864ddf328971e98b",
+    "apps/api/src/database/adapter.ts": "8fcfe1bbc9e2aa149bba83cb7c357ef07ae632e6443338e0fb1b9da872b5dc86",
+    "apps/api/src/database/database-error.filter.ts": "a1d45e820b7a0008b4e59d3098d04f7e0129328403408efc6d6295376e232b45",
+    "apps/api/src/database/prisma.service.ts": "c55845fd19a060039195d5cb07bb63a2f933788db8d02a09c929f0ad8e8bad8c",
+    "apps/api/src/identity/auth-rate-limit.guard.ts": "d6c0d33b3f58b7642d5fc816324190a96b52d1063cf536b4a7064cedd63eeb71",
+    "apps/api/src/identity/auth.controller.ts": "5e6a02a0d46f64165f36a6f7fc23d5b0bb788234f8b8e83ec188d0dbc63b9215",
+    "apps/api/src/identity/auth.module.ts": "c76e44ab56861eb84e582c9f66ba135eba6c253e88ef0f228ac5c5d421857bb7",
+    "apps/api/src/identity/web-session.ts": "8fb650a57fc1b7d38b29c115fac27020a3db4163fb1309bb665b08c34258afb4",
+    "apps/api/src/transactions/transactions.controller.ts": "4ee9af10124091041d34e93cb4238c88230526a7125fb6858cfd21b1db4f9389",
+    "apps/api/src/transactions/transactions.service.ts": "529874a48ae077e570e46941aca3c50934cceb2e6d6b2418f508e6679b645d05",
+    "apps/mobile/app/(tabs)/activity.tsx": "b60bc82b997e41153fe726cceb1c4b5f07527c9a2b54098cf77d2d1174f47f0d",
+    "apps/mobile/app/login.tsx": "a7a51c039d04b9107c943200f726e2be30bbbab4b16c0f0ce2443c4fbe47dae8",
+    "apps/mobile/package.json": "c0b5163ff6fe6d402ac690e7548e932ca8cf37ce92adc6f8f2e903feed4f9889",
+    "apps/mobile/src/api/client.ts": "8437369a8338cf77086982d467ed7baf798e0e9087c9e3b3d8917c940c767250",
+    "apps/mobile/src/api/transport.ts": "9e053d695e47c63f86efce19052efed2c44e9e6584ac1294961f48f69bb6938a",
+    "apps/mobile/src/api/url.ts": "d995a11e0daa05006e6b1fd19cb9e79bac593de5cbfc87f65280a35985af2795",
+    "apps/mobile/src/auth/PasswordField.tsx": "5e4b2ad946e59eb2bff30a879d49d81c40df02ff7ae8e60b192a4608c7d87a57",
+    "apps/mobile/src/auth/core.ts": "9e6e7e475b9eb23091564807adcce9bdc7a3a83097f459fd03e46a1f94f676ed",
+    "apps/mobile/src/auth/index.ts": "5657efd175d076dc2adca922cb5ba6c648668fa46d71bba9b18c21db5900e891",
+    "apps/mobile/src/auth/layout.tsx": "6f2707a19529ae4f166fe7c4e96ba18f512e74f6d085506ce16197d32c141cd1",
+    "apps/mobile/src/auth/useReducedMotion.ts": "26da273e6601b4eec07266eb64822bbcefe4b8c10cb39723defd8934fb2252c0",
+    "apps/mobile/src/components/ui.tsx": "d7e6cc47594fbebbd08844c8d40ea38828ee1f1602bbc4534c2c4f10a5ea01b4",
+    "apps/mobile/src/personal/screens.tsx": "c950b8ddd91af19f67071a583f63babe76be36e285f217348914fcced301b960",
+    "apps/mobile/src/theme-colors.ts": "b31aaf322e2f2ca2489177bc964d885dc48c1a7359e4fa385058ce5d3684193e",
+    "apps/mobile/src/theme.ts": null,
+    "apps/mobile/src/theme.tsx": "9cccbd485ace344b5328fb017c488b4e9b5ee4b4d00b38f3a677a517477847d0",
+    "docs/auth-redesign-plan.md": "2eb135e292e778fe049b1cafc0f573ad5ed8654e07530864d0e1c8649dbba191",
+    "docs/auth-redesign-validation.md": "c87d914d851a636f6fa05ee3a525bc0f5dd9a3ddf4acaa7b8c0c9d8379604b50",
+    "docs/communication-repair-plan.md": "ddd59ec214a98e0b09521b85310251dd6a9214e2d6e12afd0e4b4b9269f3ed71",
+    "docs/local-development.md": "0115e84ca0a99e2ce656012820f34f17ac424bb8514ce3ab89e0d7f35f978b77",
+    "docs/postgresql-local-credentials.md": "ff7a17199071c41d2cfb4dba6e67c7292e748dd1705d63793d65287d13e5ae32",
+    "docs/postgresql-recovery-approval.md": "6b4c08efbb68aadfdb67c4fbda48670707b64eaafab888d808ad7c926346b934",
+    "docs/publication-preparation.md": "a512ee7a87659060f88f57c2f00e1e167cda522ec9d444dd15ee25e0fb4a6d24",
+    "docs/publishing.md": "8d7003364df29980272385b400338979312c7426507fb41d96508e47be7c37d8",
+    "docs/screenshots/auth-login-desktop.png": "616fa21c2f56e5eb7887fa126586555fdbf88ac4a99c815a351e626c9f861878",
+    "docs/screenshots/auth-login-mobile.png": "40425ac87bcf5cb5c6d50ccc9265cc7c6004271c21aa92b5ab782cf7432d2e1e",
+    "docs/screenshots/auth-register-desktop.png": "9a8841a13fd6a273f7eeca22a8b18bbf6db87a860b9defab41ac9f4a1ee8c919",
+    "docs/screenshots/auth-register-mobile.png": "cf57274d27ed78dc6be0c92ba036a2ed36cf309ecae07d546e725f28ff3bc664",
+    "docs/validation-2026-10-31.md": "f99a02c531cea0ea4375334cc03511abe09e6d7b59db9498bdcafd12bd641018",
+    "docs/validation-2026-11-02.md": "5f0e81c47389e9525e0915e007377ecea4939099d36db90c9aec88a30585b16b",
+    "e2e/auth-design.spec.ts": "b5c51746cb90556cad20e204006c95584fcf699069d38a061a5bd9c2dcf278a0",
+    "e2e/fixtures.ts": "7ed0b5aa155e4661d2f1e9ea698d6ddccd41553d1c28b49a97a20ed1337d3847",
+    "e2e/foundation.spec.ts": "e3121fe06061419f61ee438a79ce47ce898a4c145545ddf4745f42038f51ce68",
+    "e2e/onboarding.spec.ts": "13caa65fade982ec2cc5d459126349bfb169d71a6d61ebe4596f3a56f1fb8706",
+    "e2e/real/financial.spec.ts": "662ebe24eccada61b6ae5f769a87d57b818a805639a6b33ced79cadddf9b23de",
+    "package.json": "251edecc74d1b74b27098f861088c5a1782d79c1c75fb8d640b7438f4645b29a",
+    "packages/shared/src/finance.ts": "b50aa2e08ab46f576210ea39342d55a205a85fe37503c261d516976dd257865c",
+    "scripts/capture-auth-screenshots.mjs": "deb1d45fb069a80ef0084de4a73ede54902324fd1c9fcd0a8dcefae634d227d4",
+    "scripts/ci-postgres.mjs": "e0fa96843f2792cbbfc310f3153db06901505f3be84c0c08c6781fa2cf455ad7",
+    "scripts/database.mjs": "488793fc5e02cab356bd22728e0591eb7a1aa6cd3571467d9ecffa8e50d2a410",
+    "scripts/dev.mjs": "35ea2df6d2970e2501fe8289e23cb84ddedfeb9be23113a4aa2915ac30843e4e",
+    "scripts/doctor.mjs": "5d0ec97e87093c9dbd55ec4dcf5ce7be1eb273e7c121aca89c70a8de435dd932",
+    "scripts/expo.mjs": "ae3b73899d95e2d42dbe415b64d9e88a4e3cac55d5103b8f262141fb0a9743b7",
+    "scripts/inspect-local-blockers.ps1": "7ef18e4e832e67e53b31b43bfa8cdadf5c587c8d64541e8b677622d497dfbc2d",
+    "scripts/prepare-pending-plan.mjs": "690a3cf548fae5968762a0ee2a999e1f115ddd98545b9229909b8a9f1104b155",
+    "scripts/publish-patches/02-database-filter-app.patch": "9231d6b767e5627f753b623b2aa0f1a0bbec2e04852cb92b00e4cfe04bf871a5",
+    "scripts/publish-patches/03-cors-app.patch": "23162d2a9843f1b63cc89cd7d024fa8d28b114883510c8cf642910f6071e66ab",
+    "scripts/publish-patches/07-postgres-package.patch": "a5457caf635c68a4c2258a9f17d5458934d2397eee8fa32f7ce82debca4b7c27",
+    "scripts/publish-patches/08-expo-package.patch": "0a30e3f9f73a397eff0235eef7b270c9efc8afe104d53911842405db74d3f2c3",
+    "scripts/publish-patches/09-browser-ci-fixture.patch": "83974093d4b88e537ab35277c26930a3b6353dc78d127256025f98b0b0b71c26",
+    "scripts/publish-patches/09-foundation-fixture.patch": "97f84fca836ec01cdf0ed0df8a4afb6edbfe53253f48908ea6132ff53834c905",
+    "scripts/publish-patches/09-onboarding-fixture.patch": "39d2e0ea3cbc060d5a6443247c277a4e4d527f838767fa30a75da91810d7b5e5",
+    "scripts/publish-pending-check.mjs": "1bc5700422bafdfc59cfae5888ab66867e34a0cf9d710e7a0a3e276cd26b3a11",
+    "scripts/publish-pending-commits.ps1": "d47ab59b9ccb022e549770d0e5c8436825927e247e8e4c80c8f3a5dfdacd5f68",
+    "scripts/recover-postgres-admin.mjs": "c875f6d73534931a23187a586ddf06c7b74f234bfb7a3ae8bc278902d5f3c98d",
+    "scripts/setup-local-postgres.mjs": "51b62c21d0d812c0e7c9876b41670d177f8275ebfd7ad5b82eec2e0ce187ff85",
+    "scripts/test-isolated-postgres.mjs": "485e6550114840401c5712c56e07b5cc5e04086c82ea7830a603a68a9dd5b4d3",
+    "scripts/validate-local-auth.mjs": "7b0111122abb3da2f357ea91d8e6491ba85cc0d99dee2a789736f3a2a0582391",
+    "tests/accounts-api.test.mjs": "a1d6092bf1acd27b959fd07c9f80053bea611455414a1c55c860de6d6cd8e846",
+    "tests/api-url.test.ts": "ff5a600d70f39c433062f074349cd1e8d4993f045a849057ea851a65cf2bffb0",
+    "tests/auth-endpoints.test.mjs": "7ca9cc40f0b7d59c5bf016692ba5cbf038ce551098439a29c1a76a420ec51afe",
+    "tests/auth-store.test.ts": "61413429e5fedfce9b6c2bd4bcde014942fd4ab70ade3153f34a3dd2c7d54df2",
+    "tests/cors.test.mjs": "5edff6e86e957b3455a839b8331ffd3361ddb34120a874c08a9c6d55bb5b95b9",
+    "tests/database-error.test.mjs": "698dc08dc1c8024522f840f9f79b125cb1b43177ada97a89de08b5095741843a",
+    "tests/expo-environment.test.mjs": "73f7127ebbdd20e5c5625eee028d38a0505cd48c1c558227b97aa3c986a8aa04",
+    "tests/http-client.test.ts": "8a31b97840997476534d6e5ce016269eb758558cdeabd8a849237a2206f3ccb5",
+    "tests/integration/database-timezone.test.mjs": "c7a0fe15fc296482f44c9bea9a5644e7f4c6afac983c2525feeb36f15c404d0b",
+    "tests/integration/identity.test.mjs": "f8e36d86b6609a2c828785fbeb64bac7fb0dccf301dc2ab242ae5a15c59ab8e4",
+    "tests/integration/ledger.test.mjs": "2d3563d543404a524d16d131b26d30f2a8bad03da4c930ed378a09accd2da4c6",
+    "tests/integration/postgres-recovery.test.mjs": "8db2cc7a4271a93bcf14b0e3afd782c715f1049590505c7e4c59621948909746",
+    "tests/postgres-recovery.test.mjs": "710063724b37cc2f2113c72a025944caaa43b6a560656fee236fc54885c82745",
+    "tests/postgres-setup.test.mjs": "9d1f23e7fa75951981cd12ae105398411ff749fffaa8fed9354002ccbaec3911",
+    "tests/publish-pending.test.mjs": "33a6c5bab2c8d83cdaeafe9fb85c007b37281bc55abc6df70cca2ace9f658482",
+    "tests/theme-colors.test.ts": "397ac1c57e4ffb9874e1d00cb7ed58d304f73cd51caef851232be98de4d0a56b",
+    "tests/transactions-api.test.mjs": "7a1174b63025513afb51bfeab40a9e9547785133dbf3bf9c5845043775b256b0",
+    "tsconfig.json": "93b9bdce1c00805826ec26adc2cdb9e59177a4ab899b77e0fe2bf759af2707c7"
+  }
+}

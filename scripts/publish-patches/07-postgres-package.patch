@@ -1,0 +1,119 @@
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -1,57 +1,58 @@
+-{
+-  "name": "fintrack-pro",
+-  "version": "0.1.0",
+-  "private": true,
+-  "type": "module",
+-  "workspaces": [
+-    "apps/*",
+-    "packages/*"
+-  ],
+-  "engines": {
+-    "node": ">=24.13.0 <25"
+-  },
+-  "scripts": {
+-    "build": "npm run build -w @fintrack/shared && npm run build -w @fintrack/api",
+-    "typecheck": "npm run build && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
+-    "lint": "eslint . --max-warnings 0",
+-    "format": "prettier --write .",
+-    "format:check": "prettier --check .",
+-    "test": "npm run build && node --import tsx --test tests/*.test.ts tests/*.test.mjs",
+-    "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
+-    "api": "npm run start -w @fintrack/api",
+-    "mobile": "npm run start -w @fintrack/mobile",
+-    "web": "npm run web -w @fintrack/mobile",
+-    "bundle": "npm run bundle -w @fintrack/mobile",
+-    "brand:assets": "node scripts/generate-brand-assets.mjs",
+-    "test:e2e": "playwright test",
+-    "test:e2e:real": "npm run test:integration && playwright test --config playwright.financial.config.ts",
+-    "test:e2e:isolated": "node scripts/test-isolated-postgres.mjs",
+-    "db:validate": "node scripts/database.mjs validate",
+-    "db:generate": "node scripts/database.mjs generate",
+-    "db:migrate": "node scripts/database.mjs migrate",
+-    "db:status": "node scripts/database.mjs status",
+-    "test:integration": "npm run build && node scripts/database.mjs test",
+-    "doctor": "node scripts/doctor.mjs",
+-    "dev": "npm run build && node scripts/dev.mjs"
+-  },
+-  "overrides": {
+-    "multer": "2.5.0"
+-  },
+-  "devDependencies": {
+-    "@eslint/js": "10.0.1",
+-    "@playwright/test": "1.64.1",
+-    "@types/node": "24.19.2",
+-    "@types/react": "19.3.0",
+-    "eslint": "10.13.0",
+-    "globals": "17.13.0",
+-    "prettier": "3.9.10",
+-    "tsx": "4.23.15",
+-    "typescript": "6.0.3",
+-    "typescript-eslint": "8.72.0"
+-  },
+-  "allowScripts": {
+-    "prisma@7.10.1": true,
+-    "@prisma/engines@7.10.1": true,
+-    "esbuild@0.28.2": true
+-  }
+-}
++{
++  "name": "fintrack-pro",
++  "version": "0.1.0",
++  "private": true,
++  "type": "module",
++  "workspaces": [
++    "apps/*",
++    "packages/*"
++  ],
++  "engines": {
++    "node": ">=24.13.0 <25"
++  },
++  "scripts": {
++    "build": "npm run build -w @fintrack/shared && npm run build -w @fintrack/api",
++    "typecheck": "npm run build && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
++    "lint": "eslint . --max-warnings 0",
++    "format": "prettier --write .",
++    "format:check": "prettier --check .",
++    "test": "npm run build && node --import tsx --test tests/*.test.ts tests/*.test.mjs",
++    "check": "npm run lint && npm run typecheck && npm test && npm run format:check",
++    "api": "npm run start -w @fintrack/api",
++    "mobile": "npm run start -w @fintrack/mobile",
++    "web": "npm run web -w @fintrack/mobile",
++    "bundle": "npm run bundle -w @fintrack/mobile",
++    "brand:assets": "node scripts/generate-brand-assets.mjs",
++    "test:e2e": "playwright test",
++    "test:e2e:real": "npm run test:integration && playwright test --config playwright.financial.config.ts",
++    "test:e2e:isolated": "node scripts/test-isolated-postgres.mjs",
++    "test:postgres-recovery": "node scripts/test-isolated-postgres.mjs --recovery-only",
++    "db:validate": "node scripts/database.mjs validate",
++    "db:generate": "node scripts/database.mjs generate",
++    "db:migrate": "node scripts/database.mjs migrate",
++    "db:status": "node scripts/database.mjs status",
++    "test:integration": "npm run build && node scripts/database.mjs test",
++    "doctor": "node scripts/doctor.mjs",
++    "dev": "npm run build && node scripts/dev.mjs"
++  },
++  "overrides": {
++    "multer": "2.5.0"
++  },
++  "devDependencies": {
++    "@eslint/js": "10.0.1",
++    "@playwright/test": "1.64.1",
++    "@types/node": "24.19.2",
++    "@types/react": "19.3.0",
++    "eslint": "10.13.0",
++    "globals": "17.13.0",
++    "prettier": "3.9.10",
++    "tsx": "4.23.15",
++    "typescript": "6.0.3",
++    "typescript-eslint": "8.72.0"
++  },
++  "allowScripts": {
++    "prisma@7.10.1": true,
++    "@prisma/engines@7.10.1": true,
++    "esbuild@0.28.2": true
++  }
++}
