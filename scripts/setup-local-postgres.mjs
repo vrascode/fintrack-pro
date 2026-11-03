@@ -14,17 +14,21 @@ export function setupOptions(args) {
   if (
     targets.length !== 1 ||
     args.some(
-      (arg) => !['--development', '--test', '--inspect', '--reconcile-password'].includes(arg),
-    )
+      (arg) =>
+        !['--development', '--test', '--inspect', '--audit', '--reconcile-password'].includes(arg),
+    ) ||
+    (args.includes('--audit') &&
+      (args.includes('--inspect') || args.includes('--reconcile-password')))
   ) {
     throw new Error(
-      'Select exactly one target: --development OR --test. Optional: --inspect, --reconcile-password.',
+      'Select exactly one target: --development OR --test. Optional: --inspect, --audit (read-only), or --reconcile-password. Audit cannot modify credentials.',
     );
   }
   return {
     test: targets[0] === '--test',
     inspect: args.includes('--inspect'),
     reconcile: args.includes('--reconcile-password'),
+    audit: args.includes('--audit'),
   };
 }
 
@@ -85,6 +89,34 @@ export function scramVerifier(password, salt = randomBytes(16)) {
   const server = hmac('Server Key').toString('base64');
   salted.fill(0);
   return `SCRAM-SHA-256$4096:${salt.toString('base64')}$${stored}:${server}`;
+}
+
+// Catalog-only inspection: never read password hashes or mutate roles/databases.
+export async function auditTarget(admin, target) {
+  const role = await admin.query(
+    `SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole,
+      rolreplication, rolbypassrls, rolvaliduntil FROM pg_roles WHERE rolname = $1`,
+    [target.role],
+  );
+  const database = await admin.query(
+    'SELECT datname, pg_get_userbyid(datdba) AS owner FROM pg_database WHERE datname = $1',
+    [target.database],
+  );
+  const privileges =
+    role.rowCount && database.rowCount
+      ? await admin.query(
+          `SELECT has_database_privilege($1::name, $2::text, 'CONNECT') AS connect,
+      has_database_privilege($1::name, $2::text, 'CREATE') AS create,
+      has_database_privilege($1::name, $2::text, 'TEMP') AS temporary`,
+          [target.role, target.database],
+        )
+      : { rows: [] };
+  return {
+    ...safeTarget(target),
+    role: role.rows[0] ?? { rolname: target.role, exists: false },
+    database: database.rows[0] ?? { datname: target.database, exists: false },
+    privileges: privileges.rows[0] ?? null,
+  };
 }
 
 async function password(prompt) {
@@ -180,6 +212,10 @@ async function main() {
     if (identity.rows[0].port !== target.port)
       throw new Error('The server port differs from the selected configuration.');
     console.log(identity.rows[0]);
+    if (options.audit) {
+      console.log(await auditTarget(admin, target));
+      return;
+    }
     if (options.reconcile)
       console.log(
         `Explicit reconciliation: only ${target.role} will adopt its local .env password.`,

@@ -33,23 +33,71 @@ export function restoreHba(statePath) {
   writeFileSync(state.restored, 'Original HBA restored.\n');
 }
 
-function shellPath(value) {
-  // psql's local shell command only contains these validated paths, never secrets.
-  if (/["%!^&|<>\r\n]/.test(value)) throw new Error('Unsupported shell characters in path.');
-  return `"${value}"`;
-}
+const connectedMarker = 'FINTRACK_RECOVERY_CONNECTED';
 
-export function recoverySql(statePath, executable = process.execPath) {
+export function recoverySql(originalHash) {
+  if (!/^[a-f0-9]{64}$/.test(originalHash)) throw new Error('Invalid original HBA checksum.');
   return [
-    `\\! "${shellPath(executable)} ${shellPath(script)} --restore ${shellPath(statePath)}"`,
-    '\\if :SHELL_ERROR',
-    'SELECT 1 / 0; -- ON_ERROR_STOP: never change the password if restoration failed.',
-    '\\endif',
-    "SET password_encryption = 'scram-sha-256';",
-    '\\password postgres',
-    'SELECT current_user, inet_server_port();',
+    `\\echo ${connectedMarker}`,
+    // Node restores the file after receiving the connection marker. PostgreSQL
+    // independently verifies the effective HBA bytes before any password command.
+    'DO $fintrack_restore$',
+    'BEGIN',
+    '  FOR attempt IN 1..100 LOOP',
+    `    IF encode(sha256(pg_read_binary_file(current_setting('hba_file'))), 'hex') = '${originalHash}' THEN`,
+    '      RETURN;',
+    '    END IF;',
+    '    PERFORM pg_sleep(0.05);',
+    '  END LOOP;',
+    "  RAISE EXCEPTION 'Original HBA was not restored; password reset refused';",
+    'END',
+    '$fintrack_restore$;',
     '',
   ].join('\n');
+}
+
+export async function recoverySession({ psql, args, env, statePath, output = process.stdout }) {
+  const state = JSON.parse(readFileSync(statePath, 'utf8'));
+  const original = readFileSync(state.backup);
+  if (digest(original) !== state.sha256) throw new Error('Recovery backup checksum mismatch.');
+  try {
+    writeFileSync(state.hba, recoveryHba(original));
+    return await new Promise((resolveSession, reject) => {
+      // Executable paths and arguments are passed separately. No cmd.exe, shell
+      // metacommand, manual executable quoting or password capture is involved.
+      const child = spawn(psql, args, {
+        env,
+        shell: false,
+        windowsHide: true,
+        stdio: ['inherit', 'pipe', 'inherit'],
+      });
+      let pending = '';
+      let restored = false;
+      let restorationError;
+      child.stdout.setEncoding('utf8');
+      child.stdout.on('data', (chunk) => {
+        output.write(chunk);
+        if (restored || restorationError) return;
+        pending = (pending + chunk).slice(-(connectedMarker.length + chunk.length));
+        if (pending.includes(connectedMarker)) {
+          try {
+            restoreHba(statePath);
+            restored = true;
+          } catch (error) {
+            restorationError = error;
+            child.kill();
+          }
+        }
+      });
+      child.once('error', reject);
+      child.once('close', (status) => {
+        if (restorationError) reject(restorationError);
+        else resolveSession({ status, restored });
+      });
+    });
+  } finally {
+    restoreHba(statePath);
+  }
 }
 
 function inspect() {
@@ -131,7 +179,7 @@ async function recover() {
   const instance = inspect();
   console.log(instance);
   const original = readFileSync(instance.hba);
-  const temporary = recoveryHba(original);
+  recoveryHba(original); // Refuse an unfinished earlier recovery before creating a backup.
   mkdirSync(join(root, '.local'), { recursive: true });
   const directory = mkdtempSync(join(root, '.local', 'postgres17-recovery-'));
   const statePath = join(directory, 'state.json');
@@ -144,7 +192,7 @@ async function recover() {
   writeFileSync(state.backup, original, { flag: 'wx' });
   writeFileSync(statePath, JSON.stringify(state), { flag: 'wx' });
   const sql = join(directory, 'recover.sql');
-  writeFileSync(sql, recoverySql(statePath), { flag: 'wx' });
+  writeFileSync(sql, recoverySql(state.sha256), { flag: 'wx' });
   console.log(`Configuration backup: ${state.backup}`);
 
   // Independent guard restores authentication if this process is terminated or psql hangs.
@@ -189,19 +237,26 @@ async function recover() {
     '-v',
     'ON_ERROR_STOP=1',
   ];
-  let result;
-  try {
-    writeFileSync(instance.hba, temporary);
-    // On Windows HBA changes apply to new connections immediately. The first psql
-    // command restores the original bytes BEFORE its hidden password prompts.
-    result = spawnSync(join(bin, 'psql.exe'), [...args, '-w', '-f', sql], {
-      env,
-      stdio: 'inherit',
-    });
-  } finally {
-    restoreHba(statePath);
-  }
-  if (result.error || result.status !== 0)
+  // psql processes -f/-c in order. ON_ERROR_STOP prevents the hidden password
+  // prompt if PostgreSQL cannot confirm restoration of the original HBA bytes.
+  const result = await recoverySession({
+    psql: join(bin, 'psql.exe'),
+    args: [
+      ...args,
+      '-w',
+      '-f',
+      sql,
+      '-c',
+      "SET password_encryption = 'scram-sha-256';",
+      '-c',
+      '\\password postgres',
+      '-c',
+      'SELECT current_user, inet_server_port();',
+    ],
+    env,
+    statePath,
+  });
+  if (result.status !== 0 || !result.restored)
     throw new Error('Password reset did not complete. Original HBA restored.');
   console.log(
     'Original authentication restored. Enter the NEW password once more to validate psql.',

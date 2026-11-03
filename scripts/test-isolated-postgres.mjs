@@ -1,21 +1,34 @@
 // Real PostgreSQL acceptance without touching installed services or local .env.
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, mkdtempSync } from 'node:fs';
+import { closeSync, mkdirSync, mkdtempSync, openSync, readFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
 import pg from 'pg';
 import { provision, setupTarget } from './setup-local-postgres.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const bin = 'C:\\Program Files\\PostgreSQL\\17\\bin';
-const port = 55432;
 const pgEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^PG/i.test(key)));
 
 async function run() {
+  const { values } = parseArgs({
+    options: {
+      version: { type: 'string', default: '17' },
+      'recovery-only': { type: 'boolean', default: false },
+    },
+  });
+  const version = values.version;
+  const recoveryOnly = values['recovery-only'];
+  if (!['17', '18'].includes(version) || (recoveryOnly && version !== '17'))
+    throw new Error(
+      'Choose --version 17 or 18. Recovery acceptance is limited to isolated version 17.',
+    );
+  const bin = `C:\\Program Files\\PostgreSQL\\${version}\\bin`;
+  const port = version === '18' ? 55433 : 55432;
   if (process.platform !== 'win32')
-    throw new Error('This local acceptance helper requires Windows PostgreSQL 17 binaries.');
+    throw new Error('This local acceptance helper requires Windows PostgreSQL binaries.');
   const probe = createServer();
   await new Promise((resolve, reject) => {
     probe.once('error', reject);
@@ -23,7 +36,7 @@ async function run() {
   });
   await new Promise((resolve) => probe.close(resolve));
   mkdirSync(join(root, '.local'), { recursive: true });
-  const directory = mkdtempSync(join(root, '.local', 'acceptance-postgres17-'));
+  const directory = mkdtempSync(join(root, '.local', `acceptance-postgres${version}-`));
   const data = join(directory, 'data');
   const adminPassword = randomBytes(32).toString('hex');
   const appPassword = randomBytes(32).toString('hex');
@@ -69,23 +82,39 @@ async function run() {
       init.stderr?.toString().replaceAll(adminPassword, '[redacted]') || init.error?.code;
     throw new Error(`Isolated initdb failed; installed services were not modified. ${diagnostic}`);
   }
-  const control = (args) =>
-    spawnSync(join(bin, 'pg_ctl.exe'), ['-D', data, ...args], {
-      cwd: root,
-      env: pgEnv,
-      stdio: 'ignore',
-      windowsHide: true,
-    });
+  const control = (args) => {
+    // A Windows server can inherit pg_ctl's output handles. Pipes would keep
+    // spawnSync waiting for EOF for the lifetime of the database server.
+    const outputPath = join(directory, 'pg-control.log');
+    const output = openSync(outputPath, 'w');
+    try {
+      const result = spawnSync(join(bin, 'pg_ctl.exe'), ['-D', data, ...args], {
+        cwd: root,
+        env: pgEnv,
+        stdio: ['ignore', output, output],
+        windowsHide: true,
+        timeout: 60000,
+      });
+      return { ...result, stderr: readFileSync(outputPath, 'utf8') };
+    } finally {
+      closeSync(output);
+    }
+  };
+  let started = false;
   try {
     const start = control([
       '-l',
       join(directory, 'postgres.log'),
       '-o',
-      `-p ${port} -h 127.0.0.1`,
+      `-p ${port} -h 127.0.0.1 -c TimeZone=America/Sao_Paulo`,
       '-w',
       'start',
     ]);
-    if (start.error || start.status !== 0) throw new Error('Isolated PostgreSQL did not start.');
+    if (start.error || start.status !== 0)
+      throw new Error(
+        `Isolated PostgreSQL did not start. ${start.stderr?.trim() || start.error?.code || 'Check the retained cluster logs.'}`,
+      );
+    started = true;
     const admin = new pg.Client({
       host: '127.0.0.1',
       port,
@@ -119,27 +148,42 @@ async function run() {
       await admin.end();
     }
     console.log(
-      `Real acceptance uses a fresh PostgreSQL 17 cluster on ${port}. Services 5432/5433 and .env are unchanged.`,
+      `Real acceptance uses a fresh PostgreSQL ${version} cluster on ${port}. Services 5432/5433 and .env are unchanged.`,
     );
     const npm = join(dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js');
-    const child = spawn(process.execPath, [npm, 'run', 'test:e2e:real'], {
-      cwd: root,
-      env: { ...process.env, TEST_DATABASE_URL: url },
-      stdio: 'inherit',
-      windowsHide: true,
-    });
+    const child = spawn(
+      process.execPath,
+      recoveryOnly
+        ? ['--test', 'tests/integration/postgres-recovery.test.mjs']
+        : [npm, 'run', 'test:e2e:real'],
+      {
+        cwd: root,
+        env: {
+          ...process.env,
+          TEST_DATABASE_URL: url,
+          FINTRACK_RECOVERY_TEST_DATA: data,
+          FINTRACK_RECOVERY_TEST_PORT: String(port),
+        },
+        stdio: 'inherit',
+        windowsHide: true,
+      },
+    );
     const code = await new Promise((resolve, reject) => {
       child.once('error', reject);
       child.once('exit', resolve);
     });
     if (code !== 0) throw new Error(`Real PostgreSQL acceptance failed (exit ${code}).`);
   } finally {
-    const stopped = control(['-m', 'fast', '-w', 'stop']);
-    if (stopped.status !== 0) console.error(`Check the isolated cluster shutdown: ${data}`);
-    else
-      console.log(
-        `Isolated cluster stopped; diagnostic files retained at ${directory}. No personal data deleted.`,
-      );
+    if (!started) {
+      console.log(`No isolated server was started; diagnostic files retained at ${directory}.`);
+    } else {
+      const stopped = control(['-m', 'fast', '-w', 'stop']);
+      if (stopped.status !== 0) console.error(`Check the isolated cluster shutdown: ${data}`);
+      else
+        console.log(
+          `Isolated cluster stopped; diagnostic files retained at ${directory}. No personal data deleted.`,
+        );
+    }
   }
 }
 

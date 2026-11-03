@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createHash } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { recoveryHba, recoverySql, restoreHba } from '../scripts/recover-postgres-admin.mjs';
@@ -14,12 +13,16 @@ test('temporary HBA grants only postgres/postgres on IPv4 loopback and retains a
   assert.throws(() => recoveryHba(temporary), /earlier recovery/);
 });
 
-test('psql restores HBA before hidden password entry and stops on restoration failure', () => {
-  const sql = recoverySql('C:\\workspace\\state.json', 'C:\\node\\node.exe');
-  assert.ok(sql.indexOf('--restore') < sql.indexOf('\\password postgres'));
-  assert.match(sql, /\\if :SHELL_ERROR\nSELECT 1 \/ 0;/);
-  assert.match(sql, /password_encryption = 'scram-sha-256'/);
-  assert.throws(() => recoverySql('C:\\path%USERNAME%\\state.json'), /Unsupported/);
+test('psql checks the effective HBA checksum and refuses restoration failure without a shell', () => {
+  const hash = createHash('sha256').update('original HBA').digest('hex');
+  const sql = recoverySql(hash);
+  assert.match(sql, /^\\echo FINTRACK_RECOVERY_CONNECTED/);
+  assert.match(sql, /sha256\(pg_read_binary_file\(current_setting\('hba_file'\)\)\)/);
+  assert.ok(sql.includes(hash));
+  assert.match(sql, /RAISE EXCEPTION 'Original HBA was not restored; password reset refused'/);
+  assert.ok(!sql.includes('\\!'));
+  assert.ok(!sql.includes('\\password'));
+  assert.throws(() => recoverySql("hash'; SELECT 1;"), /checksum/);
 });
 
 test('restoration is byte-exact, idempotent after an error, and rejects a corrupt backup', () => {
@@ -45,17 +48,6 @@ test('restoration is byte-exact, idempotent after an error, and rejects a corrup
       restoreHba(path);
     }
     assert.deepEqual(readFileSync(state.hba), original);
-    if (process.platform === 'win32') {
-      writeFileSync(state.hba, recoveryHba(original));
-      const command = recoverySql(path).split('\n')[0].slice(3);
-      const child = spawnSync(process.env.ComSpec, ['/d', '/s', '/c', command], {
-        windowsVerbatimArguments: true,
-        windowsHide: true,
-        encoding: 'utf8',
-      });
-      assert.equal(child.status, 0, child.stderr);
-      assert.deepEqual(readFileSync(state.hba), original);
-    }
     restoreHba(path);
     assert.deepEqual(readFileSync(state.hba), original);
     writeFileSync(state.backup, 'corrupt');

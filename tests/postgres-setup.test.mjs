@@ -6,6 +6,7 @@ import {
   safeTarget,
   scramVerifier,
   provision,
+  auditTarget,
 } from '../scripts/setup-local-postgres.mjs';
 
 const credential = 'local-test-credential-only';
@@ -33,6 +34,55 @@ test('setup requires one explicit environment and never selects both databases',
   ]) {
     assert.throws(() => setupTarget({ test: false }, { DATABASE_URL: url }));
   }
+});
+
+test('administrative audit is read-only and cannot reconcile credentials', async () => {
+  assert.equal(setupOptions(['--development', '--audit']).audit, true);
+  assert.throws(() => setupOptions(['--development', '--audit', '--reconcile-password']));
+  assert.throws(() => setupOptions(['--test', '--audit', '--inspect']));
+  const queries = [];
+  const target = setupTarget({ test: false }, env);
+  const result = await auditTarget(
+    {
+      query: async (sql, args) => {
+        queries.push({ sql, args });
+        assert.match(sql, /^SELECT/);
+        assert.doesNotMatch(sql, /rolpassword|pg_authid|ALTER|CREATE ROLE|CREATE DATABASE/i);
+        if (sql.includes('FROM pg_roles'))
+          return {
+            rowCount: 1,
+            rows: [{ rolname: 'fintrack', rolcanlogin: true, rolsuper: false }],
+          };
+        if (sql.includes('FROM pg_database'))
+          return { rowCount: 1, rows: [{ datname: 'fintrack', owner: 'fintrack' }] };
+        return { rows: [{ connect: true, create: true, temporary: true }] };
+      },
+    },
+    target,
+  );
+  assert.equal(queries.length, 3);
+  assert.equal(result.role.rolcanlogin, true);
+  assert.equal(result.database.owner, 'fintrack');
+  assert.equal(result.privileges.connect, true);
+  assert.ok(!JSON.stringify({ result, queries }).includes(credential));
+});
+
+test('audit reports missing roles and databases without probing privileges or creating anything', async () => {
+  let queries = 0;
+  const result = await auditTarget(
+    {
+      query: async (sql) => {
+        assert.match(sql, /^SELECT/);
+        queries++;
+        return { rowCount: 0, rows: [] };
+      },
+    },
+    setupTarget({ test: true }, env),
+  );
+  assert.equal(queries, 2);
+  assert.equal(result.role.exists, false);
+  assert.equal(result.database.exists, false);
+  assert.equal(result.privileges, null);
 });
 
 test('SCRAM provisioning sends a salted verifier and rejects unsupported plaintext normalization', () => {
