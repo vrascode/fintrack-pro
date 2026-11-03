@@ -1,5 +1,9 @@
 ﻿# FinTrack Pro
 
+## Latest local changes
+
+The personal history now supports transaction editing, confirmed logical removal, and filters by type, account and category. Mutations retain audit snapshots and reject stale revisions. The dashboard includes previous-month comparison and category spending. Apply the five versioned migrations before running this source. Isolated SQL acceptance and GitHub publication remain pending. See [release preparation](docs/release-readiness.md).
+
 **Personal finance management with real authentication, accounts, transactions and a clear view of your money.**
 
 [Português (Brasil)](README.pt-BR.md) · [Local setup](docs/local-development.md) · [Architecture](ARCHITECTURE.md) · [Validation](docs/auth-redesign-validation.md)

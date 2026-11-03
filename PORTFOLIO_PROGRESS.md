@@ -1177,3 +1177,42 @@ device-local and must not be presented as server-backed data. Next: authorize or
 provision a local PostgreSQL runtime, apply migrations non-destructively, pass
 the real integration suite, then implement authenticated repositories and
 owner-scoped financial endpoints before connecting mobile CRUD.
+
+## Account opening date integrity — 2026-11-03
+
+The authenticated transaction API now rejects income, expenses and transfers
+dated before the opening date of any participating account. This preserves the
+meaning of the opening balance and prevents pre-opening entries from affecting
+current totals. A unit test covers both a primary account and a transfer
+destination. Validation: `npm.cmd run check` passed (109 tests, lint, type
+checks, build and formatting). The local web app at `localhost:8081` timed out;
+no visual inspection was completed. Next: validate the financial flows against
+PostgreSQL and inspect the web app when those services are available.
+
+## Personal monthly overview and environment verification — 2026-11-03
+
+Added previous-month comparison and category spending from authenticated API
+records. Planned and future entries do not count as realized income/expense.
+Future account opening dates no longer crash the personal dashboard or account
+cards; those balances are explicitly unavailable until opening. Tests cover
+R$ 5,000 income minus R$ 4,200 expenses, year rollover, transfer conservation,
+archived balances and future accounts. No personal records were modified.
+
+Validation: `npm.cmd run check` passed with 111 tests; `npm.cmd run bundle`
+exported Web/Android/iOS. `npm.cmd run test:e2e` passed 34/34 with a reserved HTTPS
+API URL and intercepted requests, after a failed run using the local HTTP URL
+in the production export. The desktop registration screenshot was inspected;
+personal dashboard visual acceptance and native-device execution remain pending.
+
+Current environment supersedes older database notes: `npm.cmd run doctor`
+confirmed PostgreSQL 17.11 and application tables on 5432; `npm.cmd run db:status`
+confirmed four applied migrations. Test credentials on 5433 failed (28P01).
+The isolated PostgreSQL helper could not start pg_ctl (restricted-token error 87).
+`npm.cmd run dev` failed to bind 8081 (EACCES); UI preview on 4173 succeeded.
+
+Both deliveries remain uncommitted and unpublished: staging is denied in `.git`
+and GitHub port 443 is unreachable. No locks or permissions were changed.
+See [validation and scoped publication commands](docs/validation-2026-11-03.md).
+Next: publish the two units from an authorized terminal, configure test credentials
+locally, run real integration/browser acceptance, then implement transaction
+editing/deletion and persisted planning. Delivery remains partial.

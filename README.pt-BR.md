@@ -1,5 +1,9 @@
 # FinTrack Pro
 
+## Alterações locais recentes
+
+O histórico pessoal agora permite editar transações, confirmar a exclusão lógica e filtrar por tipo, conta e categoria. As alterações preservam cópias para auditoria e rejeitam versões desatualizadas. O dashboard inclui comparação mensal e gastos por categoria. Aplique as cinco migrations versionadas antes de executar este código. O aceite no banco isolado e a publicação no GitHub continuam pendentes. Veja a [preparação de publicação](docs/release-readiness.md).
+
 **Aplicação de gestão financeira pessoal com autenticação real, contas, transações e uma visão clara do seu dinheiro.**
 
 [English](README.md) · [Execução local](docs/local-development.md) · [Arquitetura](ARCHITECTURE.md) · [Validação](docs/auth-redesign-validation.md)
