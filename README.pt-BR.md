@@ -161,3 +161,10 @@ A [validação do redesign](docs/auth-redesign-validation.md) registra comandos 
 ## Autor
 
 **VRAS CODE** · [GitHub](https://github.com/vrascode) · [Portfólio](https://vrascode.dev)
+
+## Objetivo do projeto
+
+O FinTrack Pro é uma aplicação de finanças pessoais desenvolvida para facilitar o acompanhamento de receitas, despesas, contas e movimentações financeiras.
+
+O projeto busca oferecer uma experiência moderna, intuitiva e acessível, com foco em organização financeira, segurança e evolução contínua.
+
