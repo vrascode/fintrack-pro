@@ -4,9 +4,9 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "web": "expo start --web",
-    "bundle": "expo export --platform all"
+    "start": "node ../../scripts/expo.mjs start",
+    "web": "node ../../scripts/expo.mjs start --web",
+    "bundle": "node ../../scripts/expo.mjs export --platform all"
   },
   "dependencies": {
     "@fintrack/shared": "0.1.0",
