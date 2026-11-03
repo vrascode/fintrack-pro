@@ -138,6 +138,9 @@ model Transaction {
   notes             String?         @db.VarChar(1000)
   occurredOn        DateTime        @db.Date
   idempotencyKey    String          @db.VarChar(128)
+  revision          Int             @default(1)
+  voidedAt          DateTime?       @db.Timestamptz(3)
+  changes           TransactionChange[]
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -149,4 +152,16 @@ model Transaction {
   @@index([userId, occurredOn, createdAt])
   @@index([userId, accountId, occurredOn])
   @@index([userId, categoryId, occurredOn])
+}
+
+model TransactionChange {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transactionId String      @db.Uuid
+  revision      Int
+  operation     String      @db.VarChar(10)
+  snapshot      Json
+  createdAt     DateTime    @default(now()) @db.Timestamptz(3)
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, revision])
 }
