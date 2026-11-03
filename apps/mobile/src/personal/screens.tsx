@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { Redirect, router } from 'expo-router';
 import {
   calculateAccountBalance,
   calendarDateSchema,
+  dateInTimeZone,
   financialAccountInputSchema,
   financialTransactionInputSchema,
   type FinancialAccount,
@@ -11,7 +12,6 @@ import {
 import { apiClient } from '../api/client';
 import { useAuth } from '../auth';
 import { useI18n } from '../i18n';
-import { useTheme } from '../theme';
 import { usePreferences } from '../preferences';
 import { parseLocalizedCents } from '../demo/input';
 import {
@@ -26,11 +26,11 @@ import {
   StatusMessage,
 } from '../components/ui';
 import { usePersonalFinance } from './usePersonalFinance';
-import { summarizePersonalFinance } from './summary';
+import { FinancialDashboard } from './FinancialDashboard';
 import { TransactionEditor } from './TransactionEditor';
 import { filterHistory } from './history';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => dateInTimeZone(new Date());
 function useLabels() {
   const i18n = useI18n();
   const hidden = usePreferences().value.hideAmounts;
@@ -48,7 +48,7 @@ function AccountActions({
 }: {
   account: FinancialAccount;
   busy: boolean;
-  update: (id: string, input: { name?: string; archived?: boolean }) => Promise<void>;
+  update: (id: string, input: { name?: string; archived?: boolean }) => Promise<boolean>;
 }) {
   const { text } = useLabels();
   const [editing, setEditing] = useState(false);
@@ -72,7 +72,9 @@ function AccountActions({
           <Button
             label={text('Salvar nome', 'Save name')}
             disabled={busy || !name.trim()}
-            onPress={() => void update(account.id, { name }).then(() => setEditing(false))}
+            onPress={() =>
+              void update(account.id, { name }).then((saved) => saved && setEditing(false))
+            }
           />
         </>
       ) : (
@@ -108,8 +110,11 @@ export function PersonalAccounts() {
   const sending = useRef(false);
   const [message, setMessage] = useState('');
   const [failed, setFailed] = useState(false);
-  async function updateAccount(id: string, input: { name?: string; archived?: boolean }) {
-    if (!token || sending.current) return;
+  async function updateAccount(
+    id: string,
+    input: { name?: string; archived?: boolean },
+  ): Promise<boolean> {
+    if (!token || sending.current) return false;
     sending.current = true;
     setBusy(true);
     setMessage('');
@@ -118,9 +123,11 @@ export function PersonalAccounts() {
       setFailed(false);
       setMessage(text('Conta atualizada.', 'Account updated.'));
       await refresh();
+      return true;
     } catch {
       setFailed(true);
       setMessage(text('Não foi possível atualizar a conta.', 'Could not update the account.'));
+      return false;
     } finally {
       sending.current = false;
       setBusy(false);
@@ -520,27 +527,16 @@ export function PersonalTransaction() {
 }
 
 export function PersonalOverview() {
-  const { text, formatCurrency, formatDate, hidden } = useLabels();
+  const { text } = useLabels();
   const { data, error, loading, refresh } = usePersonalFinance();
-  const colors = useTheme();
   const signOut = useAuth((state) => state.signOut);
   const authError = useAuth((state) => state.error);
-  const summary = summarizePersonalFinance(
-    data?.accounts ?? [],
-    data?.categories ?? [],
-    data?.transactions ?? [],
-    today(),
-  );
-  const { month, balance } = summary;
-  const { income: received, expense: paid } = summary.current;
-  const scale = received > paid ? received : paid;
-  const money = (value: bigint) => formatCurrency(value, 'BRL', hidden);
   return (
     <Screen
       title={text('Seu dashboard', 'Your dashboard')}
       subtitle={text(
-        'Dados próprios recuperados do servidor. Saldo = saldos iniciais + receitas − despesas; transferências não alteram o total.',
-        'Your own server records. Balance = opening balances + income − expenses; transfers do not change the total.',
+        'Acompanhe suas contas e movimentações em um só lugar.',
+        'Track your accounts and transactions in one place.',
       )}
     >
       {loading ? (
@@ -548,164 +544,19 @@ export function PersonalOverview() {
       ) : error ? (
         <ErrorState
           message={text(
-            'Não foi possível consultar o servidor. Os saldos não foram substituídos por zero.',
-            'Could not query the server. Balances have not been replaced with zero.',
+            'Não foi possível consultar o servidor. Seus valores não foram substituídos por zero.',
+            'Could not query the server. Your balances have not been replaced with zero.',
           )}
           retry={() => void refresh()}
         />
       ) : data ? (
-        <>
-          {!data.accounts.length ? (
-            <Redirect href="/accounts" />
-          ) : (
-            <>
-              <Card accent>
-                <SectionHeading title={text('Saldo disponível', 'Available balance')} />
-                <Text
-                  accessibilityLabel={text('Saldo disponível', 'Available balance')}
-                  style={{
-                    color: colors.ink,
-                    fontSize: 32,
-                    fontWeight: '800',
-                    fontVariant: ['tabular-nums'],
-                  }}
-                >
-                  {money(balance)}
-                </Text>
-                {summary.futureAccounts > 0 ? (
-                  <Label muted>
-                    {text(
-                      'Contas com abertura futura não integram o saldo de hoje.',
-                      'Accounts opening in the future are excluded from today’s balance.',
-                    )}
-                  </Label>
-                ) : null}
-              </Card>
-              <Card>
-                <SectionHeading title={text('Resultado do mês', 'Monthly result')} detail={month} />
-                <Label>
-                  {text('Receitas recebidas', 'Received income')}: {money(received)}
-                </Label>
-                <Label>
-                  {text('Despesas pagas', 'Paid expenses')}: {money(paid)}
-                </Label>
-                <Label>
-                  {text('Resultado', 'Net')}: {money(received - paid)}
-                </Label>
-                {[
-                  { label: text('+ Entradas', '+ Income'), value: received, color: colors.accent },
-                  { label: text('− Saídas', '− Expenses'), value: paid, color: colors.ink },
-                ].map((item) => (
-                  <View key={item.label} style={{ gap: 8 }}>
-                    <Label>
-                      {item.label}: {money(item.value)}
-                    </Label>
-                    <View
-                      accessibilityLabel={`${item.label}: ${money(item.value)}`}
-                      style={{ height: 12, borderWidth: 1, borderColor: colors.border }}
-                    >
-                      <View
-                        style={{
-                          height: 10,
-                          width: `${scale > 0n ? Number((item.value * 100n) / scale) : 0}%`,
-                          backgroundColor: item.color,
-                        }}
-                      />
-                    </View>
-                  </View>
-                ))}
-              </Card>
-              <Card>
-                <SectionHeading
-                  title={text('Comparação mensal', 'Monthly comparison')}
-                  detail={summary.previousMonth}
-                />
-                <Label muted>
-                  {text(
-                    'Mês atual até hoje comparado ao mês anterior completo.',
-                    'Current month to date compared with the full previous month.',
-                  )}
-                </Label>
-                <Label>
-                  {text('Resultado anterior', 'Previous net')}: {money(summary.previous.net)}
-                </Label>
-                <Label>
-                  {text('Variação do resultado', 'Change in net')}:{' '}
-                  {money(summary.current.net - summary.previous.net)}
-                </Label>
-              </Card>
-              <Card>
-                <SectionHeading
-                  title={text('Gastos por categoria', 'Spending by category')}
-                  detail={month}
-                />
-                {summary.categories.length ? (
-                  summary.categories.map((category) => (
-                    <Label key={category.id}>
-                      {category.name ?? text('Sem categoria', 'Uncategorized')}:{' '}
-                      {money(category.amount)}
-                    </Label>
-                  ))
-                ) : (
-                  <Label muted>
-                    {text('Nenhuma despesa neste mês.', 'No expenses this month.')}
-                  </Label>
-                )}
-              </Card>
-              <Card>
-                <SectionHeading title={text('Histórico salvo', 'Saved history')} />
-                <Button
-                  variant="quiet"
-                  label={text('Buscar e filtrar histórico', 'Search and filter history')}
-                  onPress={() => router.push('/activity')}
-                />
-                {data.transactions.length ? (
-                  data.transactions.map((item) => (
-                    <View
-                      key={item.id}
-                      style={{
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.border,
-                        paddingVertical: 10,
-                        gap: 4,
-                      }}
-                    >
-                      <Label>{item.description}</Label>
-                      <Label muted>
-                        {formatDate(item.date)} ·{' '}
-                        {data.accounts.find((a) => a.id === item.accountId)?.name} ·{' '}
-                        {item.kind === 'income'
-                          ? text('Entrada', 'Income')
-                          : item.kind === 'expense'
-                            ? text('Saída', 'Expense')
-                            : text('Transferência', 'Transfer')}
-                      </Label>
-                      <Label>
-                        {item.kind === 'expense' ? '−' : item.kind === 'income' ? '+' : '↔'}{' '}
-                        {money(BigInt(item.amountCents))}
-                      </Label>
-                    </View>
-                  ))
-                ) : (
-                  <Label muted>
-                    {text('Nenhuma movimentação registrada.', 'No entries recorded yet.')}
-                  </Label>
-                )}
-              </Card>
-            </>
-          )}
-        </>
+        !data.accounts.length ? (
+          <Redirect href="/accounts" />
+        ) : (
+          <FinancialDashboard data={data} refresh={refresh} />
+        )
       ) : null}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-        <Button
-          label={text('Nova receita ou despesa', 'New income or expense')}
-          onPress={() => router.push('/transaction')}
-        />
-        <Button
-          variant="secondary"
-          label={text('Minhas contas', 'My accounts')}
-          onPress={() => router.push('/accounts')}
-        />
         <Button
           variant="quiet"
           label={text('Sair da conta', 'Sign out')}
@@ -724,7 +575,6 @@ export function PersonalOverview() {
     </Screen>
   );
 }
-
 export function PersonalActivity() {
   const { text, formatDate, formatCurrency, hidden } = useLabels();
   const { data, loading, error, refresh, token } = usePersonalFinance();

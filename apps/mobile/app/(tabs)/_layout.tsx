@@ -334,7 +334,7 @@ function DesktopShell({ children, collapsed }: { children: ReactNode; collapsed:
 
 export default function TabLayout() {
   const colors = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { value } = usePreferences();
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= designTokens.breakpoints.desktop;
@@ -363,17 +363,28 @@ export default function TabLayout() {
         sceneStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('nav.overview'), tabBarIcon: icon('◈') }} />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('nav.overview'),
+          tabBarLabel: language === 'pt-BR' ? 'Início' : 'Home',
+          tabBarIcon: icon('◈'),
+        }}
+      />
       <Tabs.Screen
         name="activity"
-        options={{ title: t('nav.activityTab'), tabBarIcon: icon('↗') }}
+        options={{
+          title: t('nav.activityTab'),
+          tabBarLabel: language === 'pt-BR' ? 'Extrato' : 'Activity',
+          tabBarIcon: icon('↗'),
+        }}
       />
       <Tabs.Screen name="accounts" options={{ title: t('nav.accounts'), tabBarIcon: icon('◫') }} />
       <Tabs.Screen name="bills" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="envelopes" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="cards" options={{ title: t('nav.cards'), tabBarIcon: icon('▱') }} />
+      <Tabs.Screen name="cards" options={isDesktop ? { title: t('nav.cards') } : { href: null }} />
       <Tabs.Screen
         name="preferences"
         options={{ title: t('nav.settingsTab'), tabBarIcon: icon('⚙') }}
