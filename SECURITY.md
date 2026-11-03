@@ -162,16 +162,16 @@ host/porta locais, e `.npmrc` nÃ£o contÃ©m autenticaÃ§Ã£o. Ambientes locais, cac
 dependÃªncias e resultados gerados estÃ£o ignorados. A revisÃ£o por padrÃµes e
 inspeÃ§Ã£o manual nÃ£o substitui auditoria de dependÃªncias nem scanner especializado.
 
-## Verificações de segurança para novas funcionalidades
+## VerificaÃ§Ãµes de seguranÃ§a para novas funcionalidades
 
 Antes de disponibilizar uma funcionalidade financeira, verificar:
 
-- Se os endpoints protegidos exigem autenticação.
-- Se o usuário pode acessar somente os próprios recursos.
-- Se entradas e identificadores são validados no servidor.
-- Se senhas, tokens e credenciais não aparecem em logs.
-- Se operações financeiras possuem tratamento de erros.
-- Se dados sensíveis não são incluídos em respostas desnecessárias.
-- Se testes cobrem os cenários críticos de autorização.
+- Se os endpoints protegidos exigem autenticaÃ§Ã£o.
+- Se o usuÃ¡rio pode acessar somente os prÃ³prios recursos.
+- Se entradas e identificadores sÃ£o validados no servidor.
+- Se senhas, tokens e credenciais nÃ£o aparecem em logs.
+- Se operaÃ§Ãµes financeiras possuem tratamento de erros.
+- Se dados sensÃ­veis nÃ£o sÃ£o incluÃ­dos em respostas desnecessÃ¡rias.
+- Se testes cobrem os cenÃ¡rios crÃ­ticos de autorizaÃ§Ã£o.
 
-Esta lista é um checklist de revisão, não uma declaração de que todas as verificações já foram concluídas.
+Esta lista Ã© um checklist de revisÃ£o, nÃ£o uma declaraÃ§Ã£o de que todas as verificaÃ§Ãµes jÃ¡ foram concluÃ­das.
