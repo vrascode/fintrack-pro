@@ -26,12 +26,15 @@ The login and registration screens share the app's orange identity, dark surface
 | Categories     | Owner-scoped income and expense categories                                                                                                |
 | Transactions   | Posted income/expenses, internal transfer contracts, paginated history and per-user idempotency keys                                      |
 | Dashboard      | Account totals, income, expenses and balances calculated from persisted records using exact integer cents                                 |
+| Budgets        | Monthly limits by expense category, calculated from posted expenses and stored per user in PostgreSQL                                     |
+| Goals          | Personal targets and informational contribution records, persisted per user without changing account balances                             |
+| Reports        | Six or twelve month income, expense and category reports from posted transactions; web CSV export in exact decimal cents                  |
 | User isolation | Session-derived identity and account/category ownership checks on financial operations                                                    |
 | Interface      | Responsive navigation, accessible labels/focus, password visibility, loading states, reduced-motion form transition and local preferences |
 
 Real browser acceptance covers registration → account → categories → income/expense → reload → refresh → logout/login → user isolation. The reference scenario produces **R$ 1,300.00** from a R$ 1,000 opening balance, R$ 500 income and R$ 200 expense. These are synthetic test records, not preloaded personal data.
 
-Planning, bills, envelopes, CSV export and simulations are available in the **fictional demo**. They are not all connected to the authenticated PostgreSQL workflow. This application does not connect to a bank or move external money.
+Planning, bills, envelopes and simulations are available in the **fictional demo**. They are not connected to the authenticated PostgreSQL workflow. The personal report CSV export is available on web. This application does not connect to a bank or move external money.
 
 ## Screenshots
 
@@ -89,7 +92,7 @@ Edit the ignored root `.env` locally. Configure distinct application credentials
 | `HOST`, `PORT`             | API bind address and port; default 127.0.0.1:3000                                   |
 | `NODE_ENV`, `CORS_ORIGINS` | Environment and explicit browser-origin allowlist                                   |
 
-For an existing installation, inspect migration status first. `db:migrate` deploys pending migrations without reset; the current main database already has all four applied.
+For an existing installation, inspect migration status first. `db:migrate` deploys pending additive migrations without reset. The local main database used for this validation has all eight migrations applied; verify your own database before starting the API.
 
 ```powershell
 npm.cmd run build
@@ -104,6 +107,8 @@ npm.cmd run web -- --port 8083
 # Expo for a compatible device/simulator:
 npm.cmd run mobile
 ```
+
+Monthly budgets and goals require the new additive migrations. Before migrating a database with real records, make a backup and inspect `apps/api/prisma/migrations/20261103210000_monthly_budgets`, `20261103220000_savings_goals` and `20261103230000_goal_contribution_idempotency`. Budget spending is derived from posted expenses; goal contributions are informational and do not reserve money in accounts.
 
 Open the URL Expo prints, normally **http://localhost:8081/login**. `npm.cmd run dev` is the combined launcher on 8081. The API start command loads the root `.env`; Expo launchers forward its public API URL with shell overrides taking precedence.
 
