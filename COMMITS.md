@@ -1,5 +1,9 @@
 # Commits and publication / Commits e publicação
 
+## Auditoria e correção CSV — 2026-11-04
+
+Nenhum commit ou push foi criado nesta etapa. `git add -- packages/shared/src/finance.ts apps/mobile/src/personal/reports.ts tests/finance.test.ts tests/personal-reports.test.ts` falhou ao criar `.git/index.lock` com `Permission denied`. A árvore de trabalho mantém a correção, os testes e os documentos da auditoria. `npm.cmd run check` passou com 131 testes; `npm.cmd run bundle` exportou Web/Android/iOS; `npm.cmd run test:e2e` passou 46/46 com API interceptada. Revisar e registrar a unidade de código/testes separadamente da unidade documental em terminal com acesso legítimo ao Git. Não houve tentativa de contornar permissões ou publicar alterações sem commit.
+
 No new commit or push was created in this session. Git cannot write
 `.git/index.lock` or `.git/objects` under the current read-only sandbox.
 `git ls-remote origin refs/heads/main` also failed to connect to GitHub over HTTPS.

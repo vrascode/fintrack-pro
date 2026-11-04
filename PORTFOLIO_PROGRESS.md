@@ -865,6 +865,18 @@ The following is the previous session's record, not the current status.
 
 # FinTrack Pro progress / Progresso
 
+## Contas mensais pessoais — implementação em andamento
+
+Revisão: edição, cancelamento e pagamento agora bloqueiam a mesma linha de `Bill` dentro da transação SQL. A interface preserva centavos na edição, confirma cancelamento na web e limpa dados antes de recarregar outra sessão. O teste SQL de contas mensais cobre persistência, saldo, proprietário, repetição e concorrência, mas ainda não executou: `test:integration` parou em P1000 na porta 5433. `npm.cmd run check` passou (134 testes), bundles Web/Android/iOS exportados e 46 E2E com API interceptada passaram. O publicador existente ganhou modo `-CurrentPending` com lista explícita de arquivos, quatro commits e verificação de remoto; não foi executado.
+
+Adicionados modelos Prisma `Bill`/`BillPayment`, migração incremental, contratos Zod, recorrência semanal/mensal, rotas autenticadas, gravação transacional de pagamento com transação financeira, tela pessoal Expo e navegação. Pagamentos são serializados por bloqueio de linha e possuem chave de idempotência; transações ligadas a pagamentos não podem ser editadas/excluídas pelo CRUD genérico. Validação local: build/typecheck, lint e formatação passaram; 133 testes unitários passaram e o teste direcionado de pagamento parcial/total passou. Migração e E2E com PostgreSQL real permanecem pendentes porque o banco isolado rejeita credenciais. O banco principal não foi modificado.
+
+## Auditoria e proteção CSV — 2026-11-04
+
+Auditoria atual em `docs/FULL_PROJECT_AUDIT.md`: Git limpo antes das alterações, oito migrações aplicadas no PostgreSQL principal e banco isolado bloqueado por credenciais rejeitadas. A exportação CSV pessoal agora reutiliza o escape compartilhado, que neutraliza fórmulas mesmo após espaços ou caracteres de controle. Testes unitários cobrem os dois exportadores. Nenhum dado pessoal ou migração foi alterado.
+
+Validação: `npm.cmd run build` e `npm.cmd run db:status` passaram; `npm.cmd run doctor` confirmou o banco principal e falhou na autenticação do banco de testes; `npm.cmd run test:integration` falhou com P1000 antes dos testes SQL; `npm.cmd run test:e2e:isolated` falhou ao iniciar `pg_ctl` (erro 87); `npm.cmd audit --json --fetch-retries=0 --fetch-timeout=15000` foi inconclusivo por falha de conexão com o registry. Após formatar os arquivos alterados, `npm.cmd run check` passou com lint, typecheck, build, 131 testes e formatação. `npm.cmd run bundle` exportou Web, Android e iOS; `npm.cmd run test:e2e` passou 46/46 com API interceptada. Git não permitiu criar `.git/index.lock`, portanto nenhum commit local foi criado. Próximo passo: restabelecer o banco de testes sem alterar o banco pessoal e executar a integração real; depois registrar commits em terminal com acesso de escrita ao Git.
+
 Updated / Atualizado: 2026-10-26
 
 ## Scope / Escopo

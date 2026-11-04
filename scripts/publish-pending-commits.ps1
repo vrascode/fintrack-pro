@@ -13,7 +13,12 @@ param(
     [string]$PlanHash,
     [string]$ResumeReport,
     [switch]$RunIntegration
+    ,[switch]$CurrentPending
 )
+if ($CurrentPending) {
+    & (Join-Path $PSScriptRoot 'publish-current-pending.ps1') -Publish:$Publish
+    return
+}
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repoRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
