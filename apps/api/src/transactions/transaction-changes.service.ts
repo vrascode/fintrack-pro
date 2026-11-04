@@ -26,6 +26,8 @@ export class TransactionChangesService {
     return this.prisma.db.$transaction(async (db) => {
       const current = await db.transaction.findFirst({ where: { id, userId, voidedAt: null } });
       if (!current) throw new NotFoundException('Transaction not found.');
+      if (await db.billPayment?.findFirst({ where: { transactionId: id, userId } }))
+        throw new ConflictException('Bill payments must be changed through the bill ledger.');
       if (current.revision !== revision)
         throw new ConflictException('Transaction changed. Reload before editing.');
       const ids = [
@@ -92,6 +94,8 @@ export class TransactionChangesService {
     return this.prisma.db.$transaction(async (db) => {
       const current = await db.transaction.findFirst({ where: { id, userId } });
       if (!current) throw new NotFoundException('Transaction not found.');
+      if (await db.billPayment?.findFirst({ where: { transactionId: id, userId } }))
+        throw new ConflictException('Bill payments must be changed through the bill ledger.');
       if (current.voidedAt) return { success: true };
       if (current.revision !== parsed.data.revision)
         throw new ConflictException('Transaction changed. Reload before removal.');

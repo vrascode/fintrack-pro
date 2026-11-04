@@ -82,6 +82,7 @@ export function main(command) {
         'tests/integration/identity.test.mjs',
         'tests/integration/ledger.test.mjs',
         'tests/integration/database-timezone.test.mjs',
+        'tests/integration/bills.test.mjs',
       ],
       root,
       env,

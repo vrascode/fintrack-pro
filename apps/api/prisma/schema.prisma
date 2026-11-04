@@ -37,6 +37,12 @@ enum GoalStatus {
   CLOSED
 }
 
+enum BillFrequency {
+  ONCE
+  WEEKLY
+  MONTHLY
+}
+
 model User {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email           String        @unique @db.VarChar(254)
@@ -51,6 +57,7 @@ model User {
   transactions    Transaction[]
   budgets         MonthlyBudget[]
   goals           SavingsGoal[]
+  bills           Bill[]
 }
 
 model Session {
@@ -112,6 +119,7 @@ model Account {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[] @relation("TransactionAccount")
   transfers    Transaction[] @relation("TransactionTransferAccount")
+  bills        Bill[]
 
   @@unique([userId, id])
   @@index([userId, archivedAt, createdAt])
@@ -128,6 +136,7 @@ model Category {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   budgets      MonthlyBudget[]
+  bills        Bill[]
 
   @@unique([userId, id])
   @@unique([userId, kind, name])
@@ -149,6 +158,7 @@ model Transaction {
   revision          Int             @default(1)
   voidedAt          DateTime?       @db.Timestamptz(3)
   changes           TransactionChange[]
+  billPayment       BillPayment?
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -160,6 +170,44 @@ model Transaction {
   @@index([userId, occurredOn, createdAt])
   @@index([userId, accountId, occurredOn])
   @@index([userId, categoryId, occurredOn])
+}
+
+model Bill {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String        @db.Uuid
+  accountId     String        @db.Uuid
+  categoryId    String?       @db.Uuid
+  kind          CategoryKind
+  description   String        @db.VarChar(160)
+  amountCents   BigInt
+  firstDueOn    DateTime      @db.Date
+  frequency     BillFrequency
+  canceledAt    DateTime?     @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @default(now()) @updatedAt @db.Timestamptz(3)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account       Account       @relation(fields: [userId, accountId], references: [userId, id], onDelete: NoAction)
+  category      Category?     @relation(fields: [userId, categoryId], references: [userId, id], onDelete: NoAction)
+  payments      BillPayment[]
+
+  @@unique([userId, id])
+  @@index([userId, firstDueOn])
+}
+
+model BillPayment {
+  id             String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String      @db.Uuid
+  billId         String      @db.Uuid
+  occurrenceOn   DateTime    @db.Date
+  amountCents    BigInt
+  idempotencyKey String      @db.VarChar(128)
+  transactionId  String      @unique @db.Uuid
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  bill           Bill        @relation(fields: [userId, billId], references: [userId, id], onDelete: NoAction)
+  transaction    Transaction @relation(fields: [transactionId], references: [id], onDelete: NoAction)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, billId, occurrenceOn])
 }
 
 model TransactionChange {

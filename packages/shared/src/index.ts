@@ -6,6 +6,7 @@ export * from './finance.ts';
 export * from './demo.ts';
 export * from './budget.ts';
 export * from './goal.ts';
+export * from './bill.ts';
 
 export const preferencesSchema = z
   .object({
