@@ -91,6 +91,8 @@ test('dashboard selects a historical month and excludes later transactions', asy
   });
   if (testInfo.project.name === 'desktop') {
     await page.getByRole('button', { name: 'Cartões', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Cartões', exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Cartões de crédito', exact: true }),
+    ).toBeVisible();
   }
 });
