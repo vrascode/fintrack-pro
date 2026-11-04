@@ -13,6 +13,7 @@
   "scripts": {
     "release:check": "node scripts/release.mjs",
     "release:web": "node scripts/release.mjs --web",
+    "release:android": "node scripts/android-release.mjs",
     "build": "npm run build -w @fintrack/shared && npm run build -w @fintrack/api",
     "typecheck": "npm run build && tsc --noEmit -p apps/mobile && tsc --noEmit -p tests",
     "lint": "eslint . --max-warnings 0",

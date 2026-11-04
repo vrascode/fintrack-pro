@@ -17,7 +17,9 @@ export function assertWebOrigin(origin: string | undefined) {
 }
 
 export function refreshCookie(token: string, clear = false): string {
-  return `fintrack_refresh=${clear ? '' : token}; HttpOnly; SameSite=Strict; Path=/v1/auth; Max-Age=${clear ? 0 : 604800}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+  const production = process.env.NODE_ENV === 'production';
+  const crossSite = production && process.env.WEB_SESSION_CROSS_SITE === 'true';
+  return `fintrack_refresh=${clear ? '' : token}; HttpOnly; SameSite=${crossSite ? 'None' : 'Strict'}; Path=/v1/auth; Max-Age=${clear ? 0 : 604800}${production ? '; Secure' : ''}`;
 }
 
 export function readRefreshCookie(header: string | undefined): string {

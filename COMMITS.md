@@ -158,3 +158,10 @@ If the remote advanced, preserve the work and reconcile it explicitly before pus
 
 Compare os hashes e confirme `0 0` após cada push. Se o remoto avançar ou qualquer
 verificação falhar, pare a publicação daquela unidade e preserve o trabalho.
+
+## Produção Vercel, Render e Neon — alterações locais pendentes
+
+Configuração Web/Android de URL HTTPS `/v1`, cookie de sessão entre sites,
+TLS PostgreSQL, Blueprint Render, build Vercel e guia de implantação foram
+preparados. Nenhum commit ou push desta unidade foi criado até a validação
+final e a disponibilidade de escrita no Git. Não publicar arquivos `.env`.

@@ -8,8 +8,12 @@
     },
     "preview": {
       "distribution": "internal",
+      "environment": "production",
+      "env": { "FINTRACK_RELEASE": "1" },
       "android": { "buildType": "apk" }
     },
-    "production": {}
+    "production": {
+      "env": { "FINTRACK_RELEASE": "1" }
+    }
   }
 }

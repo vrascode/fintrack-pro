@@ -37,9 +37,46 @@ test('refresh cookies are HttpOnly, host-scoped and use Secure in production', (
   }
 });
 
+test('cross-site production refresh cookie works only when explicitly enabled', () => {
+  const previousNode = process.env.NODE_ENV;
+  const previousCrossSite = process.env.WEB_SESSION_CROSS_SITE;
+  try {
+    process.env.NODE_ENV = 'production';
+    process.env.WEB_SESSION_CROSS_SITE = 'true';
+    const cookie = refreshCookie('ft_r_test');
+    assert.match(cookie, /HttpOnly; SameSite=None; Path=\/v1\/auth/);
+    assert.match(cookie, /; Secure$/);
+    assert.doesNotMatch(cookie, /Domain=/);
+    process.env.NODE_ENV = 'development';
+    assert.match(refreshCookie('ft_r_test'), /SameSite=Strict/);
+  } finally {
+    if (previousNode === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNode;
+    if (previousCrossSite === undefined) delete process.env.WEB_SESSION_CROSS_SITE;
+    else process.env.WEB_SESSION_CROSS_SITE = previousCrossSite;
+  }
+});
+
 test('untrusted browser origins cannot issue session-changing requests', () => {
   assert.throws(() => assertWebOrigin('https://untrusted.example'), /Origin is not allowed/);
   assert.doesNotThrow(() => assertWebOrigin(undefined)); // Native clients have no Origin.
+});
+
+test('cookie-only session restoration requires a trusted browser Origin', async (t) => {
+  const app = await createApp(false);
+  t.after(() => app.close());
+  await app.listen(0, '127.0.0.1');
+  const root = await app.getUrl();
+  const withoutOrigin = await fetch(`${root}/v1/auth/session`, {
+    method: 'POST',
+    headers: { Cookie: 'fintrack_refresh=forged' },
+  });
+  assert.equal(withoutOrigin.status, 403);
+  const untrusted = await fetch(`${root}/v1/auth/session`, {
+    method: 'POST',
+    headers: { Origin: 'https://evil.example', Cookie: 'fintrack_refresh=forged' },
+  });
+  assert.equal(untrusted.status, 403);
 });
 
 test('local frontend CORS permits credentials and rejects an untrusted registration origin', async (t) => {

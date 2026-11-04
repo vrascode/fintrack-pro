@@ -2,6 +2,12 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import {
   billInputSchema,
+  creditCardInputSchema,
+  cardPurchaseInputSchema,
+  type CardPurchaseInput,
+  creditCardSchema,
+  type CreditCard,
+  type CreditCardInput,
   billSchema,
   type Bill,
   type BillInput,
@@ -60,6 +66,92 @@ async function list<T>(
 }
 
 export const apiClient = {
+  cardLedger(
+    token: string,
+    cardId: string,
+  ): Promise<{
+    limitCents: string;
+    usedCents: string;
+    availableCents: string;
+    purchases: {
+      id: string;
+      description: string;
+      purchasedOn: string;
+      amountCents: string;
+      canceled: boolean;
+    }[];
+    invoices: {
+      month: string;
+      dueOn: string;
+      totalCents: string;
+      paidCents: string;
+      remainingCents: string;
+      status: string;
+      installments: {
+        purchaseId: string;
+        description: string;
+        number: number;
+        count: number;
+        amountCents: string;
+      }[];
+      payments: { id: string; amountCents: string; transactionId: string }[];
+    }[];
+  }> {
+    return request(`/cards/${encodeURIComponent(cardId)}/ledger`, { token });
+  },
+  createCardPurchase(
+    token: string,
+    cardId: string,
+    key: string,
+    input: CardPurchaseInput,
+  ): Promise<{ id: string }> {
+    return request(`/cards/${encodeURIComponent(cardId)}/purchases`, {
+      token,
+      method: 'POST',
+      idempotencyKey: key,
+      body: cardPurchaseInputSchema.parse(input),
+    });
+  },
+  cancelCardPurchase(
+    token: string,
+    cardId: string,
+    purchaseId: string,
+  ): Promise<{ success: true }> {
+    return request(
+      `/cards/${encodeURIComponent(cardId)}/purchases/${encodeURIComponent(purchaseId)}/cancel`,
+      { token, method: 'POST' },
+    );
+  },
+  payCardInvoice(
+    token: string,
+    cardId: string,
+    key: string,
+    input: { invoiceMonth: string; accountId: string; amountCents: string },
+  ): Promise<{ id: string; transactionId: string }> {
+    return request(`/cards/${encodeURIComponent(cardId)}/payments`, {
+      token,
+      method: 'POST',
+      idempotencyKey: key,
+      body: input,
+    });
+  },
+  cards(token: string): Promise<CreditCard[]> {
+    return list('/cards', token, creditCardSchema);
+  },
+  async createCard(token: string, input: CreditCardInput): Promise<CreditCard> {
+    return creditCardSchema.parse(
+      await request('/cards', { token, method: 'POST', body: creditCardInputSchema.parse(input) }),
+    );
+  },
+  async updateCard(
+    token: string,
+    id: string,
+    input: Partial<CreditCardInput> & { archived?: boolean },
+  ): Promise<CreditCard> {
+    return creditCardSchema.parse(
+      await request(`/cards/${encodeURIComponent(id)}`, { token, method: 'PATCH', body: input }),
+    );
+  },
   bills(token: string): Promise<Bill[]> {
     return list('/bills', token, billSchema);
   },

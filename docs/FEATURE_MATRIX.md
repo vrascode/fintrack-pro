@@ -1,5 +1,9 @@
 # Matriz de funcionalidades — 2026-11-04
 
+Atualização do ciclo de cartões: compras parceladas, cálculo de ciclos, faturas derivadas e pagamento parcial/integral foram implementados em código e possuem teste unitário de calendário/centavos. A migração `202611040003_card_ledger` foi aplicada ao banco de desenvolvimento e suas tabelas foram consultadas. Integração financeira SQL e E2E com API real continuam sem validação devido a `P1000` no banco isolado. Estorno de fatura já paga permanece pendente; cancelamento de compra só é permitido antes de pagamento da fatura.
+
+Atualização: contas mensais possuem migração aplicada ao banco de desenvolvimento e consulta de listagem validada; pagamentos ainda não foram testados com sessão real. Cartões agora têm cadastro, listagem e arquivamento pessoais com modelo, API e tela. Compras, parcelas, faturas e pagamento de fatura continuam pendentes; cartões permanecem **parcialmente implementados**.
+
 Estados consideram a validação executada neste checkout. Testes unitários com repositórios simulados e E2E com API interceptada não provam persistência PostgreSQL.
 
 | Funcionalidade                                  | Estado                         | Evidência ou condição pendente                                                           |
@@ -22,3 +26,13 @@ Atualização de implementação: modelos `Bill` e `BillPayment`, migração inc
 | Web e bundles móveis | Implementado, mas não validado | Exportação das três plataformas passou; sem execução em dispositivo físico. |
 | Isolamento entre usuários | Implementado, mas não validado | Escopo por usuário no código e testes unitários; integração SQL local pendente. |
 | Preparação de produção | Pendente | Credenciais, infraestrutura, auditoria de dependências e aceite real pendentes. |
+
+## Deploy Vercel + Render + Neon — 2026-11-04
+
+| Item                                           | Estado                            | Evidência                                                                |
+| ---------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------ |
+| Validação de URL de API para build Web/Android | Implementado e testado            | Testes de URL e configuração Expo; domínio HTTPS `/v1` exigido           |
+| Configuração Render e TLS PostgreSQL           | Implementado, mas não validado    | `render.yaml`, Dockerfile e teste do adaptador; nenhum serviço hospedado |
+| Vercel ligado à API real                       | Bloqueado por dependência externa | URL pública Render e novo build Vercel necessários                       |
+| PostgreSQL Neon e migrações remotas            | Bloqueado por dependência externa | Projeto/credenciais não fornecidos; nenhuma migração remota executada    |
+| APK assinado com API online                    | Bloqueado por dependência externa | EAS e API online necessários; nenhum APK gerado                          |

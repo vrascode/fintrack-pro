@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: fintrack-pro-api
+    runtime: docker
+    plan: free
+    autoDeployTrigger: off
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /v1/health/ready
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: CORS_ORIGINS
+        value: https://fintrack-pro-murex-gamma.vercel.app
+      - key: WEB_SESSION_CROSS_SITE
+        value: 'true'
+      - key: DATABASE_URL
+        sync: false

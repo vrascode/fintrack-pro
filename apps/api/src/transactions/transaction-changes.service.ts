@@ -28,6 +28,8 @@ export class TransactionChangesService {
       if (!current) throw new NotFoundException('Transaction not found.');
       if (await db.billPayment?.findFirst({ where: { transactionId: id, userId } }))
         throw new ConflictException('Bill payments must be changed through the bill ledger.');
+      if (await db.cardPayment?.findFirst({ where: { transactionId: id, userId } }))
+        throw new ConflictException('Card payments cannot be edited as ordinary expenses.');
       if (current.revision !== revision)
         throw new ConflictException('Transaction changed. Reload before editing.');
       const ids = [
@@ -96,6 +98,8 @@ export class TransactionChangesService {
       if (!current) throw new NotFoundException('Transaction not found.');
       if (await db.billPayment?.findFirst({ where: { transactionId: id, userId } }))
         throw new ConflictException('Bill payments must be changed through the bill ledger.');
+      if (await db.cardPayment?.findFirst({ where: { transactionId: id, userId } }))
+        throw new ConflictException('Card payments cannot be removed as ordinary expenses.');
       if (current.voidedAt) return { success: true };
       if (current.revision !== parsed.data.revision)
         throw new ConflictException('Transaction changed. Reload before removal.');

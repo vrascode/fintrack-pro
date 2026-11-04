@@ -42,11 +42,16 @@ export function resolveApiBaseUrl(
     url.password ||
     url.search ||
     url.hash ||
+    url.pathname.replace(/\/$/, '') !== '/v1' ||
     (!development &&
       (url.protocol !== 'https:' ||
-        ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'].includes(url.hostname)))
+        ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'].includes(url.hostname) ||
+        !url.hostname.includes('.') ||
+        /(^|\.)(local|internal|test|invalid|example)$/.test(url.hostname) ||
+        /(^|\.)example\.(com|net|org)$/.test(url.hostname) ||
+        /^\d+\.\d+\.\d+\.\d+$/.test(url.hostname)))
   ) {
-    throw new Error('The production API must use HTTPS.');
+    throw new Error('The API must use /v1; production requires a public HTTPS domain.');
   }
   // Cookies are host scoped: localhost and 127.0.0.1 are different sites.
   if (

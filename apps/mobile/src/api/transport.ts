@@ -28,7 +28,8 @@ export function createApiTransport(baseUrl: () => string, fetcher: typeof fetch 
       response = await fetcher(`${root}${path}`, {
         method: options.method ?? 'GET',
         credentials: 'include',
-        signal: AbortSignal.timeout(15000),
+        // Render Free may need roughly a minute to wake for the first auth request.
+        signal: AbortSignal.timeout(path.startsWith('/auth/') ? 90000 : 15000),
         headers: {
           Accept: 'application/json',
           ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),

@@ -2,8 +2,15 @@ import { Text, View } from 'react-native';
 import { Card, EmptyState, Screen } from '../../src/components/ui';
 import { useI18n } from '../../src/i18n';
 import { useTheme } from '../../src/theme';
+import { useAuth } from '../../src/auth';
+import { PersonalCards } from '../../src/personal/PersonalCards';
 
 export default function Cards() {
+  const session = useAuth((state) => state.session);
+  return session ? <PersonalCards /> : <CardsPending />;
+}
+
+function CardsPending() {
   const { t } = useI18n();
   const colors = useTheme();
   return (

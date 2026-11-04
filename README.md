@@ -170,3 +170,9 @@ The main PostgreSQL 17 workflow was revalidated after the redesign. The configur
 ## Author
 
 **VRAS CODE** · [GitHub](https://github.com/vrascode) · [Portfolio](https://vrascode.dev)
+
+# Cloud deployment (prepared)
+
+The existing Vercel frontend needs a newly built public HTTPS API URL ending in
+`/v1`. See [Neon, Render, Vercel and Android deployment](docs/PRODUCTION_DEPLOYMENT.md).
+No cloud API, database, or signed APK is claimed by the local configuration.

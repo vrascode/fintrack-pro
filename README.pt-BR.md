@@ -193,3 +193,10 @@ O projeto disponibiliza os seguintes comandos:
 - `npm run check`: executa lint, verificação de tipos, testes e formatação.
 
 Antes de enviar alterações ao GitHub, execute as verificações adequadas ao escopo da mudança. Para uma validação completa, utilize `npm run check`.
+
+# Publicação na nuvem (preparada)
+
+O frontend Vercel existente precisa de um novo build com a URL HTTPS pública da
+API terminada em `/v1`. Veja o [guia de Neon, Render, Vercel e
+Android](docs/PRODUCTION_DEPLOYMENT.md). A configuração local não comprova API,
+banco na nuvem ou APK assinado.

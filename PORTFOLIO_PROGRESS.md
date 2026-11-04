@@ -1,4 +1,4 @@
-﻿# FinTrack Pro progress / Progresso
+# FinTrack Pro progress / Progresso
 
 ## Dashboard audit and redesign / Auditoria e redesign — 2026-11-03
 
@@ -865,6 +865,14 @@ The following is the previous session's record, not the current status.
 
 # FinTrack Pro progress / Progresso
 
+## Compras e faturas de cartões — 2026-11-04
+
+Adicionados modelos e migração para compras, parcelas e pagamentos de fatura. A API autenticada registra compras idempotentes sob bloqueio do cartão, divide centavos exatamente, calcula faturas por fechamento, consulta limite comprometido, bloqueia pagamentos duplicados e registra pagamento como despesa na conta selecionada. A tela pessoal recebeu compra, seleção de cartão, faturas, parcelas, pagamento e histórico. Compras canceladas antes de qualquer pagamento da fatura são excluídas das somas; estorno de fatura já paga ainda não foi implementado. `npm.cmd run check` passou com 136 testes. A migração foi aplicada após backup e as tabelas responderam a leitura. SQL isolado e E2E real continuam bloqueados por P1000 na porta 5433.
+
+## Migração de contas mensais e cadastro de cartões — 2026-11-04
+
+O erro de listagem de contas mensais foi associado à migração `202611040001_bills` pendente no banco de desenvolvimento. Após backup local verificável, a migração foi aplicada. Readiness HTTP respondeu 200 e consulta `Bill` pelo Prisma funcionou; sem sessão, `/v1/bills` respondeu 401. A tela agora distingue 401/403/404/503 e falha de conexão. Um segundo backup precedeu a migração aditiva `202611040002_credit_cards`; o cadastro pessoal de cartões tem modelo, rotas, UI e teste unitário de isolamento/validação. Compras, faturas e pagamentos permanecem pendentes. `npm.cmd run check` passou com 135 testes. O banco de testes na porta 5433 permanece sem autenticação; nenhuma prova SQL destrutiva foi executada nele.
+
 ## Contas mensais pessoais — implementação em andamento
 
 Revisão: edição, cancelamento e pagamento agora bloqueiam a mesma linha de `Bill` dentro da transação SQL. A interface preserva centavos na edição, confirma cancelamento na web e limpa dados antes de recarregar outra sessão. O teste SQL de contas mensais cobre persistência, saldo, proprietário, repetição e concorrência, mas ainda não executou: `test:integration` parou em P1000 na porta 5433. `npm.cmd run check` passou (134 testes), bundles Web/Android/iOS exportados e 46 E2E com API interceptada passaram. O publicador existente ganhou modo `-CurrentPending` com lista explícita de arquivos, quatro commits e verificação de remoto; não foi executado.
@@ -1234,3 +1242,60 @@ See [validation and scoped publication commands](docs/validation-2026-11-03.md).
 Next: publish the two units from an authorized terminal, configure test credentials
 locally, run real integration/browser acceptance, then implement transaction
 editing/deletion and persisted planning. Delivery remains partial.
+
+## Android cloud release preparation — 2026-11-04
+
+The existing Web favicon and Android launcher assets were confirmed as outputs
+of the same FinTrack mark. The existing package `com.fintrackpro.app` was kept.
+The EAS internal profile now requires a public HTTPS API at config time; a new
+release command checks remote database readiness before starting an APK build.
+An additive Dockerfile prepares the Nest API for a hosted HTTPS ingress and
+managed PostgreSQL. No hosting, Expo signing or physical APK build has occurred:
+provider accounts, public API URL and EAS access are still absent. See
+`docs/ANDROID_CLOUD_RELEASE.md` for the deployment steps and limits.
+Validation: `npm.cmd run check` passed (139/139 unit tests, lint, typecheck,
+build, format); after adding redirect rejection, the 3 Android tests and
+`npm.cmd run check:quick` passed. `npm.cmd run test:integration` stopped at
+PostgreSQL test authentication `P1000` on port 5433. `eas whoami` could not reach
+`api.expo.dev`; no EAS build or hosted API verification was possible.
+
+## Vercel, Render and Neon preparation — 2026-11-04
+
+The Vercel login configuration error maps to the client-side API URL validation
+failure. The published bundle could not be inspected from this environment, so
+the exact configured value remains unknown. Production URL checks now require
+public HTTPS `/v1`; Render Blueprint, TLS database pool, cross-site refresh
+cookie option and Vercel build configuration were added. Cloud services and
+signing remain unverified. See `docs/PRODUCTION_DEPLOYMENT.md`.
+Validation: `npm.cmd run check` passed with 143 unit tests, build, lint,
+typecheck and format. `npm.cmd run test:integration` stopped at `P1000` for the
+isolated 5433 database before SQL tests. The public Vercel deployment could not
+be fetched from this environment. Next: configure separate Neon production and
+staging databases, migrate only after backup, publish the Render API, set the
+real API URL in Vercel and EAS, then test real browser and Android flows.
+`npm.cmd run release:web` also exported a static bundle using a synthetic HTTPS
+URL for compilation only; it was not published or connected to a real API.
+
+## Production deployment audit — 2026-11-04
+
+Reviewed `render.yaml`, `vercel.json`, the deployment guide, database migrations,
+and the Android release profile. The Render Blueprint specifies a free Docker
+service, disables automatic deploys, and reserves `DATABASE_URL` as a secret.
+The Vercel build requires a public HTTPS API URL ending in `/v1`. Updated the
+Docker health check to use the runtime `PORT` and documented that migration
+`20261103230000_goal_contribution_idempotency` updates existing rows; it needs
+explicit authorization if those rows exist in production.
+
+Validation: `npm.cmd run check` passed (lint, typecheck, build, 143/143 unit
+tests, format). `git diff --check` passed. `git ls-remote origin refs/heads/main`
+could not connect to GitHub port 443. `eas.cmd whoami --non-interactive` could not
+reach `api.expo.dev`. A read-only request to the existing Vercel `/login` URL
+failed with a WebException. No Neon, Render, or Vercel account connection was
+available; no cloud resource, backup, migration, deployment, live health check,
+or live authentication test was completed. Local Git index writes remain
+restricted, so no commit was created. No production data was touched.
+
+Next: connect the Neon, Render, and Vercel accounts and restore Git publication
+access; verify separate free-tier production/staging databases and backup
+recovery before migrating an empty production database. Then deploy the API,
+verify readiness, set the real URL in Vercel and EAS, and run staging acceptance.

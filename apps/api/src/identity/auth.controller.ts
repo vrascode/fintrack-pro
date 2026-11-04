@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   Header,
@@ -86,6 +87,7 @@ export class AuthController {
     @Headers('origin') origin: string | undefined,
     @Res({ passthrough: true }) response: CookieResponse,
   ) {
+    if (!origin) throw new ForbiddenException('Browser Origin is required.');
     assertWebOrigin(origin);
     const session = await this.auth.restore(readRefreshCookie(cookie));
     response.header('Set-Cookie', refreshCookie(session.refreshToken));

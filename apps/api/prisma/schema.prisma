@@ -58,6 +58,9 @@ model User {
   budgets         MonthlyBudget[]
   goals           SavingsGoal[]
   bills           Bill[]
+  creditCards     CreditCard[]
+  cardPurchases   CardPurchase[]
+  cardPayments    CardPayment[]
 }
 
 model Session {
@@ -137,6 +140,7 @@ model Category {
   transactions Transaction[]
   budgets      MonthlyBudget[]
   bills        Bill[]
+  cardPurchases CardPurchase[]
 
   @@unique([userId, id])
   @@unique([userId, kind, name])
@@ -159,6 +163,7 @@ model Transaction {
   voidedAt          DateTime?       @db.Timestamptz(3)
   changes           TransactionChange[]
   billPayment       BillPayment?
+  cardPayment       CardPayment?
   createdAt         DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime        @default(now()) @updatedAt @db.Timestamptz(3)
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -208,6 +213,78 @@ model BillPayment {
 
   @@unique([userId, idempotencyKey])
   @@index([userId, billId, occurrenceOn])
+}
+
+model CreditCard {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @db.Uuid
+  name         String   @db.VarChar(80)
+  institution  String   @db.VarChar(80)
+  lastFour     String?  @db.Char(4)
+  limitCents   BigInt
+  closingDay   Int
+  dueDay       Int
+  color        String   @db.Char(7)
+  archivedAt   DateTime? @db.Timestamptz(3)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purchases    CardPurchase[]
+  payments     CardPayment[]
+
+  @@unique([userId, id])
+  @@index([userId, archivedAt])
+}
+
+model CardPurchase {
+  id               String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String @db.Uuid
+  cardId           String @db.Uuid
+  categoryId       String? @db.Uuid
+  description      String @db.VarChar(160)
+  amountCents      BigInt
+  purchasedOn      DateTime @db.Date
+  installmentCount Int
+  idempotencyKey   String @db.VarChar(128)
+  canceledAt       DateTime? @db.Timestamptz(3)
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+  user             User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card             CreditCard @relation(fields: [userId, cardId], references: [userId, id], onDelete: NoAction)
+  category         Category? @relation(fields: [userId, categoryId], references: [userId, id], onDelete: NoAction)
+  installments     CardInstallment[]
+
+  @@unique([userId, idempotencyKey])
+  @@unique([userId, id])
+  @@index([userId, cardId, purchasedOn])
+}
+
+model CardInstallment {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  purchaseId   String @db.Uuid
+  number       Int
+  invoiceMonth DateTime @db.Date
+  amountCents  BigInt
+  purchase     CardPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@unique([purchaseId, number])
+  @@index([invoiceMonth])
+}
+
+model CardPayment {
+  id             String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String @db.Uuid
+  cardId         String @db.Uuid
+  invoiceMonth   DateTime @db.Date
+  amountCents    BigInt
+  idempotencyKey String @db.VarChar(128)
+  transactionId  String @unique @db.Uuid
+  createdAt      DateTime @default(now()) @db.Timestamptz(3)
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card           CreditCard @relation(fields: [userId, cardId], references: [userId, id], onDelete: NoAction)
+  transaction    Transaction @relation(fields: [transactionId], references: [id], onDelete: NoAction)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, cardId, invoiceMonth])
 }
 
 model TransactionChange {

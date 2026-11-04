@@ -11,6 +11,7 @@ import { TransactionsModule } from './transactions/transactions.module.js';
 import { BudgetsModule } from './budgets/budgets.module.js';
 import { GoalsModule } from './goals/goals.module.js';
 import { BillsModule } from './bills/bills.module.js';
+import { CardsModule } from './cards/cards.module.js';
 import { createCorsOptions } from './config/cors.js';
 import { DatabaseErrorFilter } from './database/database-error.filter.js';
 
@@ -48,6 +49,7 @@ class HealthController {
     BudgetsModule,
     GoalsModule,
     BillsModule,
+    CardsModule,
   ],
   controllers: [HealthController],
 })

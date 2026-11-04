@@ -9,6 +9,7 @@ import {
   type FinancialAccount,
 } from '@fintrack/shared';
 import { apiClient } from '../api/client';
+import { ApiClientError } from '../api/client';
 import { useAuth } from '../auth';
 import { parseLocalizedCents } from '../demo/input';
 import { Button, Card, Field, Label, Screen, StatusMessage } from '../components/ui';
@@ -46,8 +47,27 @@ export function PersonalBills() {
       setAccounts(owned);
       setMessage('');
       setAccountId((current) => current || owned.find((item) => !item.archived)?.id || '');
-    } catch {
-      setMessage(text('Falha ao carregar contas mensais.', 'Could not load bills.'));
+    } catch (error) {
+      const status = error instanceof ApiClientError ? error.status : -1;
+      setMessage(
+        status === 401
+          ? text('Sessão expirada. Entre novamente.', 'Session expired. Sign in again.')
+          : status === 403
+            ? text('Acesso às contas negado.', 'Bill access denied.')
+            : status === 404
+              ? text(
+                  'Rota de contas não encontrada. Reinicie a API atualizada.',
+                  'Bills route missing. Restart the updated API.',
+                )
+              : status === 503
+                ? text('Banco indisponível. Tente novamente.', 'Database unavailable. Try again.')
+                : status >= 500
+                  ? text(
+                      'Erro da API ao carregar contas. Tente novamente.',
+                      'API error loading bills. Try again.',
+                    )
+                  : text('Falha de conexão com a API.', 'Could not connect to the API.'),
+      );
     } finally {
       setLoading(false);
     }
@@ -141,6 +161,13 @@ export function PersonalBills() {
       )}
     >
       {message ? <StatusMessage message={message} tone="error" /> : null}
+      {message ? (
+        <Button
+          variant="secondary"
+          label={text('Tentar novamente', 'Retry')}
+          onPress={() => void reload()}
+        />
+      ) : null}
       <Card>
         <Label>
           {editing ? text('Editar conta', 'Edit bill') : text('Nova conta', 'New bill')}

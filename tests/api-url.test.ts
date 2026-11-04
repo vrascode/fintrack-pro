@@ -26,12 +26,25 @@ test('development API defaults distinguish Android emulator from host platforms'
 
 test('production API requires HTTPS and removes a trailing path slash', () => {
   assert.equal(
-    resolveApiBaseUrl('https://api.example.test/v1/', 'android', false),
-    'https://api.example.test/v1',
+    resolveApiBaseUrl('https://api.fintrack.app/v1/', 'android', false),
+    'https://api.fintrack.app/v1',
   );
   assert.throws(() => resolveApiBaseUrl(undefined, 'android', false), /EXPO_PUBLIC_API_URL/);
   assert.throws(() => resolveApiBaseUrl('http://api.example.test/v1', 'web', false), /HTTPS/);
   assert.throws(() => resolveApiBaseUrl('https://127.0.0.1/v1', 'android', false), /HTTPS/);
+  assert.equal(
+    resolveApiBaseUrl('https://api.fintrack.app/v1/', 'web', false),
+    'https://api.fintrack.app/v1',
+  );
+  for (const bad of [
+    'https://api.fintrack.app',
+    'https://api.fintrack.app/v1/v1',
+    'https://api.example.com/v1',
+    'https://10.0.0.1/v1',
+    'https://api.fintrack.app/v1?secret=x',
+  ]) {
+    assert.throws(() => resolveApiBaseUrl(bad, 'web', false));
+  }
 });
 
 test('Expo Go uses the development computer LAN address, while explicit remote APIs remain authoritative', () => {
