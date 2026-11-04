@@ -1299,3 +1299,33 @@ Next: connect the Neon, Render, and Vercel accounts and restore Git publication
 access; verify separate free-tier production/staging databases and backup
 recovery before migrating an empty production database. Then deploy the API,
 verify readiness, set the real URL in Vercel and EAS, and run staging acceptance.
+
+## Vercel build failure and CI browser fixture — 2026-11-04
+
+The clean local and GitHub `main` head was `ca4893f`. Its Vercel commit status was
+failure, but authenticated Vercel logs and project environment settings were not
+available. Under `VERCEL=1`, `npm.cmd run release:web` exited 1 without
+`EXPO_PUBLIC_API_URL` and printed the required HTTPS `/v1` configuration error.
+With a synthetic HTTPS URL confined to the local process, the same command
+exported `apps/mobile/dist/index.html` successfully. This isolates the missing
+or invalid build-time API URL as a reproducible cause; the exact Vercel setting
+remains unverified. Node 24.20.0 met the repository's `>=24.13.0 <25` range.
+The [Vercel Node version documentation](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
+says `engines.node` can override the dashboard major version, so the reported
+version warning does not by itself establish the failing command.
+
+GitHub Actions CI run 108 for `ca4893f` completed with failure: PostgreSQL
+integration passed, and the quality job passed `check` and all-platform bundling
+but failed browser tests. Its CI bundle embedded a `.test` URL that the client
+correctly rejects in production mode. Updated the CI-only fixture to a URL
+accepted by the release validator, added `release:check` before bundling, and
+corrected one stale browser expectation for the current “Cartões de crédito”
+heading. No synthetic URL was configured in Vercel or deployed as a production API.
+
+Validation after the CI change: `npm.cmd run check` passed with 143/143 tests,
+lint, TypeScript, build, and formatting. `npm.cmd run release:check` and
+`npm.cmd run release:web` passed with a CI-only synthetic HTTPS URL;
+`npm.cmd run test:e2e` passed 46/46 desktop and mobile tests after the heading
+assertion correction. Real API availability, Vercel configuration, a new Ready
+deployment, Neon, Render, and an Android APK remain pending. Next: verify the
+production API and set its real HTTPS `/v1` URL in Vercel before redeploying.
