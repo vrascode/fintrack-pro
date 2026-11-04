@@ -5,6 +5,7 @@ test('dashboard selects a historical month and excludes later transactions', asy
   page,
 }, testInfo) => {
   const accountId = '00000000-0000-4000-8000-000000000001';
+  const categoryId = '00000000-0000-4000-8000-000000000005';
   const currentDate = `${dateInTimeZone(new Date()).slice(0, 7)}-01`;
   const previousDate = addMonths(currentDate, -1).slice(0, 7) + '-10';
   await page.route('**/v1/**', async (route) => {
@@ -28,32 +29,35 @@ test('dashboard selects a historical month and excludes later transactions', asy
                 includeInPlan: true,
               },
             ]
-          : path === '/v1/categories'
+          : path === '/v1/budgets'
             ? []
-            : path === '/v1/transactions'
-              ? [
-                  {
-                    id: '00000000-0000-4000-8000-000000000003',
-                    accountId,
-                    kind: 'income',
-                    amountCents: '50000',
-                    description: 'Receita anterior',
-                    date: previousDate,
-                    status: 'posted',
-                    revision: 1,
-                  },
-                  {
-                    id: '00000000-0000-4000-8000-000000000004',
-                    accountId,
-                    kind: 'expense',
-                    amountCents: '20000',
-                    description: 'Despesa atual',
-                    date: currentDate,
-                    status: 'posted',
-                    revision: 1,
-                  },
-                ]
-              : null;
+            : path === '/v1/categories'
+              ? [{ id: categoryId, name: 'Mercado', kind: 'expense', essentialForReserve: false }]
+              : path === '/v1/transactions'
+                ? [
+                    {
+                      id: '00000000-0000-4000-8000-000000000003',
+                      accountId,
+                      kind: 'income',
+                      amountCents: '50000',
+                      description: 'Receita anterior',
+                      date: previousDate,
+                      status: 'posted',
+                      revision: 1,
+                    },
+                    {
+                      id: '00000000-0000-4000-8000-000000000004',
+                      accountId,
+                      kind: 'expense',
+                      categoryId,
+                      amountCents: '20000',
+                      description: 'Despesa atual',
+                      date: currentDate,
+                      status: 'posted',
+                      revision: 1,
+                    },
+                  ]
+                : null;
     if (!json) return route.abort();
     await route.fulfill({
       json,
@@ -65,6 +69,14 @@ test('dashboard selects a historical month and excludes later transactions', asy
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Gastos por categoria' })).toBeVisible();
+  await page.getByRole('button', { name: /Mercado.*Ver lançamentos da categoria/ }).click();
+  await expect(page).toHaveURL(/\/activity\?/);
+  await expect(page.getByRole('radio', { name: 'Mercado' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await page.getByRole('button', { name: 'Limpar filtros' }).click();
+  await page.goto('/');
   await page.getByRole('button', { name: 'Mês anterior' }).click();
   await expect(page.getByText('Receita anterior', { exact: true })).toBeVisible();
   await expect(page.getByText('Despesa atual', { exact: true })).toHaveCount(0);
