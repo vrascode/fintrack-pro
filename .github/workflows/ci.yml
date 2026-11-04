@@ -62,9 +62,9 @@ jobs:
         run: npm run check
 
       - name: Build Android, iOS, and web bundles
-        run: npm run bundle
+        run: npm run release:check && npm run bundle
         env:
-          EXPO_PUBLIC_API_URL: https://api.example.test/v1 # Browser tests intercept requests; never uses a real account.
+          EXPO_PUBLIC_API_URL: https://api.fintrack.app/v1 # CI fixture only; browser tests intercept every API request.
 
       - name: Prepare E2E screenshot directory
         run: New-Item -ItemType Directory -Path .cache -Force | Out-Null
