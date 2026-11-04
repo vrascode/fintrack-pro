@@ -182,4 +182,22 @@ test('filtered transaction CSV escapes fields and neutralizes spreadsheet formul
   assert.ok(csv.includes("'=HYPERLINK"));
   assert.ok(csv.includes('"Other"'));
   assert.ok(csv.includes('"Everyday account"'));
+  const spaced = exportTransactionsCsv(
+    [
+      {
+        id: 'spaced',
+        kind: 'expense',
+        amountCents: '1',
+        date: '2026-10-20',
+        status: 'posted',
+        accountId: 'checking',
+        description: '  =1+1',
+        categoryId: 'other',
+      },
+    ],
+    { category: new Map([['other', '@SUM(1)']]), account: new Map([['checking', 'Cash']]) },
+    'en',
+  );
+  assert.ok(spaced.includes('"\'  =1+1"'));
+  assert.ok(spaced.includes('"\'@SUM(1)"'));
 });

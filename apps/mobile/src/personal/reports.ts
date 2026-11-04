@@ -1,4 +1,9 @@
-import { addMonths, type FinancialCategory, type FinancialTransaction } from '@fintrack/shared';
+import {
+  addMonths,
+  csvCell,
+  type FinancialCategory,
+  type FinancialTransaction,
+} from '@fintrack/shared';
 
 export function personalReport(
   transactions: FinancialTransaction[],
@@ -58,10 +63,6 @@ export function personalReport(
     income: months.reduce((sum, row) => sum + row.income, 0n),
     expense: months.reduce((sum, row) => sum + row.expense, 0n),
   };
-}
-
-function csvCell(value: string): string {
-  return `"${value.replaceAll('"', '""')}"`;
 }
 
 export function reportCsv(rows: FinancialTransaction[], categories: FinancialCategory[]): string {

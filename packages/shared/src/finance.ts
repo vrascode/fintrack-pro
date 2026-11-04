@@ -917,8 +917,12 @@ export function serializeCents(value: bigint): string {
   return serializeMoney(value);
 }
 
-function csvCell(value: string): string {
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+export function csvCell(value: string): string {
+  // Spreadsheet importers may ignore leading whitespace before formula operators.
+  const first = value.trimStart().charAt(0);
+  const unsafe =
+    (first !== '' && '=+-@'.includes(first)) || (value.length > 0 && value.charCodeAt(0) < 32);
+  const safe = unsafe ? `'${value}` : value;
   return `"${safe.replaceAll('"', '""')}"`;
 }
 

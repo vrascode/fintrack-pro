@@ -66,3 +66,10 @@ test('CSV escapes descriptions and exports decimal comma without floating point'
   assert.match(csv, /"Mercado; ""família""";"Mercado";"123,45"/);
   assert.match(csv, /"5000,00"/);
 });
+
+test('personal CSV neutralizes formulas in descriptions and category names', () => {
+  const unsafeCategories = [{ ...categories[0]!, name: '  =HYPERLINK("https://example.invalid")' }];
+  const csv = reportCsv([{ ...rows[1]!, description: '\t+SUM(1,2)' }], unsafeCategories);
+  assert.match(csv, /"'\t\+SUM\(1,2\)"/);
+  assert.match(csv, /"' {2}=HYPERLINK\(""https:\/\/example\.invalid""\)"/);
+});
