@@ -1,6 +1,10 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import {
+  billInputSchema,
+  billSchema,
+  type Bill,
+  type BillInput,
   clientSessionSchema,
   financialAccountInputSchema,
   financialAccountSchema,
@@ -56,6 +60,40 @@ async function list<T>(
 }
 
 export const apiClient = {
+  bills(token: string): Promise<Bill[]> {
+    return list('/bills', token, billSchema);
+  },
+  async createBill(token: string, input: BillInput): Promise<Bill> {
+    return billSchema.parse(
+      await request('/bills', { token, method: 'POST', body: billInputSchema.parse(input) }),
+    );
+  },
+  async updateBill(token: string, id: string, input: BillInput): Promise<Bill> {
+    return billSchema.parse(
+      await request(`/bills/${encodeURIComponent(id)}`, {
+        token,
+        method: 'PATCH',
+        body: billInputSchema.parse(input),
+      }),
+    );
+  },
+  cancelBill(token: string, id: string): Promise<{ success: true }> {
+    return request(`/bills/${encodeURIComponent(id)}/cancel`, { token, method: 'POST' });
+  },
+  payBill(
+    token: string,
+    id: string,
+    occurrenceIndex: number,
+    amountCents: string,
+    key: string,
+  ): Promise<{ id: string; transactionId: string }> {
+    return request(`/bills/${encodeURIComponent(id)}/pay`, {
+      token,
+      method: 'POST',
+      idempotencyKey: key,
+      body: { occurrenceIndex, amountCents },
+    });
+  },
   goals(token: string): Promise<SavingsGoal[]> {
     return list('/goals', token, savingsGoalSchema);
   },

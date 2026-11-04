@@ -10,6 +10,7 @@ const ptBR = {
   'nav.activity': 'Movimentações',
   'nav.activityTab': 'Atividade',
   'nav.accounts': 'Contas',
+  'nav.bills': 'Contas mensais',
   'nav.cards': 'Cartões',
   'nav.budgets': 'Orçamentos',
   'nav.goals': 'Metas',

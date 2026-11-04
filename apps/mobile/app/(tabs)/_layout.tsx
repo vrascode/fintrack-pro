@@ -21,6 +21,7 @@ const navigation = [
   { key: 'overview', route: '/', icon: '◈', implemented: true },
   { key: 'activity', route: '/activity', icon: '↗', implemented: true },
   { key: 'accounts', route: '/accounts', icon: '◫', implemented: true },
+  { key: 'bills', route: '/bills', icon: '◷', implemented: true },
   { key: 'cards', route: '/cards', icon: '▱', implemented: true },
   { key: 'budgets', route: '/budgets', icon: '◷', implemented: true },
   { key: 'goals', route: '/goals', icon: '◎', implemented: true },
@@ -380,7 +381,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen name="accounts" options={{ title: t('nav.accounts'), tabBarIcon: icon('◫') }} />
-      <Tabs.Screen name="bills" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="bills" options={{ title: t('nav.bills'), tabBarIcon: icon('◷') }} />
       <Tabs.Screen name="envelopes" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />

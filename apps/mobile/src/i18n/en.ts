@@ -12,6 +12,7 @@ const en: Record<keyof typeof ptBR, string> = {
   'nav.activity': 'Transactions',
   'nav.activityTab': 'Activity',
   'nav.accounts': 'Accounts',
+  'nav.bills': 'Bills',
   'nav.cards': 'Cards',
   'nav.budgets': 'Budgets',
   'nav.goals': 'Goals',

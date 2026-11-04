@@ -8,8 +8,15 @@ import { parseLocalizedCents } from '../../src/demo/input';
 import { useI18n } from '../../src/i18n';
 import { usePreferences } from '../../src/preferences';
 import { useTheme } from '../../src/theme';
+import { useAuth } from '../../src/auth';
+import { PersonalBills } from '../../src/personal/PersonalBills';
 
 export default function Bills() {
+  const session = useAuth((state) => state.session);
+  return session ? <PersonalBills /> : <DemoBills />;
+}
+
+function DemoBills() {
   const { language, formatCurrency, formatDate } = useI18n();
   const { value: preferences } = usePreferences();
   const { mode, dataset, updateDataset, saving } = useDemo();
