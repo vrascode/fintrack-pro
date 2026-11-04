@@ -32,6 +32,11 @@ enum TransactionKind {
   TRANSFER
 }
 
+enum GoalStatus {
+  ACTIVE
+  CLOSED
+}
+
 model User {
   id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email           String        @unique @db.VarChar(254)
@@ -44,6 +49,8 @@ model User {
   accounts        Account[]
   categories      Category[]
   transactions    Transaction[]
+  budgets         MonthlyBudget[]
+  goals           SavingsGoal[]
 }
 
 model Session {
@@ -120,6 +127,7 @@ model Category {
   createdAt    DateTime      @default(now()) @db.Timestamptz(3)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      MonthlyBudget[]
 
   @@unique([userId, id])
   @@unique([userId, kind, name])
@@ -164,4 +172,50 @@ model TransactionChange {
   transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
   @@unique([transactionId, revision])
+}
+
+model MonthlyBudget {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @db.Uuid
+  categoryId String   @db.Uuid
+  month      DateTime @db.Date
+  limitCents BigInt
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [userId, categoryId], references: [userId, id], onDelete: NoAction)
+
+  @@unique([userId, categoryId, month])
+  @@index([userId, month])
+}
+
+model SavingsGoal {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String             @db.Uuid
+  name           String             @db.VarChar(100)
+  targetCents    BigInt
+  targetOn       DateTime?          @db.Date
+  status         GoalStatus         @default(ACTIVE)
+  createdAt      DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime           @default(now()) @updatedAt @db.Timestamptz(3)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contributions  GoalContribution[]
+
+  @@unique([userId, id])
+  @@index([userId, status, createdAt])
+}
+
+model GoalContribution {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String      @db.Uuid
+  goalId       String      @db.Uuid
+  idempotencyKey String    @db.VarChar(128)
+  amountCents  BigInt
+  note         String?     @db.VarChar(160)
+  contributedOn DateTime   @db.Date
+  createdAt    DateTime    @default(now()) @db.Timestamptz(3)
+  goal         SavingsGoal @relation(fields: [userId, goalId], references: [userId, id], onDelete: Cascade)
+
+  @@index([userId, goalId, contributedOn])
+  @@unique([userId, idempotencyKey])
 }

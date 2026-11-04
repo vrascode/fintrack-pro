@@ -22,9 +22,9 @@ const navigation = [
   { key: 'activity', route: '/activity', icon: '↗', implemented: true },
   { key: 'accounts', route: '/accounts', icon: '◫', implemented: true },
   { key: 'cards', route: '/cards', icon: '▱', implemented: true },
-  { key: 'budgets', route: '', icon: '◷', implemented: false },
-  { key: 'goals', route: '', icon: '◎', implemented: false },
-  { key: 'reports', route: '', icon: '▤', implemented: false },
+  { key: 'budgets', route: '/budgets', icon: '◷', implemented: true },
+  { key: 'goals', route: '/goals', icon: '◎', implemented: true },
+  { key: 'reports', route: '/reports', icon: '▤', implemented: true },
   { key: 'settings', route: '/preferences', icon: '⚙', implemented: true },
 ] as const;
 
@@ -385,6 +385,9 @@ export default function TabLayout() {
       <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="cards" options={isDesktop ? { title: t('nav.cards') } : { href: null }} />
+      <Tabs.Screen name="budgets" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="goals" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen name="reports" options={{ tabBarButton: () => null }} />
       <Tabs.Screen
         name="preferences"
         options={{ title: t('nav.settingsTab'), tabBarIcon: icon('⚙') }}

@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
-import { Redirect, router } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import {
   calculateAccountBalance,
   calendarDateSchema,
@@ -533,11 +533,8 @@ export function PersonalOverview() {
   const authError = useAuth((state) => state.error);
   return (
     <Screen
-      title={text('Seu dashboard', 'Your dashboard')}
-      subtitle={text(
-        'Acompanhe suas contas e movimentações em um só lugar.',
-        'Track your accounts and transactions in one place.',
-      )}
+      title={text('Suas finanças', 'Your finances')}
+      subtitle={text('Uma visão clara do seu dinheiro.', 'A clear view of your money.')}
     >
       {loading ? (
         <Loading />
@@ -576,6 +573,12 @@ export function PersonalOverview() {
   );
 }
 export function PersonalActivity() {
+  const params = useLocalSearchParams<{
+    categoryId?: string;
+    from?: string;
+    to?: string;
+    kind?: string;
+  }>();
   const { text, formatDate, formatCurrency, hidden } = useLabels();
   const { data, loading, error, refresh, token } = usePersonalFinance();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -588,6 +591,12 @@ export function PersonalActivity() {
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  useEffect(() => {
+    if (typeof params.categoryId === 'string') setCategoryFilter(params.categoryId);
+    if (typeof params.from === 'string') setFrom(params.from);
+    if (typeof params.to === 'string') setTo(params.to);
+    if (params.kind === 'expense') setKindFilter('expense');
+  }, [params.categoryId, params.from, params.to, params.kind]);
   const valid =
     (!from || calendarDateSchema.safeParse(from).success) &&
     (!to || calendarDateSchema.safeParse(to).success) &&
@@ -692,6 +701,19 @@ export function PersonalActivity() {
               : text('Mais recentes primeiro', 'Newest first')
           }
           onPress={() => setAscending(!ascending)}
+        />
+        <Button
+          variant="quiet"
+          label={text('Limpar filtros', 'Clear filters')}
+          onPress={() => {
+            setSearch('');
+            setFrom('');
+            setTo('');
+            setKindFilter('');
+            setAccountFilter('');
+            setCategoryFilter('');
+            setAscending(false);
+          }}
         />
       </Card>
       {saved ? (

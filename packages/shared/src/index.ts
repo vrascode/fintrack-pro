@@ -4,6 +4,8 @@ export * from './calendar.ts';
 export * from './identity.ts';
 export * from './finance.ts';
 export * from './demo.ts';
+export * from './budget.ts';
+export * from './goal.ts';
 
 export const preferencesSchema = z
   .object({

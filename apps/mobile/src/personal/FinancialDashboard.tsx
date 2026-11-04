@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import {
@@ -7,7 +7,10 @@ import {
   type FinancialAccount,
   type FinancialCategory,
   type FinancialTransaction,
+  type MonthlyBudget,
 } from '@fintrack/shared';
+import { apiClient } from '../api/client';
+import { useAuth } from '../auth';
 import { Button, Card, Label, SectionHeading } from '../components/ui';
 import { useI18n } from '../i18n';
 import { usePreferences } from '../preferences';
@@ -53,11 +56,32 @@ export function FinancialDashboard({
 }) {
   const colors = useTheme();
   const { language, formatCurrency, formatDate } = useI18n();
-  const hidden = usePreferences().value.hideAmounts;
+  const { value: preferences, update: updatePreferences } = usePreferences();
+  const hidden = preferences.hideAmounts;
   const { width } = useWindowDimensions();
   const compact = width < 760;
   const today = dateInTimeZone(new Date());
   const [selectedMonth, setSelectedMonth] = useState(today.slice(0, 7));
+  const token = useAuth((state) => state.session?.accessToken);
+  const [budgets, setBudgets] = useState<MonthlyBudget[] | null>(null);
+  const [budgetError, setBudgetError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    setBudgets(null);
+    setBudgetError(false);
+    if (token)
+      void apiClient
+        .budgets(token, selectedMonth)
+        .then((items) => {
+          if (active) setBudgets(items);
+        })
+        .catch(() => {
+          if (active) setBudgetError(true);
+        });
+    return () => {
+      active = false;
+    };
+  }, [token, selectedMonth]);
   const asOf = periodEnd(selectedMonth, today);
   const summary = summarizePersonalFinance(data.accounts, data.categories, data.transactions, asOf);
   const series = dashboardSeries(
@@ -122,6 +146,7 @@ export function FinancialDashboard({
         text('Sem base no mês anterior', 'No previous month baseline'),
     },
   ];
+  const balanceMetric = metrics[0]!;
   return (
     <View style={{ gap: 24 }}>
       <View
@@ -134,7 +159,7 @@ export function FinancialDashboard({
       >
         <View style={{ gap: 5 }}>
           <Label style={{ fontWeight: '700', fontSize: 17 }}>
-            {text('Sua visão financeira', 'Your financial overview')}
+            {text('Resumo do mês', 'Monthly overview')}
           </Label>
           <Label muted>
             {text('Dados reais da sua conta', 'Live records from your account')} · {monthTitle}
@@ -198,13 +223,64 @@ export function FinancialDashboard({
           />
         ) : null}
       </View>
+      <Card accent style={{ padding: compact ? 22 : 30, gap: 14 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <Label muted style={{ fontSize: 15, fontWeight: '700' }}>
+            {balanceMetric.label}
+          </Label>
+          <Button
+            compact
+            variant="quiet"
+            label={
+              hidden
+                ? text('Revelar valores', 'Show amounts')
+                : text('Ocultar valores', 'Hide amounts')
+            }
+            onPress={() => void updatePreferences({ hideAmounts: !hidden })}
+          />
+        </View>
+        <Text
+          accessibilityLabel={`${balanceMetric.label}: ${money(summary.balance)}`}
+          style={{
+            color: colors.accentText,
+            fontSize: compact ? 34 : 44,
+            fontWeight: '800',
+            fontVariant: ['tabular-nums'],
+          }}
+        >
+          {money(summary.balance)}
+        </Text>
+        <Label muted>
+          {data.accounts.filter((account) => account.openingDate <= asOf).length}{' '}
+          {text('contas consideradas até', 'accounts included through')} {asOf}
+        </Label>
+        <Label muted>
+          {text('Variação do saldo ante o mês anterior', 'Balance change versus previous month')}:{' '}
+          {percentChange(summary.balance, series[4]?.balance ?? 0n) ??
+            text('Sem dados para comparação', 'No data to compare')}
+        </Label>
+        <Label muted>
+          {text(
+            'O resultado mensal mede apenas receitas menos despesas do período.',
+            'Monthly result measures only income minus expenses in the period.',
+          )}
+        </Label>
+      </Card>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-        {metrics.map((item) => (
+        {metrics.slice(1).map((item) => (
           <Card
             key={item.label}
             accent={!!item.prominent}
             style={{
-              width: cardWidth,
+              width: compact ? '100%' : '30%',
               minWidth: compact ? undefined : 260,
               flexGrow: 1,
               padding: 22,
@@ -277,7 +353,23 @@ export function FinancialDashboard({
           />
           {summary.categories.length ? (
             summary.categories.slice(0, 6).map((row) => (
-              <View key={row.id} style={{ gap: 8 }}>
+              <Pressable
+                key={row.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${row.name ?? text('Sem categoria', 'Uncategorized')}: ${money(row.amount)}. ${row.id ? text('Ver lançamentos da categoria', 'View category transactions') : text('Ver despesas do mês', 'View monthly expenses')}`}
+                onPress={() =>
+                  router.push({
+                    pathname: '/activity',
+                    params: {
+                      ...(row.id ? { categoryId: row.id } : {}),
+                      from: `${selectedMonth}-01`,
+                      to: asOf,
+                      kind: 'expense',
+                    },
+                  })
+                }
+                style={{ gap: 8, paddingVertical: 5 }}
+              >
                 <Label>
                   {row.name ?? text('Sem categoria', 'Uncategorized')} · {money(row.amount)}
                 </Label>
@@ -287,13 +379,93 @@ export function FinancialDashboard({
                   color={colors.accent}
                   label={`${row.name ?? text('Sem categoria', 'Uncategorized')}: ${money(row.amount)}`}
                 />
-              </View>
+              </Pressable>
             ))
           ) : (
             <Label muted>{text('Nenhuma despesa neste mês.', 'No expenses this month.')}</Label>
           )}
         </Card>
       </View>
+      <Card>
+        <View
+          style={{
+            flexDirection: compact ? 'column' : 'row',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <SectionHeading
+            title={text('Orçamentos do mês', 'Monthly budgets')}
+            detail={text(
+              'Limites por categoria, sem alterar o saldo das contas',
+              'Category limits do not change account balances',
+            )}
+          />
+          <Button
+            compact
+            variant="quiet"
+            label={text('Gerenciar orçamentos', 'Manage budgets')}
+            onPress={() => router.push('/budgets')}
+          />
+        </View>
+        {budgetError ? (
+          <Label style={{ color: colors.danger }}>
+            {text('Não foi possível carregar os orçamentos.', 'Could not load budgets.')}
+          </Label>
+        ) : budgets === null ? (
+          <Label muted>{text('Carregando orçamentos…', 'Loading budgets…')}</Label>
+        ) : budgets.length ? (
+          budgets.slice(0, 4).map((budget) => {
+            const limit = BigInt(budget.limitCents);
+            const spent = BigInt(budget.spentCents);
+            const remaining = limit - spent;
+            return (
+              <View
+                key={budget.id}
+                style={{ gap: 5, borderTopWidth: 1, borderColor: colors.border, paddingTop: 10 }}
+              >
+                <Label style={{ fontWeight: '700' }}>{budget.categoryName}</Label>
+                <Label muted>
+                  {text('Gasto', 'Spent')} {money(spent)} · {text('Limite', 'Limit')} {money(limit)}
+                </Label>
+                <Label style={{ color: remaining < 0n ? colors.danger : colors.ink }}>
+                  {remaining < 0n
+                    ? text('Acima do limite', 'Over budget')
+                    : text('Restante', 'Remaining')}
+                  : {money(remaining < 0n ? -remaining : remaining)}
+                </Label>
+              </View>
+            );
+          })
+        ) : (
+          <Label muted>
+            {text('Nenhum orçamento definido para este mês.', 'No budgets set for this month.')}
+          </Label>
+        )}
+      </Card>
+      <Card>
+        <SectionHeading
+          title={text('Planeje seus próximos passos', 'Plan your next steps')}
+          detail={text(
+            'Metas informativas e relatórios dos lançamentos reais',
+            'Informational goals and reports from real transactions',
+          )}
+        />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          <Button
+            compact
+            variant="secondary"
+            label={text('Ver metas', 'View goals')}
+            onPress={() => router.push('/goals')}
+          />
+          <Button
+            compact
+            variant="secondary"
+            label={text('Abrir relatórios', 'Open reports')}
+            onPress={() => router.push('/reports')}
+          />
+        </View>
+      </Card>
       <Card>
         <SectionHeading
           title={text('Evolução do saldo', 'Balance evolution')}

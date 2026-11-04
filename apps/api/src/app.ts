@@ -8,6 +8,8 @@ import { AuthModule } from './identity/auth.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
+import { BudgetsModule } from './budgets/budgets.module.js';
+import { GoalsModule } from './goals/goals.module.js';
 import { createCorsOptions } from './config/cors.js';
 import { DatabaseErrorFilter } from './database/database-error.filter.js';
 
@@ -36,7 +38,15 @@ class HealthController {
 }
 
 @Module({
-  imports: [PrismaModule, AuthModule, AccountsModule, CategoriesModule, TransactionsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    AccountsModule,
+    CategoriesModule,
+    TransactionsModule,
+    BudgetsModule,
+    GoalsModule,
+  ],
   controllers: [HealthController],
 })
 class AppModule {}

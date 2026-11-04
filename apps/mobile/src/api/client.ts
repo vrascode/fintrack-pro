@@ -9,6 +9,12 @@ import {
   financialTransactionInputSchema,
   financialTransactionSchema,
   loginSchema,
+  monthlyBudgetInputSchema,
+  monthlyBudgetSchema,
+  savingsGoalInputSchema,
+  savingsGoalSchema,
+  savingsGoalUpdateSchema,
+  goalContributionInputSchema,
   registerSchema,
   type ClientSession,
   type FinancialAccount,
@@ -17,6 +23,12 @@ import {
   type FinancialTransaction,
   type FinancialTransactionInput,
   type Login,
+  type MonthlyBudget,
+  type MonthlyBudgetInput,
+  type SavingsGoal,
+  type SavingsGoalInput,
+  type SavingsGoalUpdate,
+  type GoalContributionInput,
   type Registration,
 } from '@fintrack/shared';
 import { resolveApiBaseUrl } from './url';
@@ -44,6 +56,80 @@ async function list<T>(
 }
 
 export const apiClient = {
+  goals(token: string): Promise<SavingsGoal[]> {
+    return list('/goals', token, savingsGoalSchema);
+  },
+  async createGoal(token: string, input: SavingsGoalInput): Promise<SavingsGoal> {
+    return savingsGoalSchema.parse(
+      await request('/goals', { token, method: 'POST', body: savingsGoalInputSchema.parse(input) }),
+    );
+  },
+  async updateGoal(token: string, id: string, input: SavingsGoalUpdate): Promise<SavingsGoal> {
+    return savingsGoalSchema.parse(
+      await request(`/goals/${encodeURIComponent(id)}`, {
+        token,
+        method: 'PATCH',
+        body: savingsGoalUpdateSchema.parse(input),
+      }),
+    );
+  },
+  removeGoal(token: string, id: string): Promise<{ success: true }> {
+    return request(`/goals/${encodeURIComponent(id)}`, { token, method: 'DELETE' });
+  },
+  async addGoalContribution(
+    token: string,
+    id: string,
+    key: string,
+    input: GoalContributionInput,
+  ): Promise<SavingsGoal> {
+    return savingsGoalSchema.parse(
+      await request(`/goals/${encodeURIComponent(id)}/contributions`, {
+        token,
+        method: 'POST',
+        body: goalContributionInputSchema.parse(input),
+        idempotencyKey: key,
+      }),
+    );
+  },
+  async removeGoalContribution(
+    token: string,
+    goalId: string,
+    contributionId: string,
+  ): Promise<SavingsGoal> {
+    return savingsGoalSchema.parse(
+      await request(
+        `/goals/${encodeURIComponent(goalId)}/contributions/${encodeURIComponent(contributionId)}`,
+        {
+          token,
+          method: 'DELETE',
+        },
+      ),
+    );
+  },
+  budgets(token: string, month: string): Promise<MonthlyBudget[]> {
+    return list(`/budgets?month=${encodeURIComponent(month)}`, token, monthlyBudgetSchema);
+  },
+  async createBudget(token: string, input: MonthlyBudgetInput): Promise<MonthlyBudget> {
+    return monthlyBudgetSchema.parse(
+      await request('/budgets', {
+        token,
+        method: 'POST',
+        body: monthlyBudgetInputSchema.parse(input),
+      }),
+    );
+  },
+  async updateBudget(token: string, id: string, limitCents: string): Promise<MonthlyBudget> {
+    return monthlyBudgetSchema.parse(
+      await request(`/budgets/${encodeURIComponent(id)}`, {
+        token,
+        method: 'PATCH',
+        body: { limitCents },
+      }),
+    );
+  },
+  removeBudget(token: string, id: string): Promise<{ success: true }> {
+    return request(`/budgets/${encodeURIComponent(id)}`, { token, method: 'DELETE' });
+  },
   async editTransaction(
     token: string,
     id: string,
