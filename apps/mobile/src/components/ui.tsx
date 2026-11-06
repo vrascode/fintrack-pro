@@ -206,6 +206,10 @@ export function Field({
           }}
           placeholderTextColor={colors.muted}
           selectionColor={colors.accent}
+          cursorColor={colors.accent}
+          keyboardAppearance={
+            props.keyboardAppearance ?? (colors.mode === 'dark' ? 'dark' : 'light')
+          }
           style={[
             {
               color: colors.ink,
