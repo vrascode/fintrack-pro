@@ -34,6 +34,8 @@ export function PersonalBills() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const sending = useRef(false);
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<'open' | 'paid' | 'all'>('open');
   const [editing, setEditing] = useState<string | null>(null);
@@ -91,7 +93,10 @@ export function PersonalBills() {
   );
   const today = dateInTimeZone(new Date());
   async function save() {
-    if (!token) return;
+    if (!token || sending.current) return;
+    sending.current = true;
+    setBusy(true);
+    setMessage('');
     try {
       const input: BillInput = {
         description,
@@ -114,10 +119,16 @@ export function PersonalBills() {
           'Check description, amount, account and date.',
         ),
       );
+    } finally {
+      sending.current = false;
+      setBusy(false);
     }
   }
   async function pay(bill: Bill, index: number, remaining: bigint) {
-    if (!token) return;
+    if (!token || sending.current) return;
+    sending.current = true;
+    setBusy(true);
+    setMessage('');
     try {
       const value = payAmounts[bill.id]?.trim()
         ? parseLocalizedCents(payAmounts[bill.id]!, language)
@@ -140,6 +151,9 @@ export function PersonalBills() {
           'Payment was not recorded. Check the amount and retry.',
         ),
       );
+    } finally {
+      sending.current = false;
+      setBusy(false);
     }
   }
   function cancel(bill: Bill) {
@@ -253,7 +267,8 @@ export function PersonalBills() {
               ? text('Salvar alterações', 'Save changes')
               : text('Cadastrar conta', 'Create bill')
           }
-          disabled={!accountId}
+          disabled={!accountId || busy}
+          loading={busy}
           onPress={() => void save()}
         />
         {editing ? (
@@ -356,6 +371,7 @@ export function PersonalBills() {
                     />
                     <Button
                       label={text('Registrar pagamento', 'Record payment')}
+                      disabled={busy}
                       onPress={() => void pay(bill, index, remaining)}
                     />
                   </>

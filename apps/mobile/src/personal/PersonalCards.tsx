@@ -39,6 +39,7 @@ export function PersonalCards() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const sending = useRef(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<FinancialAccount[]>([]);
   const [categories, setCategories] = useState<FinancialCategory[]>([]);
@@ -98,7 +99,8 @@ export function PersonalCards() {
     }, [refresh]),
   );
   async function save() {
-    if (!token || saving) return;
+    if (!token || sending.current) return;
+    sending.current = true;
     setSaving(true);
     setMessage('');
     try {
@@ -120,11 +122,13 @@ export function PersonalCards() {
     } catch {
       setMessage(text('Confira os dados do cartão.', 'Check the card details.'));
     } finally {
+      sending.current = false;
       setSaving(false);
     }
   }
   async function purchase() {
-    if (!token || !selected || saving) return;
+    if (!token || !selected || sending.current) return;
+    sending.current = true;
     setSaving(true);
     setMessage('');
     try {
@@ -154,11 +158,13 @@ export function PersonalCards() {
         ),
       );
     } finally {
+      sending.current = false;
       setSaving(false);
     }
   }
   async function pay(month: string, remaining: bigint) {
-    if (!token || !selected || !accountId || saving) return;
+    if (!token || !selected || !accountId || sending.current) return;
+    sending.current = true;
     setSaving(true);
     setMessage('');
     try {
@@ -188,6 +194,7 @@ export function PersonalCards() {
         ),
       );
     } finally {
+      sending.current = false;
       setSaving(false);
     }
   }

@@ -88,3 +88,48 @@ test('a successful account save announces one feedback message', async ({ page }
   await expect(success).toHaveCount(1);
   await expect(success).toHaveAttribute('aria-live', 'polite');
 });
+
+test('rapid bill submissions issue one write and unlock after failure', async ({ page }) => {
+  await mockFinance(page);
+  let writes = 0;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/v1/bills', async (route) => {
+    if (route.request().method() === 'POST') {
+      writes++;
+      await pending;
+      return route.fulfill({
+        status: 503,
+        json: {},
+        headers: {
+          'Access-Control-Allow-Origin': 'http://127.0.0.1:4173',
+          'Access-Control-Allow-Credentials': 'true',
+        },
+      });
+    }
+    return route.fulfill({
+      json: [],
+      headers: {
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:4173',
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    });
+  });
+  await openFinance(page, '/bills');
+  await page.getByLabel('Descrição', { exact: true }).fill('Electricity');
+  await page.getByLabel('Valor', { exact: true }).fill('100');
+  const save = page.getByRole('button', { name: 'Cadastrar conta', exact: true });
+  await expect(save).toBeEnabled();
+  await save.evaluate((node) => {
+    node.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    node.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+  await expect.poll(() => writes).toBe(1);
+  await expect(save).toBeDisabled();
+  release();
+  await expect(save).toBeEnabled();
+  await expect(page.getByLabel('Descrição', { exact: true })).toHaveValue('Electricity');
+  expect(writes).toBe(1);
+});
