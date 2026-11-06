@@ -58,3 +58,14 @@ test('cards expose a busy loading state until the response arrives', async ({ pa
   release();
   await expect(loading).toHaveCount(0);
 });
+
+test('empty cards and bills explain the next action', async ({ page }) => {
+  await mockFinance(page);
+  await openFinance(page, '/cards');
+  await expect(page.getByRole('heading', { name: 'Nenhum cartão cadastrado.' })).toBeVisible();
+  await expect(page.getByText(/Cadastre seu primeiro cartão no formulário/)).toBeVisible();
+  await openFinance(page, '/bills');
+  await expect(
+    page.getByRole('heading', { name: 'Nenhuma conta mensal cadastrada.' }),
+  ).toBeVisible();
+});

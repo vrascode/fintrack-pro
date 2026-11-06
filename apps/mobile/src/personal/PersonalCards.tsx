@@ -10,7 +10,16 @@ import {
 } from '@fintrack/shared';
 import { apiClient, ApiClientError } from '../api/client';
 import { useAuth } from '../auth';
-import { Button, Card, Field, Label, Loading, Screen, StatusMessage } from '../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Label,
+  Loading,
+  Screen,
+  StatusMessage,
+} from '../components/ui';
 import { parseLocalizedCents } from '../demo/input';
 import { useI18n } from '../i18n';
 import { useTheme } from '../theme';
@@ -236,9 +245,16 @@ export function PersonalCards() {
       </Card>
       {loading ? (
         <Loading label={text('Carregando cartões…', 'Loading cards…')} />
-      ) : cards.length === 0 ? (
+      ) : cards.length === 0 && !message ? (
         <Card>
-          <Label>{text('Nenhum cartão cadastrado.', 'No cards yet.')}</Label>
+          <EmptyState
+            symbol="▣"
+            title={text('Nenhum cartão cadastrado.', 'No cards yet.')}
+            description={text(
+              'Cadastre seu primeiro cartão no formulário acima para acompanhar compras e faturas.',
+              'Create your first card above to track purchases and invoices.',
+            )}
+          />
         </Card>
       ) : (
         cards.map((item) => (

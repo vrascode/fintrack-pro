@@ -12,7 +12,16 @@ import { apiClient } from '../api/client';
 import { ApiClientError } from '../api/client';
 import { useAuth } from '../auth';
 import { parseLocalizedCents } from '../demo/input';
-import { Button, Card, Field, Label, Loading, Screen, StatusMessage } from '../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Label,
+  Loading,
+  Screen,
+  StatusMessage,
+} from '../components/ui';
 import { useI18n } from '../i18n';
 import { useTheme } from '../theme';
 
@@ -277,6 +286,18 @@ export function PersonalBills() {
           />
         ))}
       </View>
+      {!loading && !message && bills.length === 0 ? (
+        <Card>
+          <EmptyState
+            symbol="≡"
+            title={text('Nenhuma conta mensal cadastrada.', 'No bills yet.')}
+            description={text(
+              'Use o formulário acima para organizar seu primeiro vencimento.',
+              'Use the form above to organize your first due date.',
+            )}
+          />
+        </Card>
+      ) : null}
       {loading ? (
         <Loading label={text('Carregando contas mensais…', 'Loading bills…')} />
       ) : (
