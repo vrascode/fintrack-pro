@@ -8,8 +8,33 @@ export class DatabaseErrorFilter implements ExceptionFilter {
     const response = host
       .switchToHttp()
       .getResponse<{ status(code: number): { json(body: unknown): void } }>();
-    if (error instanceof HttpException) {
+    if (error instanceof HttpException && error.getStatus() < 500) {
       response.status(error.getStatus()).json(error.getResponse());
+      return;
+    }
+    if (error instanceof HttpException) {
+      const body = error.getResponse();
+      const readiness =
+        error.getStatus() === 503 &&
+        typeof body === 'object' &&
+        'service' in body &&
+        body.service === 'fintrack-api' &&
+        'scope' in body &&
+        body.scope === 'database' &&
+        'status' in body &&
+        body.status === 'unavailable';
+      response.status(error.getStatus()).json(
+        readiness
+          ? {
+              service: 'fintrack-api',
+              scope: 'database',
+              status: 'unavailable',
+            }
+          : {
+              statusCode: error.getStatus(),
+              message: 'The request could not be completed.',
+            },
+      );
       return;
     }
     const code =
