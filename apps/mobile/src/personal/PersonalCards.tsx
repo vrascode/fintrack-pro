@@ -23,6 +23,7 @@ import {
 import { parseLocalizedCents } from '../demo/input';
 import { useI18n } from '../i18n';
 import { useTheme } from '../theme';
+import { parseIntegerInput } from './integer-input';
 
 export function PersonalCards() {
   const token = useAuth((state) => state.session?.accessToken);
@@ -109,8 +110,8 @@ export function PersonalCards() {
         institution,
         ...(lastFour ? { lastFour } : {}),
         limitCents: parseLocalizedCents(limit, language).toString(),
-        closingDay: Number(closing),
-        dueDay: Number(due),
+        closingDay: parseIntegerInput(closing, 28),
+        dueDay: parseIntegerInput(due, 28),
         color: '#C84A01',
       };
       await apiClient.createCard(token, input);
@@ -136,7 +137,7 @@ export function PersonalCards() {
         description: purchaseDescription,
         amountCents: parseLocalizedCents(purchaseAmount, language).toString(),
         purchasedOn: purchaseDate,
-        installments: Number(installments),
+        installments: parseIntegerInput(installments, 48),
         ...(categoryId ? { categoryId } : {}),
       };
       const fingerprint = `${selected}:${JSON.stringify(input)}`;
