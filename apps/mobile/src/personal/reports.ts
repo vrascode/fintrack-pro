@@ -54,7 +54,11 @@ export function personalReport(
       amount,
     }))
     .sort((a, b) =>
-      a.amount === b.amount ? a.name.localeCompare(b.name) : a.amount > b.amount ? -1 : 1,
+      a.amount === b.amount
+        ? a.name.localeCompare(b.name) || a.id.localeCompare(b.id)
+        : a.amount > b.amount
+          ? -1
+          : 1,
     );
   return {
     rows,

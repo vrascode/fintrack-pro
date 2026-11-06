@@ -67,6 +67,22 @@ test('CSV escapes descriptions and exports decimal comma without floating point'
   assert.match(csv, /"5000,00"/);
 });
 
+test('equal dates and equal category totals have deterministic tie breakers', () => {
+  const options = ['a', 'b'].map((id) => ({ ...categories[0]!, id, name: 'Same' }));
+  const entries = ['b', 'a'].map((id) => ({ ...rows[1]!, id, categoryId: id }));
+  for (const input of [entries, [...entries].reverse()]) {
+    const report = personalReport(input, options, '2026-10', '2026-10', null);
+    assert.deepEqual(
+      report.rows.map((item) => item.id),
+      ['b', 'a'],
+    );
+    assert.deepEqual(
+      report.byCategory.map((item) => item.id),
+      ['a', 'b'],
+    );
+  }
+});
+
 test('personal CSV neutralizes formulas in descriptions and category names', () => {
   const unsafeCategories = [{ ...categories[0]!, name: '  =HYPERLINK("https://example.invalid")' }];
   const csv = reportCsv([{ ...rows[1]!, description: '\t+SUM(1,2)' }], unsafeCategories);
