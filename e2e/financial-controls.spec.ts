@@ -69,3 +69,22 @@ test('empty cards and bills explain the next action', async ({ page }) => {
     page.getByRole('heading', { name: 'Nenhuma conta mensal cadastrada.' }),
   ).toBeVisible();
 });
+
+test('a successful account save announces one feedback message', async ({ page }) => {
+  await mockFinance(page);
+  await page.route('**/v1/accounts', async (route) => {
+    await route.fulfill({
+      json: route.request().method() === 'POST' ? account : [account],
+      headers: {
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:4173',
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    });
+  });
+  await openFinance(page, '/accounts');
+  await page.getByLabel('Nome da conta', { exact: true }).fill('Saved');
+  await page.getByRole('button', { name: 'Salvar conta', exact: true }).click();
+  const success = page.getByText('Conta salva no servidor.', { exact: true });
+  await expect(success).toHaveCount(1);
+  await expect(success).toHaveAttribute('aria-live', 'polite');
+});

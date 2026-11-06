@@ -100,6 +100,7 @@ export function PersonalCards() {
   async function save() {
     if (!token || saving) return;
     setSaving(true);
+    setMessage('');
     try {
       const input: CreditCardInput = {
         name,
@@ -125,6 +126,7 @@ export function PersonalCards() {
   async function purchase() {
     if (!token || !selected || saving) return;
     setSaving(true);
+    setMessage('');
     try {
       const input = {
         description: purchaseDescription,
@@ -158,6 +160,7 @@ export function PersonalCards() {
   async function pay(month: string, remaining: bigint) {
     if (!token || !selected || !accountId || saving) return;
     setSaving(true);
+    setMessage('');
     try {
       const amount = paymentAmounts[month]?.trim()
         ? parseLocalizedCents(paymentAmounts[month]!, language)

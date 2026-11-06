@@ -290,6 +290,7 @@ export function StatusMessage({ message, tone }: { message: string; tone: 'error
       </Text>
       <Text
         accessibilityRole={isError ? 'alert' : 'text'}
+        accessibilityLiveRegion={isError ? undefined : 'polite'}
         style={{ color: isError ? colors.danger : colors.positiveText, flex: 1, lineHeight: 21 }}
       >
         {message}
