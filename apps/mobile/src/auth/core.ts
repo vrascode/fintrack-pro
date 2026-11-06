@@ -113,14 +113,22 @@ export function createAuthStore(storage: SessionStorage, api: AuthApi): StoreApi
           set({ session, status: 'authenticated', error: null });
           return session.accessToken;
         } catch (error) {
+          if (get().session !== previous) return null;
           if (
             typeof error === 'object' &&
             error !== null &&
             'status' in error &&
             error.status === 401
           ) {
-            await storage.clear();
-            set({ status: 'anonymous', session: null, error: 'credentials' });
+            let failure: AuthState['error'] = 'credentials';
+            try {
+              await storage.clear();
+            } catch {
+              failure = 'read';
+            }
+            if (get().session === previous) {
+              set({ status: 'anonymous', session: null, error: failure });
+            }
           }
           return null;
         }

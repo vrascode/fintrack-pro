@@ -236,3 +236,61 @@ test('failed remote logout retains the session for an explicit revocation retry'
   assert.equal(store.getState().status, 'anonymous');
   assert.equal(saved, null);
 });
+
+test('rejected renewal clears in-memory authentication even when storage removal fails', async () => {
+  const store = createAuthStore(
+    {
+      get: async () => null,
+      set: async () => {},
+      clear: async () => {
+        throw new Error('disk');
+      },
+    },
+    {
+      login: async () => credentials,
+      register: async () => {},
+      logout: async () => {},
+      refresh: async () => {
+        throw Object.assign(new Error('expired'), { status: 401 });
+      },
+    },
+  );
+  await store
+    .getState()
+    .signIn({ email: 'test@example.com', password: 'a long test password', deviceName: 'test' });
+  assert.equal(await store.getState().renew(), null);
+  assert.equal(store.getState().status, 'anonymous');
+  assert.equal(store.getState().session, null);
+  assert.equal(store.getState().error, 'read');
+});
+
+test('an old rejected renewal cannot clear a newer login', async () => {
+  let reject!: (error: Error) => void;
+  let clears = 0;
+  const store = createAuthStore(
+    {
+      get: async () => null,
+      set: async () => {},
+      clear: async () => {
+        clears++;
+      },
+    },
+    {
+      login: async () => ({ ...credentials }),
+      register: async () => {},
+      logout: async () => {},
+      refresh: () =>
+        new Promise((_, fail) => {
+          reject = fail;
+        }),
+    },
+  );
+  const input = { email: 'test@example.com', password: 'a long test password', deviceName: 'test' };
+  await store.getState().signIn(input);
+  const pending = store.getState().renew();
+  await store.getState().signIn(input);
+  reject(Object.assign(new Error('expired'), { status: 401 }));
+  assert.equal(await pending, null);
+  assert.equal(store.getState().status, 'authenticated');
+  assert.equal(clears, 0);
+});
