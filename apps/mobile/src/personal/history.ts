@@ -1,4 +1,4 @@
-import type { FinancialTransaction } from '@fintrack/shared';
+import { calendarDateSchema, type FinancialTransaction } from '@fintrack/shared';
 
 export function filterHistory(
   entries: FinancialTransaction[],
@@ -12,6 +12,12 @@ export function filterHistory(
     ascending: boolean;
   },
 ) {
+  if (
+    (filters.from && !calendarDateSchema.safeParse(filters.from).success) ||
+    (filters.to && !calendarDateSchema.safeParse(filters.to).success) ||
+    (filters.from && filters.to && filters.from > filters.to)
+  )
+    return [];
   const search = filters.search.trim().toLocaleLowerCase();
   return entries
     .filter(

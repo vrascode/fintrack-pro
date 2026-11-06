@@ -595,7 +595,7 @@ export function PersonalActivity() {
     if (typeof params.categoryId === 'string') setCategoryFilter(params.categoryId);
     if (typeof params.from === 'string') setFrom(params.from);
     if (typeof params.to === 'string') setTo(params.to);
-    if (params.kind === 'expense') setKindFilter('expense');
+    if (['income', 'expense', 'transfer'].includes(params.kind ?? '')) setKindFilter(params.kind!);
   }, [params.categoryId, params.from, params.to, params.kind]);
   const valid =
     (!from || calendarDateSchema.safeParse(from).success) &&

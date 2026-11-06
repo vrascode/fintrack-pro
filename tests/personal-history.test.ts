@@ -72,4 +72,10 @@ test('history combines filters, includes incoming transfers and sorts without mo
     rows.map((row) => row.id),
     ['a', 'b', 'c'],
   );
+  for (const period of [
+    { from: '2026-02-30', to: '' },
+    { from: '', to: 'invalid' },
+    { from: '2026-02-01', to: '2026-01-01' },
+  ])
+    assert.deepEqual(filterHistory(rows, { ...filters, ...period }), []);
 });
