@@ -1,4 +1,4 @@
-﻿# FinTrack Pro
+# FinTrack Pro
 
 ## Latest local changes
 
@@ -176,3 +176,41 @@ The main PostgreSQL 17 workflow was revalidated after the redesign. The configur
 The existing Vercel frontend needs a newly built public HTTPS API URL ending in
 `/v1`. See [Neon, Render, Vercel and Android deployment](docs/PRODUCTION_DEPLOYMENT.md).
 No cloud API, database, or signed APK is claimed by the local configuration.
+
+---
+
+## Latest Development Update
+
+FinTrack Pro continues to evolve as a full-stack personal finance platform.
+
+### Current Capabilities
+
+- Secure user authentication and session management
+- Financial accounts, income, expenses and transfers
+- Credit cards and transaction history
+- Monthly budgets and spending categories
+- Financial reports, projections and CSV exports
+- Responsive web and mobile interfaces
+- Portuguese and English support
+
+### Engineering and Quality
+
+- Backend built with NestJS and TypeScript
+- PostgreSQL database integration using Prisma
+- Automated testing and validation workflows
+- 163 automated tests passed in the latest verified publication
+- Database migration and credential-handling improvements
+- Render API startup configuration improvements
+- Android release configuration improvements
+
+### Deployment Status
+
+The planned production architecture uses Neon for PostgreSQL,
+Render for the API and Vercel for the web application.
+
+Production connectivity and deployment are still subject to
+verification. Android APK distribution also requires a working
+public HTTPS API.
+
+See [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md)
+for deployment instructions and requirements.
