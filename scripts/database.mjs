@@ -37,6 +37,38 @@ function run(args, cwd, env) {
   if (result.status !== 0) throw new Error('Database command failed; acceptance remains pending.');
 }
 
+export function databaseEnvironment(command, environment = process.env) {
+  const env = { ...environment };
+  if (command === 'test') {
+    env.DATABASE_URL = validateTestDatabaseUrl(env.TEST_DATABASE_URL);
+    // The CLI must never select a production DIRECT_URL during integration tests.
+    env.DIRECT_URL = env.DATABASE_URL;
+  }
+  if (command === 'generate' && !env.DATABASE_URL && !env.DIRECT_URL) {
+    // Client generation does not open a database connection.
+    env.DATABASE_URL = 'postgresql://generate:generate@127.0.0.1:5432/fintrack';
+  }
+  const connection = env.DIRECT_URL || env.DATABASE_URL;
+  if (!connection) throw new Error('DATABASE_URL or DIRECT_URL is required; see DATABASE.md.');
+  if (['migrate', 'status'].includes(command) && env.NODE_ENV === 'production') {
+    let url;
+    try {
+      url = new URL(connection);
+    } catch {
+      throw new Error('Production migration connection must be a valid PostgreSQL URL.');
+    }
+    if (
+      !['postgres:', 'postgresql:'].includes(url.protocol) ||
+      !['require', 'verify-ca', 'verify-full'].includes(url.searchParams.get('sslmode') ?? '')
+    ) {
+      throw new Error(
+        'Production migrations require PostgreSQL TLS (sslmode=require or stronger).',
+      );
+    }
+  }
+  return env;
+}
+
 export function main(command) {
   if (existsSync(resolve(root, '.env'))) loadEnvFile(resolve(root, '.env'));
   const commands = {
@@ -48,13 +80,7 @@ export function main(command) {
   if (command !== 'test' && !Object.hasOwn(commands, command)) {
     throw new Error('Use validate, generate, migrate, status or test.');
   }
-  const env = { ...process.env };
-  if (command === 'test') env.DATABASE_URL = validateTestDatabaseUrl(env.TEST_DATABASE_URL);
-  if (command === 'generate' && !env.DATABASE_URL) {
-    // Prisma config requires a URL for generation but this command never connects.
-    env.DATABASE_URL = 'postgresql://generate:generate@127.0.0.1:5432/fintrack';
-  }
-  if (!env.DATABASE_URL) throw new Error('DATABASE_URL is required; see DATABASE.md.');
+  const env = databaseEnvironment(command);
   let cli;
   try {
     // Prisma 7 exposes its executable through this explicit package subpath.

@@ -1,7 +1,13 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 
 export function createDatabaseAdapter(connectionString: string) {
-  const url = new URL(connectionString);
+  let url: URL;
+  try {
+    url = new URL(connectionString);
+  } catch {
+    // Node's URL error includes the original input, potentially exposing credentials.
+    throw new Error('DATABASE_URL must be a valid PostgreSQL connection URL.');
+  }
   if (
     process.env.NODE_ENV === 'production' &&
     (!['postgres:', 'postgresql:'].includes(url.protocol) ||
