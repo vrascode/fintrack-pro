@@ -188,7 +188,10 @@ export function Field({
         <TextInput
           {...props}
           ref={inputRef}
-          accessibilityLabel={label}
+          accessibilityLabel={props.accessibilityLabel ?? label}
+          accessibilityHint={props.accessibilityHint ?? hint}
+          accessibilityState={{ ...props.accessibilityState, disabled: props.editable === false }}
+          aria-disabled={props.editable === false}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
           onFocus={(event) => {

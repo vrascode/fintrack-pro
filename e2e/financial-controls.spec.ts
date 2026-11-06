@@ -133,3 +133,29 @@ test('rapid bill submissions issue one write and unlock after failure', async ({
   await expect(page.getByLabel('Descrição', { exact: true })).toHaveValue('Electricity');
   expect(writes).toBe(1);
 });
+
+test('account fields expose their disabled state during saving', async ({ page }) => {
+  await mockFinance(page);
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/v1/accounts', async (route) => {
+    const saving = route.request().method() === 'POST';
+    if (saving) await pending;
+    await route.fulfill({
+      json: saving ? account : [account],
+      headers: {
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:4173',
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    });
+  });
+  await openFinance(page, '/accounts');
+  const name = page.getByLabel('Nome da conta', { exact: true });
+  await name.fill('Accessible');
+  await page.getByRole('button', { name: 'Salvar conta', exact: true }).click();
+  await expect(name).toHaveAttribute('aria-disabled', 'true');
+  release();
+  await expect(name).toBeEnabled();
+});
