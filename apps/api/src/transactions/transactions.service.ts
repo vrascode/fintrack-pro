@@ -24,12 +24,14 @@ const querySchema = z
     to: calendarDateSchema.optional(),
     limit: z
       .string()
+      .max(3)
       .regex(/^\d+$/)
       .transform(Number)
       .pipe(z.number().int().min(1).max(100))
       .optional(),
     offset: z
       .string()
+      .max(7)
       .regex(/^\d+$/)
       .transform(Number)
       .pipe(z.number().int().min(0).max(1000000))

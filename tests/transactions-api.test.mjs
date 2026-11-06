@@ -35,6 +35,35 @@ test('transaction history accepts bounded pagination and stable ordering instead
   await assert.rejects(() => service.list(userId, { offset: '1000001' }), /Bad Request/);
 });
 
+test('pagination rejects oversized, fractional, repeated and nonnumeric parameters before querying', async () => {
+  let reads = 0;
+  const service = new TransactionsService({
+    db: {
+      transaction: {
+        findMany: async () => {
+          reads++;
+          return [];
+        },
+      },
+    },
+  });
+  for (const query of [
+    { limit: '0' },
+    { limit: '101' },
+    { limit: '1.5' },
+    { limit: ['10', '20'] },
+    { limit: ' '.repeat(10000) },
+    { offset: '0'.repeat(10000) },
+    { offset: '1e2' },
+    { offset: '-1' },
+    { offset: '1000001' },
+  ])
+    await assert.rejects(() => service.list(userId, query), /Bad Request/);
+  assert.equal(reads, 0);
+  await service.list(userId, { limit: '100', offset: '1000000' });
+  assert.equal(reads, 1);
+});
+
 test('transaction writes are owner-scoped, exact-cent, and idempotent', async () => {
   const records = new Map();
   let creates = 0;
