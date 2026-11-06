@@ -14,7 +14,9 @@ export function expoEnvironment(environment = process.env, rootEnvPath = resolve
   // Only public application configuration is forwarded from the root file.
   return {
     ...environment,
-    ...(value && !environment.EXPO_PUBLIC_API_URL ? { EXPO_PUBLIC_API_URL: value } : {}),
+    ...(value && environment.EXPO_PUBLIC_API_URL === undefined
+      ? { EXPO_PUBLIC_API_URL: value }
+      : {}),
   };
 }
 
