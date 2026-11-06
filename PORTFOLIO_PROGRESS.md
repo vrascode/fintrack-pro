@@ -1329,6 +1329,7 @@ lint, TypeScript, build, and formatting. `npm.cmd run release:check` and
 assertion correction. Real API availability, Vercel configuration, a new Ready
 deployment, Neon, Render, and an Android APK remain pending. Next: verify the
 production API and set its real HTTPS `/v1` URL in Vercel before redeploying.
+
 ## Vercel build investigation / Investigação do build — 2026-11-05
 
 At clean main `5928f0d390be6b5a108b654a97852d9d84a83c40`,
@@ -1395,4 +1396,54 @@ sessão com permissão para escrita autorizada no GitHub. As alterações locais
 continuam preservadas; nenhum deploy Ready ou banco de produção foi verificado.
 
 ## Atualizacao de desenvolvimento - 05/11/2026
+
 Registro de acompanhamento das correcoes de deploy do FinTrack Pro.
+
+## Production deployment audit / Auditoria de produção — 2026-11-05
+
+Started with a clean tree at `47d52faf40c76731610e3745464d07b199208c86`.
+The GitHub connector independently confirmed the same `main` head and a failed
+Vercel deployment at https://vercel.com/vrascode/fintrack-pro/4cSqjQzR3iHmh2vCzLkqy6mxaSG1.
+The previous twenty commits and the stash were preserved. No publisher from
+`.local/improvements-20` was run.
+
+Three local correction units are ready: Prisma CLI supports optional direct
+Neon connections while integration tests override both database URLs; production
+migration/status commands require TLS and malformed runtime URLs no longer leak
+their input. API startup defaults to external binding in production and validates
+the provider port. Android release shares the root public environment loader,
+forwards that configuration to EAS, resolves paths independently of the working
+directory and checks the FinTrack readiness identity. No schema, migration SQL,
+financial behavior, design, authentication flow or production resource changed.
+
+Validation executed: `npm.cmd run build`, `npm.cmd run lint`,
+`npm.cmd run typecheck`, `npm.cmd test` (163 passed, zero failures/skips),
+`npm.cmd run db:validate`, changed-file Prettier and `git diff --check` passed.
+The targeted deployment suite passed 13 tests. `npm.cmd run bundle` exported
+web, Android and iOS using the existing CI-only API fixture; this was not a
+production release. `npm.cmd run test:e2e -- --workers=4` passed 58 tests with
+mocked API responses. Production cookies, exact-origin CORS, session security and
+protected endpoints passed local automated coverage, not a production login test.
+
+Blocked checks: `npm.cmd run test:integration` failed with P1000 for the existing
+local `_test` role before migrations. `npm.cmd run test:e2e:isolated` failed to
+start PostgreSQL because pg_ctl could not create a restricted Windows token
+(error 87); no security settings or installed services were changed. Real-database
+E2E acceptance remains blocked. `npm.cmd run release:web` and
+`npm.cmd run release:android` both failed because EXPO_PUBLIC_API_URL is absent.
+EAS account lookup and public frontend HTTP requests were blocked by network
+access; no APK, production export or successful HTTP response was confirmed.
+
+Only local PostgreSQL credentials are available. Neon DATABASE_URL/DIRECT_URL,
+the real Render URL and authenticated Neon/Render/Vercel access are unavailable.
+Eleven existing migration SQL files were inspected; the goal-contribution
+idempotency backfill still requires checking pending migrations and existing data
+before production execution. No production migration was attempted.
+
+Correções locais preservadas em três patches e publicador separado em
+`.local/deploy-repair-47d52fa/`. Nenhum commit/push novo foi criado; `.git`
+continua somente leitura nesta sessão e o Git não alcança o GitHub pela rede.
+Próxima ação indispensável: conectar Neon, Render e Vercel, consultar logs do
+serviço existente, confirmar banco/migrations e URL HTTPS real, configurar a
+variável pública na Vercel/EAS e repetir testes de produção. Não há evidência de
+que banco, API e frontend funcionem juntos sem o computador local.

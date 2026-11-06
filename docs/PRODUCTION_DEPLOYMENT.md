@@ -18,6 +18,13 @@ O adaptador Prisma limita o pool da API a cinco conexões por instância e exige
 TLS em `NODE_ENV=production`. O Neon fornece conexões agrupadas; antes de
 aumentar instâncias ou pools, verificar os limites do plano contratado.
 
+Para migrations, disponibilizar também `DIRECT_URL` com a conexão **direta**
+do mesmo banco Neon, obtida no painel e com TLS. Prisma 7 usa essa variável
+em `prisma.config.mjs`; se ausente, usa `DATABASE_URL`. A API continua usando
+exclusivamente `DATABASE_URL`. Não adicionar `directUrl` ao schema: essa
+propriedade foi removida no Prisma 7. Testes de integração substituem ambas
+as URLs pelo destino local validado de `TEST_DATABASE_URL`.
+
 Ativar e verificar a recuperação disponível no plano Neon. Antes de cada
 migração, obter backup verificável ou criar uma ramificação de recuperação e
 testar a restauração. O período de recuperação do plano gratuito é limitado;
@@ -40,6 +47,14 @@ serviço Web Docker. Informar `DATABASE_URL` como segredo no painel. Conferir
 O ingresso Render fornece HTTPS; configurar health check em
 `/v1/health/ready`. Confirmar o domínio real atribuído no painel, sem adivinhar.
 
+Se o serviço `fintrack-pro` já existir, inspecionar e atualizar esse serviço;
+não criar outro apenas porque o Blueprint usa o nome `fintrack-pro-api`.
+O contexto Docker é a raiz do repositório. A imagem instala as dependências,
+gera o Prisma Client e compila os workspaces antes de iniciar
+`node apps/api/dist/main.js`. A API também usa `0.0.0.0` por padrão em produção
+quando `HOST` não estiver definido. Isso não confirma a configuração do serviço
+existente: logs e configurações do painel ainda precisam ser consultados.
+
 O plano gratuito Render suspende o serviço após 15 minutos sem tráfego e pode
 levar cerca de um minuto para acordar. É adequado a avaliação, mas essa latência
 e a ausência de garantia de disponibilidade não são adequadas ao uso financeiro
@@ -54,8 +69,9 @@ antes de criar/acionar o serviço Render.
 Antes do primeiro tráfego, em terminal confiável com acesso ao banco Neon:
 
 ```powershell
-# Defina DATABASE_URL na sessão por mecanismo seguro do provedor.
+# Defina DATABASE_URL e DIRECT_URL na sessão pelo mecanismo seguro do provedor.
 # Confirme o nome/host do banco e o backup antes de executar.
+$env:NODE_ENV = 'production'
 npm.cmd ci
 npm.cmd run db:status
 npm.cmd run db:migrate
@@ -66,6 +82,8 @@ npm.cmd run db:status
 vazio, aplica as migrações versionadas. Em banco já usado, revisar cada SQL e o
 backup antes de executar. Nunca apontar `test:integration` para produção: esse
 comando exige um banco local `_test` e cria/apaga registros.
+Em produção, `db:migrate` e `db:status` rejeitam URLs sem TLS antes de iniciar
+o Prisma. Nenhuma migration é aplicada automaticamente pelo build Docker.
 
 A migração `20261103230000_goal_contribution_idempotency` contém um `UPDATE` que
 preenche `idempotencyKey` em contribuições já existentes. Se a produção contiver
@@ -129,6 +147,10 @@ O comando verifica `/v1/health/ready` e solicita um APK interno assinado. Só
 registrar arquivo/link após a conclusão do build. Instalar em Android físico e
 validar Wi-Fi, dados móveis, sessão após reinício, contas, lançamentos, contas
 mensais e cartões com o PC desligado. Não há modo offline completo.
+O launcher Android carrega a URL pública do `.env` da raiz com a mesma
+precedência do release web, exige identificação `service=fintrack-api` no health
+check e encaminha a configuração validada ao EAS. O diretório do aplicativo é
+resolvido a partir do script, sem depender do diretório corrente do terminal.
 
 ## 5. Atualizações e diagnóstico
 
@@ -159,3 +181,17 @@ Create separate Neon production and staging databases, set the pooled TLS URL
 only in Render, review and back up before `db:migrate`, deploy the Render
 Blueprint, then set the real HTTPS `/v1` API URL in Vercel and EAS and rebuild.
 Validate real browser, SQL, and Android flows before using personal finances.
+
+Prisma 7 CLI operations prefer optional `DIRECT_URL` (the Neon direct TLS URL),
+while the API keeps `DATABASE_URL` (pooled). Integration tooling overrides both
+with the explicitly validated local test connection. Production migration/status
+commands require TLS; Docker builds never apply migrations. When updating an
+existing Render service, keep its identity and verify repository-root Docker
+context, current commit and health check rather than creating a duplicate.
+Production API startup defaults to `0.0.0.0` when HOST is absent. Android now loads
+the same public environment as the web release, verifies the FinTrack readiness
+identity and forwards the validated configuration to EAS.
+
+Configuration references: [Prisma 7 config](https://www.prisma.io/docs/orm/v7/reference/prisma-config-reference),
+[Neon with Prisma](https://neon.com/docs/guides/prisma),
+[Render port binding](https://render.com/docs/web-services#port-binding).
