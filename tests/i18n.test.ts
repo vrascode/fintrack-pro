@@ -21,4 +21,8 @@ test('date formatting uses locale and treats civil dates consistently', () => {
   assert.equal(formatDate('2026-01-05', 'pt-BR'), '5 de jan. de 2026');
   assert.equal(formatDate('2026-01-05', 'en'), 'Jan 5, 2026');
   assert.throws(() => formatDate('not-a-date', 'en'), RangeError);
+  for (const value of ['2025-02-29', '2026-04-31', '0000-01-01']) {
+    assert.throws(() => formatDate(value, 'en'));
+  }
+  assert.equal(formatDate('2024-02-29', 'en'), 'Feb 29, 2024');
 });

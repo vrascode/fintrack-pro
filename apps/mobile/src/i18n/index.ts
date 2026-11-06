@@ -1,3 +1,4 @@
+import { calendarDateSchema } from '@fintrack/shared';
 import { usePreferences } from '../preferences';
 import en from './en';
 import ptBR from './pt-BR';
@@ -45,6 +46,9 @@ export function formatCurrency(
 }
 
 export function formatDate(value: Date | string, language: 'pt-BR' | 'en'): string {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    calendarDateSchema.parse(value);
+  }
   const date =
     typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
       ? new Date(`${value}T12:00:00.000Z`)
