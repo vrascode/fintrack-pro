@@ -1393,3 +1393,6 @@ read-only; Git network access failed. gh auth status also reported invalid auth.
 Pendência indispensável: conectar Render, Neon e Vercel e disponibilizar uma
 sessão com permissão para escrita autorizada no GitHub. As alterações locais
 continuam preservadas; nenhum deploy Ready ou banco de produção foi verificado.
+
+## Atualizacao de desenvolvimento - 05/11/2026
+Registro de acompanhamento das correcoes de deploy do FinTrack Pro.
