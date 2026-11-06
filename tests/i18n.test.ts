@@ -7,6 +7,12 @@ test('translations cover the dashboard and settings in both supported languages'
   assert.equal(translate('en', 'nav.overview'), 'Overview');
   assert.equal(translate('pt-BR', 'home.noDataBadge'), 'DADOS FINANCEIROS NÃO CONECTADOS');
   assert.equal(translate('en', 'home.noDataBadge'), 'FINANCIAL DATA NOT CONNECTED');
+  assert.equal(translate('pt-BR', 'account.type.checking'), 'Conta corrente');
+  assert.equal(translate('en', 'account.type.checking'), 'Checking account');
+  for (const kind of ['checking', 'savings', 'wallet', 'cash'] as const) {
+    assert.ok(translate('pt-BR', `account.type.${kind}`).length > 0);
+    assert.ok(translate('en', `account.type.${kind}`).length > 0);
+  }
 });
 
 test('currency formatting preserves cent precision and supports amount privacy', () => {

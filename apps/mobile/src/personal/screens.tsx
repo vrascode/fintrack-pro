@@ -100,7 +100,7 @@ function AccountActions({
 }
 
 export function PersonalAccounts() {
-  const { text, language, formatCurrency, formatDate, hidden } = useLabels();
+  const { text, language, formatCurrency, formatDate, hidden, t } = useLabels();
   const { data, error, loading, refresh, token } = usePersonalFinance();
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('0');
@@ -203,7 +203,7 @@ export function PersonalAccounts() {
             <Card key={account.id}>
               <SectionHeading
                 title={account.name}
-                detail={`${account.type} · ${text('Saldo inicial em', 'Opening balance on')} ${formatDate(account.openingDate)}`}
+                detail={`${t(`account.type.${account.type}`)} · ${text('Saldo inicial em', 'Opening balance on')} ${formatDate(account.openingDate)}`}
               />
               <Label>
                 {account.openingDate > today()

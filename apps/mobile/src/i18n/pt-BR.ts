@@ -1,4 +1,8 @@
 const ptBR = {
+  'account.type.checking': 'Conta corrente',
+  'account.type.savings': 'Poupança',
+  'account.type.wallet': 'Carteira digital',
+  'account.type.cash': 'Dinheiro',
   'brand.tagline': 'Clareza para as escolhas do dia a dia',
   'shell.workspace': 'Seu espaço',
   'shell.local': 'Preferências neste dispositivo',

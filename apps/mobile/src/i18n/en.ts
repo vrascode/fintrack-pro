@@ -1,6 +1,10 @@
 import type ptBR from './pt-BR';
 
 const en: Record<keyof typeof ptBR, string> = {
+  'account.type.checking': 'Checking account',
+  'account.type.savings': 'Savings account',
+  'account.type.wallet': 'Digital wallet',
+  'account.type.cash': 'Cash',
   'brand.tagline': 'Clarity for everyday decisions',
   'shell.workspace': 'Your space',
   'shell.local': 'Preferences on this device',
