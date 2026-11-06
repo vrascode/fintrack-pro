@@ -385,7 +385,7 @@ export default function TabLayout() {
       <Tabs.Screen name="envelopes" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="cards" options={isDesktop ? { title: t('nav.cards') } : { href: null }} />
+      <Tabs.Screen name="cards" options={{ title: t('nav.cards'), tabBarButton: () => null }} />
       <Tabs.Screen name="budgets" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="goals" options={{ tabBarButton: () => null }} />
       <Tabs.Screen name="reports" options={{ tabBarButton: () => null }} />

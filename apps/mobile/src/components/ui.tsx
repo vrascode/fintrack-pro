@@ -251,6 +251,8 @@ export function Loading({ label }: { label?: string }) {
     <View
       accessibilityRole="progressbar"
       accessibilityLabel={message}
+      accessibilityState={{ busy: true }}
+      aria-busy={true}
       style={{ padding: designTokens.spacing.xxl, alignItems: 'center', gap: 14 }}
     >
       <ActivityIndicator color={colors.accent} />

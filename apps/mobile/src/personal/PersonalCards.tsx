@@ -10,7 +10,7 @@ import {
 } from '@fintrack/shared';
 import { apiClient, ApiClientError } from '../api/client';
 import { useAuth } from '../auth';
-import { Button, Card, Field, Label, Screen, StatusMessage } from '../components/ui';
+import { Button, Card, Field, Label, Loading, Screen, StatusMessage } from '../components/ui';
 import { parseLocalizedCents } from '../demo/input';
 import { useI18n } from '../i18n';
 import { useTheme } from '../theme';
@@ -45,7 +45,10 @@ export function PersonalCards() {
   const [paymentAmounts, setPaymentAmounts] = useState<Record<string, string>>({});
   const retry = useRef<{ fingerprint: string; key: string } | null>(null);
   const refresh = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLedger(null);
     try {
@@ -232,7 +235,7 @@ export function PersonalCards() {
         />
       </Card>
       {loading ? (
-        <Label>{text('Carregando…', 'Loading…')}</Label>
+        <Loading label={text('Carregando cartões…', 'Loading cards…')} />
       ) : cards.length === 0 ? (
         <Card>
           <Label>{text('Nenhum cartão cadastrado.', 'No cards yet.')}</Label>

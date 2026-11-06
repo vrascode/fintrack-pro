@@ -12,7 +12,7 @@ import { apiClient } from '../api/client';
 import { ApiClientError } from '../api/client';
 import { useAuth } from '../auth';
 import { parseLocalizedCents } from '../demo/input';
-import { Button, Card, Field, Label, Screen, StatusMessage } from '../components/ui';
+import { Button, Card, Field, Label, Loading, Screen, StatusMessage } from '../components/ui';
 import { useI18n } from '../i18n';
 import { useTheme } from '../theme';
 
@@ -37,7 +37,10 @@ export function PersonalBills() {
   const [payAmounts, setPayAmounts] = useState<Record<string, string>>({});
   const paymentRetry = useRef<{ fingerprint: string; key: string } | null>(null);
   const reload = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setBills([]);
     setAccounts([]);
@@ -275,7 +278,7 @@ export function PersonalBills() {
         ))}
       </View>
       {loading ? (
-        <Label>{text('Carregando…', 'Loading…')}</Label>
+        <Loading label={text('Carregando contas mensais…', 'Loading bills…')} />
       ) : (
         bills.flatMap((bill) => {
           const occurrences = Array.from(
