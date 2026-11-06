@@ -37,6 +37,15 @@ test('money JSON accepts only canonical bounded integers', () => {
   assert.throws(() => addMoney(MAX_MINOR, 1n));
   assert.throws(() => addMoney(MIN_MINOR, -1n));
 });
+test('addition rejects out-of-range operands even when cancellation makes the total valid', () => {
+  assert.throws(() => addMoney(MAX_MINOR + 1n, -1n));
+  assert.throws(() => addMoney(MIN_MINOR - 1n, 1n));
+  assert.throws(() => addMoney(MAX_MINOR + 1n, -(MAX_MINOR + 1n)));
+  assert.equal(addMoney(MAX_MINOR, 1n, -1n), MAX_MINOR);
+  assert.equal(addMoney(MIN_MINOR, -1n, 1n), MIN_MINOR);
+  assert.equal(addMoney(), 0n);
+});
+
 test('ratios round half away from zero and reject invalid denominator', () => {
   assert.equal(multiplyRatio(101n, 1n, 2n), 51n);
   assert.equal(multiplyRatio(-101n, 1n, 2n), -51n);

@@ -40,6 +40,7 @@ export function parseDecimal(value: string): bigint {
 }
 
 export function addMoney(...amounts: bigint[]): bigint {
+  for (const amount of amounts) serializeMoney(amount);
   return minorUnits(serializeMoney(amounts.reduce((sum, amount) => sum + amount, 0n)));
 }
 
