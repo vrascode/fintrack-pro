@@ -46,6 +46,7 @@ export function addMoney(...amounts: bigint[]): bigint {
 
 /** Round half away from zero, including negative adjustments. */
 export function multiplyRatio(amount: bigint, numerator: bigint, denominator: bigint): bigint {
+  serializeMoney(amount);
   if (denominator <= 0n) throw new RangeError('Denominator must be positive');
   const product = amount * numerator;
   const magnitude = product < 0n ? -product : product;

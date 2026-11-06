@@ -52,6 +52,11 @@ test('ratios round half away from zero and reject invalid denominator', () => {
   assert.equal(multiplyRatio(100n, 1n, 3n), 33n);
   assert.equal(multiplyRatio(100n, 2n, 3n), 67n);
   assert.throws(() => multiplyRatio(1n, 1n, 0n));
+  assert.throws(() => multiplyRatio(MAX_MINOR + 1n, 0n, 1n));
+  assert.throws(() => multiplyRatio(MIN_MINOR - 1n, 1n, 100n));
+  assert.equal(multiplyRatio(MAX_MINOR, 2n, 2n), MAX_MINOR);
+  assert.equal(multiplyRatio(MIN_MINOR, 2n, 2n), MIN_MINOR);
+  assert.throws(() => multiplyRatio(MAX_MINOR, 2n, 1n));
 });
 test('installments conserve every cent for positive and negative amounts', () => {
   assert.deepEqual(splitMoney(100n, 3), [34n, 33n, 33n]);
