@@ -1,6 +1,30 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { productionApiUrl } from '../scripts/release.mjs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { productionApiUrl, releaseEnvironment } from '../scripts/release.mjs';
+
+test('release loads root public configuration before validation and preserves environment precedence', () => {
+  mkdirSync('.local', { recursive: true });
+  const path = resolve(mkdtempSync(resolve('.local', 'release-env-')), '.env');
+  // Syntax-only fixture; never exported or used as a production endpoint.
+  writeFileSync(path, 'EXPO_PUBLIC_API_URL=https://api.fintrack.app/v1/\nDATABASE_URL=private\n');
+  assert.deepEqual(releaseEnvironment({ CI: '1' }, path), {
+    CI: '1',
+    EXPO_PUBLIC_API_URL: 'https://api.fintrack.app/v1',
+  });
+  for (const value of ['', 'http://localhost:3000/v1']) {
+    assert.throws(() => releaseEnvironment({ EXPO_PUBLIC_API_URL: value }, path));
+  }
+  writeFileSync(path, 'EXPO_PUBLIC_API_URL=http://localhost:3000/v1\n');
+  assert.equal(
+    releaseEnvironment({ EXPO_PUBLIC_API_URL: 'https://api.fintrack.app/v1' }, path)
+      .EXPO_PUBLIC_API_URL,
+    'https://api.fintrack.app/v1',
+  );
+  assert.throws(() => releaseEnvironment({}, path));
+  assert.throws(() => releaseEnvironment({}, resolve(path, 'missing')));
+});
 
 test('release rejects local, placeholder and credential-bearing endpoints', () => {
   for (const url of [
