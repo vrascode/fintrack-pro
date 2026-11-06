@@ -1329,3 +1329,67 @@ lint, TypeScript, build, and formatting. `npm.cmd run release:check` and
 assertion correction. Real API availability, Vercel configuration, a new Ready
 deployment, Neon, Render, and an Android APK remain pending. Next: verify the
 production API and set its real HTTPS `/v1` URL in Vercel before redeploying.
+## Vercel build investigation / Investigação do build — 2026-11-05
+
+At clean main `5928f0d390be6b5a108b654a97852d9d84a83c40`,
+`npm.cmd run release:web` exited 1 before Expo with
+`Set EXPO_PUBLIC_API_URL to the deployed HTTPS API, including /v1.`
+Neither the process nor the root `.env` supplied the API URL. This proves the
+local failure; the exact remote cause remains unconfirmed without Vercel logs.
+The GitHub connector reports Vercel failure for this commit at
+https://vercel.com/vrascode/fintrack-pro/Ae6jSZmE1uNB5DTYgDcHroJNHrk6.
+That page was inaccessible; no authenticated Vercel tools were available.
+
+Validation: `npm.cmd run lint` and `npm.cmd run typecheck` passed;
+`npm.cmd test` passed 143/143 tests with no skips. Node is v24.20.0.
+No production export succeeded in this investigation; no API URL was invented.
+No application, financial, authentication, or visual code was changed.
+`git fetch origin` failed writing `.git/FETCH_HEAD` (permission denied);
+`git ls-remote origin refs/heads/main` and GitHub CLI network access failed.
+
+Próximo passo: fornecer a URL HTTPS real da API com caminho `/v1`, configurar
+`EXPO_PUBLIC_API_URL` em Production na Vercel e repetir o release e o deploy.
+Next: obtain the real HTTPS API URL ending in `/v1`, configure the Production
+environment variable in Vercel, rerun the release, and verify deployment Ready.
+
+Commit local tambem bloqueado: Git nao pode criar .git/index.lock (Permission denied).
+
+## Release environment correction / Correção do ambiente — 2026-11-05
+
+Release now uses the Expo environment loader before URL validation and forwards
+that validated environment to the export. Existing process values, including
+empty values, take precedence. Only the public API URL is imported from .env.
+Added regression coverage for loading, normalization, precedence, missing files,
+invalid URLs, and excluding database secrets. Updated environment/deploy docs.
+
+Validation: npm.cmd run lint and npm.cmd run typecheck passed; npm.cmd test
+passed 144/144 with no skips. Prettier checks for changed JavaScript passed.
+npm.cmd run release:web still exits 1 because no real API URL is configured.
+No synthetic production export was performed. No production URL was found;
+the CI domain is explicitly a fixture. Render publication and its real URL,
+DATABASE_URL configuration, and Vercel settings still require provider access.
+GitHub reports Vercel failure for 5928f0d. No Ready deployment was verified.
+
+Não havia processo Git ativo nem .git/index.lock. ACLs de .git contêm negação
+de escrita; git add falhou com Permission denied. git ls-remote também falhou
+por conectividade. Nenhum commit ou push foi realizado. Próximo passo: configurar
+a API real e validar o release; publicar as alterações pelo terminal local com
+acesso Git, conferir Production na Vercel e acompanhar o novo deploy.
+
+## Authenticated deployment attempt / Tentativa de deploy — 2026-11-06
+
+Preserved the release correction. Re-ran npm.cmd run lint, npm.cmd run typecheck,
+and npm.cmd test: all passed, 144 tests, no skips. npm.cmd run release:web failed
+because EXPO_PUBLIC_API_URL remains absent. No production endpoint was invented.
+Provider plugin discovery found Render, Neon and Vercel available but not
+installed. Their CLIs and provider API keys were not available in this session.
+Requested account connections; no cloud resource or migration was created.
+GitHub connector confirmed main at 5928f0d390be6b5a108b654a97852d9d84a83c40.
+Attempted to prepare the five correction files through the authenticated GitHub
+connector; create_tree was rejected because approval is required and the session
+approval policy is never. No commit or remote update occurred. Local .git remains
+read-only; Git network access failed. gh auth status also reported invalid auth.
+
+Pendência indispensável: conectar Render, Neon e Vercel e disponibilizar uma
+sessão com permissão para escrita autorizada no GitHub. As alterações locais
+continuam preservadas; nenhum deploy Ready ou banco de produção foi verificado.
