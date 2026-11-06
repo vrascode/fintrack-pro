@@ -82,6 +82,14 @@ persistência de dados por usuários separados antes de usar produção.
 
 ## 3. Configurar Vercel
 
+O release carrega `EXPO_PUBLIC_API_URL` do `.env` da raiz antes da validação.
+Uma variável já definida pelo terminal ou provedor tem precedência, inclusive
+se estiver vazia (nesse caso, a validação falha). Apenas a URL pública é
+importada desse arquivo; segredos do banco não são encaminhados ao Expo.
+O `.env` local não é publicado no Git: configure a variável no painel Vercel.
+Confira também a integração com `vrascode/fintrack-pro`, branch de produção
+`main`, e Node.js 24.x compatível com `>=24.13.0 <25` do `package.json`.
+
 No projeto Vercel existente, verificar **Root Directory = raiz do repositório**,
 Framework Preset = Other, build `npm run release:web` e saída
 `apps/mobile/dist` (também definidos em `vercel.json`). Em **Settings >
@@ -140,6 +148,12 @@ Fontes consultadas em 2026-11-04: [Render Blueprint](https://render.com/docs/blu
 [recuperação Neon](https://neon.com/blog/practical-guide-to-database-branching).
 
 ## English summary
+
+Release loads the root `.env` public API URL before validation. Existing process
+values take precedence, including empty values, which fail validation. Only the
+public API URL is imported from the file. Configure it separately in Vercel;
+the local `.env` is not committed. Check the GitHub repository, production branch
+`main`, and Node 24.x matching the package engine range.
 
 Create separate Neon production and staging databases, set the pooled TLS URL
 only in Render, review and back up before `db:migrate`, deploy the Render
