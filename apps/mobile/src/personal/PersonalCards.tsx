@@ -282,7 +282,7 @@ export function PersonalCards() {
               {text('Fecha dia', 'Closes on day')} {item.closingDay} ·{' '}
               {text('vence dia', 'due on day')} {item.dueDay}
             </Label>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               <Button
                 variant="secondary"
                 selected={selected === item.id}

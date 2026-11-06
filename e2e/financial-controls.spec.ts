@@ -159,3 +159,32 @@ test('account fields expose their disabled state during saving', async ({ page }
   release();
   await expect(name).toBeEnabled();
 });
+
+test('long account selectors fit a 320px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 780 });
+  await mockFinance(page);
+  await page.route('**/v1/accounts', (route) =>
+    route.fulfill({
+      json: [
+        {
+          ...account,
+          name: 'Conta financeira para despesas compartilhadas da família e investimentos',
+        },
+      ],
+      headers: {
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:4173',
+        'Access-Control-Allow-Credentials': 'true',
+      },
+    }),
+  );
+  await openFinance(page, '/transaction');
+  const selector = page.getByRole('radio', {
+    name: /Conta financeira para despesas compartilhadas/,
+  });
+  await expect(selector).toBeVisible();
+  const bounds = await selector.boundingBox();
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+    .toBe(true);
+});

@@ -382,13 +382,38 @@ export default function TabLayout() {
       />
       <Tabs.Screen name="accounts" options={{ title: t('nav.accounts'), tabBarIcon: icon('◫') }} />
       <Tabs.Screen name="bills" options={{ title: t('nav.bills'), tabBarIcon: icon('◷') }} />
-      <Tabs.Screen name="envelopes" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="planning" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="transaction" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="cards" options={{ title: t('nav.cards'), tabBarButton: () => null }} />
-      <Tabs.Screen name="budgets" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="goals" options={{ tabBarButton: () => null }} />
-      <Tabs.Screen name="reports" options={{ tabBarButton: () => null }} />
+      <Tabs.Screen
+        name="envelopes"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="planning"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="transaction"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="cards"
+        options={{
+          title: t('nav.cards'),
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="budgets"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="goals"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
+      <Tabs.Screen
+        name="reports"
+        options={{ tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }}
+      />
       <Tabs.Screen
         name="preferences"
         options={{ title: t('nav.settingsTab'), tabBarIcon: icon('⚙') }}

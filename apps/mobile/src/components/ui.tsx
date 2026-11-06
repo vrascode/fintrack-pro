@@ -114,6 +114,7 @@ export function Button({
       style={({ pressed }) => ({
         minHeight: compact ? 44 : 48,
         minWidth: compact ? 44 : undefined,
+        maxWidth: '100%',
         paddingHorizontal: compact ? 14 : 20,
         paddingVertical: compact ? 9 : 12,
         borderRadius: designTokens.radius.md,
@@ -156,6 +157,7 @@ export function Button({
           fontFamily: designTokens.typography.family,
           fontWeight: '700',
           fontSize: compact ? 14 : 15,
+          flexShrink: 1,
         }}
       >
         {label}
