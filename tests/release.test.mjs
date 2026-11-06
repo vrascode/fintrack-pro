@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { productionApiUrl, releaseEnvironment } from '../scripts/release.mjs';
+import { productionApiUrl, releaseEnvironment, exportWeb } from '../scripts/release.mjs';
 
 test('release loads root public configuration before validation and preserves environment precedence', () => {
   mkdirSync('.local', { recursive: true });
@@ -45,4 +45,32 @@ test('release rejects local, placeholder and credential-bearing endpoints', () =
   }
   // Syntax-only sample: no request is sent and domain ownership is not asserted.
   assert.equal(productionApiUrl('https://api.fintrack.app/v1/'), 'https://api.fintrack.app/v1');
+});
+
+test('web release anchors paths to the repository and reports child failures', () => {
+  let invocation;
+  const environment = { CI: '1', EXPO_PUBLIC_API_URL: 'https://api.fintrack.app/v1' };
+  exportWeb(environment, (...args) => {
+    invocation = args;
+    return { status: 0 };
+  });
+  assert.equal(invocation[0], process.execPath);
+  assert.equal(invocation[1][0], resolve(import.meta.dirname, '../scripts/expo.mjs'));
+  assert.deepEqual(invocation[1].slice(1), ['export', '--platform', 'web']);
+  assert.equal(
+    invocation[2].cwd,
+    resolve(import.meta.dirname, '..') + (process.platform === 'win32' ? '\\' : '/'),
+  );
+  assert.equal(invocation[2].env.FINTRACK_RELEASE, '1');
+  assert.equal(invocation[2].env.EXPO_PUBLIC_API_URL, environment.EXPO_PUBLIC_API_URL);
+  assert.equal(environment.FINTRACK_RELEASE, undefined);
+  assert.throws(() => exportWeb(environment, () => ({ status: 7 })), { exitCode: 7 });
+  assert.throws(
+    () => exportWeb(environment, () => ({ status: null, signal: 'SIGTERM' })),
+    /SIGTERM/,
+  );
+  assert.throws(
+    () => exportWeb(environment, () => ({ error: new Error('ENOENT') })),
+    /Could not start/,
+  );
 });

@@ -1,8 +1,10 @@
 import { spawnSync } from 'node:child_process';
 import { isIP } from 'node:net';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { expoEnvironment } from './expo.mjs';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
 
 export function productionApiUrl(value) {
   let url;
@@ -36,6 +38,33 @@ export function releaseEnvironment(environment = process.env, rootEnvPath) {
   return { ...loaded, EXPO_PUBLIC_API_URL: productionApiUrl(loaded.EXPO_PUBLIC_API_URL) };
 }
 
+export function exportWeb(environment, run = spawnSync) {
+  const result = run(
+    process.execPath,
+    [resolve(root, 'scripts/expo.mjs'), 'export', '--platform', 'web'],
+    {
+      cwd: root,
+      stdio: 'inherit',
+      windowsHide: true,
+      env: { ...environment, FINTRACK_RELEASE: '1' },
+    },
+  );
+  if (result.error)
+    throw new Error('Could not start production Web export.', { cause: result.error });
+  if (result.status !== 0) {
+    const error = new Error(
+      result.signal
+        ? `Production Web export terminated by ${result.signal}.`
+        : 'Production Web export failed.',
+    );
+    error.exitCode =
+      Number.isInteger(result.status) && result.status > 0 && result.status <= 255
+        ? result.status
+        : 1;
+    throw error;
+  }
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   try {
     const environment = releaseEnvironment();
@@ -43,19 +72,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
       'Public API configuration passed static release checks. Availability and TLS still require deployment validation.',
     );
     if (process.argv.includes('--web')) {
-      const result = spawnSync(
-        process.execPath,
-        ['scripts/expo.mjs', 'export', '--platform', 'web'],
-        {
-          stdio: 'inherit',
-          windowsHide: true,
-          env: environment,
-        },
-      );
-      if (result.error || result.status !== 0) throw new Error('Production Web export failed.');
+      exportWeb(environment);
     }
   } catch (error) {
     console.error(error.message);
-    process.exitCode = 1;
+    process.exitCode = error.exitCode ?? 1;
   }
 }
